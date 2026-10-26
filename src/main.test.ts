@@ -235,14 +235,12 @@ describe('main.ts', () => {
     it('exits when no credential is configured in stdio mode', async () => {
       const { getState } = await import('./credential-state.js')
       vi.mocked(getState).mockReturnValueOnce('awaiting_setup')
-      const exitSpy = vi.spyOn(process, 'exit').mockImplementation((() => undefined) as never)
       const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
 
       await startServer('stdio')
 
       expect(exitSpy).toHaveBeenCalledWith(1)
       expect(registerToolsMock).not.toHaveBeenCalled()
-      exitSpy.mockRestore()
       stderrSpy.mockRestore()
     })
 
@@ -273,6 +271,8 @@ describe('main.ts', () => {
 
     it('exits 1 with stderr message when stdio mode is selected without NOTION_TOKEN', async () => {
       delete process.env.NOTION_TOKEN
+      const { getState } = await import('./credential-state.js')
+      vi.mocked(getState).mockReturnValueOnce('awaiting_setup')
       const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
       await startServer('stdio')
       expect(exitSpy).toHaveBeenCalledWith(1)

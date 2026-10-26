@@ -30,7 +30,7 @@ vi.mock('./tools/registry.js', () => ({
 
 vi.mock('./credential-state.js', () => ({
   resolveCredentialState: vi.fn().mockResolvedValue(undefined),
-  getNotionToken: vi.fn().mockReturnValue('ntn_test_token')
+  getState: vi.fn().mockReturnValue('configured')
 }))
 
 // Mock process.exit to prevent test runner from exiting
