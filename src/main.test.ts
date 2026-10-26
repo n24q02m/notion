@@ -2,7 +2,7 @@ import * as fs from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { bootstrap, getTransportMode, isMain, mode, startServer } from './main.js'
+import { bootstrap, getTransportMode, isMain, mode, relayCommand, startServer } from './main.js'
 
 const startHttpMock = vi.fn()
 const stdioConnectMock = vi.fn().mockResolvedValue(undefined)
@@ -502,5 +502,16 @@ describe('main.ts', () => {
 
       onceSpy.mockRestore()
     })
+  })
+})
+
+describe('relayCommand', () => {
+  it('refuses with exit 2 and points to notion auth', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    expect(relayCommand()).toBe(2)
+    expect(errorSpy).toHaveBeenCalledWith('relay was removed; run `notion auth` (see README)')
+
+    errorSpy.mockRestore()
   })
 })

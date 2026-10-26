@@ -210,12 +210,22 @@ export async function authCommand(argv: string[]): Promise<number> {
   return 0
 }
 
+/**
+ * `relay` was removed with the mcp-core credential-form flow. Hull ships a
+ * built-in `relay` subcommand, so it is overridden here to fail with a clear
+ * pointer to `notion auth` instead of starting the removed flow.
+ */
+export function relayCommand(): number {
+  console.error('relay was removed; run `notion auth` (see README)')
+  return 2
+}
+
 // Only execute the CLI if we're the main module and not in a test environment.
 if (isMain(import.meta.url) && process.env.NODE_ENV !== 'test') {
   buildCli(SERVER_NAME, {
     serve,
     version: getPackageVersion(),
     pluginName: STORE_PLUGIN,
-    extra: { auth: authCommand }
+    extra: { auth: authCommand, relay: relayCommand }
   })(process.argv.slice(2)).then((code) => process.exit(code))
 }
