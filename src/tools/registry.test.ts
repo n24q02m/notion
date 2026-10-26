@@ -11,22 +11,10 @@ vi.mock('./composite/workspace.js', () => ({ workspace: vi.fn() }))
 vi.mock('./composite/file-uploads.js', () => ({ fileUploads: vi.fn() }))
 vi.mock('./composite/config.js', () => ({ config: vi.fn() }))
 
-// Mock mcp-core open-relay helper to avoid spawning daemons in tests
-vi.mock('@n24q02m/mcp-core', () => ({
-  buildOpenRelayHandler: vi.fn(() =>
-    vi.fn(async () => ({
-      url: 'http://127.0.0.1:9999/',
-      browserOpened: false,
-      status: 'awaiting_setup' as const
-    }))
-  )
-}))
-
-// Mock credential state (tests run with credentials already configured)
+// Mock credential state (tests run with a stored token)
 vi.mock('../credential-state.js', () => ({
-  getState: vi.fn(() => 'configured'),
-  getSetupUrl: vi.fn(() => null),
-  triggerRelaySetup: vi.fn()
+  SETUP_HINT: 'Run "notion auth" on the server to store a Notion integration token.',
+  getSubjectToken: vi.fn(async () => 'fixture-stored-value')
 }))
 
 // Mock node:path to allow simulating path traversal by controlling join
@@ -60,7 +48,7 @@ vi.mock('node:fs/promises', () => ({
 
 import { readFile } from 'node:fs/promises'
 import { relative, sep } from 'node:path'
-import { getState } from '../credential-state.js'
+import { getSubjectToken } from '../credential-state.js'
 import { blocks } from './composite/blocks.js'
 import { commentsManage } from './composite/comments.js'
 import { config } from './composite/config.js'
@@ -84,8 +72,7 @@ const EXPECTED_TOOL_NAMES = [
   'content_convert',
   'file_uploads',
   'help',
-  'config',
-  'config__open_relay'
+  'config'
 ]
 
 const EXPECTED_RESOURCE_URIS = [
@@ -140,11 +127,11 @@ describe('registerTools', () => {
   })
 
   describe('ListTools handler', () => {
-    it('should return exactly 11 tools', async () => {
+    it('should return exactly 10 tools', async () => {
       const handler = server.getHandler(0)
       const result = await handler()
 
-      expect(result.tools).toHaveLength(11)
+      expect(result.tools).toHaveLength(10)
     })
 
     it('should return all expected tool names', async () => {
@@ -512,33 +499,6 @@ describe('registerTools', () => {
       expect(result.content[0].text).toBe(JSON.stringify(mockResult, null, 2))
     })
 
-    it('should route config__open_relay tool and return relay URL JSON', async () => {
-      const handler = server.getHandler(3)
-
-      const result = await handler({
-        params: { name: 'config__open_relay', arguments: {} }
-      })
-
-      const parsed = JSON.parse(result.content[0].text)
-      expect(parsed).toEqual({
-        url: 'http://127.0.0.1:9999/',
-        browserOpened: false,
-        status: 'awaiting_setup'
-      })
-      expect(result.isError).toBeUndefined()
-    })
-
-    it('should expose config__open_relay in TOOLS list with empty input schema', async () => {
-      const listHandler = server.getHandler(0)
-      const result = await listHandler()
-      const tool = result.tools.find((t: any) => t.name === 'config__open_relay')
-
-      expect(tool).toBeDefined()
-      expect(tool.inputSchema.type).toBe('object')
-      expect(tool.inputSchema.properties).toEqual({})
-      expect(tool.inputSchema.additionalProperties).toBe(false)
-    })
-
     it('should route file_uploads tool correctly and wrap response with XPIA safety markers', async () => {
       const handler = server.getHandler(3)
       const mockResult = { action: 'list', uploads: [] }
@@ -816,40 +776,15 @@ describe('registerTools', () => {
     })
   })
 
-  it('should return setup instructions when unconfigured and PUBLIC_URL is missing', async () => {
+  it('should return the setup hint when unconfigured', async () => {
     const handler = server.getHandler(3)
-    vi.mocked(getState).mockReturnValue('awaiting_setup')
-
-    const originalPublicUrl = process.env.PUBLIC_URL
-    delete process.env.PUBLIC_URL
+    vi.mocked(getSubjectToken).mockResolvedValueOnce(null)
 
     const result = await handler({
       params: { name: 'pages', arguments: { action: 'get', page_id: 'p1' } }
     })
 
     expect(result.isError).toBe(true)
-    expect(result.content[0].text).toContain('Notion access token is not present')
-    expect(result.content[0].text).toContain('NOTION_TOKEN')
-
-    process.env.PUBLIC_URL = originalPublicUrl
-    vi.mocked(getState).mockReturnValue('configured')
-  })
-
-  it('should return OAuth instructions when unconfigured and PUBLIC_URL is present', async () => {
-    const handler = server.getHandler(3)
-    vi.mocked(getState).mockReturnValue('awaiting_setup')
-
-    const originalPublicUrl = process.env.PUBLIC_URL
-    process.env.PUBLIC_URL = 'https://mcp.example.com'
-
-    const result = await handler({
-      params: { name: 'pages', arguments: { action: 'get', page_id: 'p1' } }
-    })
-
-    expect(result.isError).toBe(true)
-    expect(result.content[0].text).toContain('https://mcp.example.com/authorize')
-
-    process.env.PUBLIC_URL = originalPublicUrl
-    vi.mocked(getState).mockReturnValue('configured')
+    expect(result.content[0].text).toContain('notion auth')
   })
 })

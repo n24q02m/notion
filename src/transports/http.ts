@@ -1,157 +1,64 @@
 /**
- * HTTP Transport -- single remote-oauth multi-user mode.
+ * HTTP transport: Streamable HTTP on hull `runHttpServer`.
  *
- * Post stdio-pure + http-multi-user split (2026-05-01): the MCP_MODE flavor
- * (``local-relay`` vs ``remote-oauth``) is gone. HTTP mode is always
- * delegated OAuth 2.1 redirect flow to Notion at
- * ``https://api.notion.com/v1/oauth/authorize`` with per-JWT-sub Notion
- * token storage. Single-user paste-token relay form is no longer supported
- * here -- use stdio mode with NOTION_TOKEN env for single-user setups.
+ * Environment:
+ *   PORT                  listen port (default 0 = auto)
+ *   HOST                  bind host (default 127.0.0.1)
+ *   MCP_AUTH_MODE         multi (default) | token | no-auth
+ *   MCP_USERS_FILE        users.toml for multi (default ~/.hull/users.toml)
+ *   MCP_AUTH_TOKEN_HASH   scrypt$ hash of the shared token, for token mode
+ *                         (mint with `token hash`)
+ *   MCP_RPM               optional per-minute cap, token mode
  *
- * Required env: NOTION_OAUTH_CLIENT_ID, NOTION_OAUTH_CLIENT_SECRET.
+ * Multi mode resolves each caller to a namespace via hull `currentUser()`.
+ * The Notion token is then read from that namespace only. `no-auth` refuses
+ * non-loopback hosts (enforced by hull).
  */
-
-import { AsyncLocalStorage } from 'node:async_hooks'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { runHttpServer } from '@n24q02m/mcp-core'
-import { Client } from '@notionhq/client'
-import { NotionTokenStore } from '../auth/notion-token-store.js'
+import type { HttpAuthConfig } from '@n24q02m/hull/token-auth'
+import { runHttpServer } from '@n24q02m/hull/transport'
 import { createMCPServer } from '../create-server.js'
-import { resolveCredentialState, setState, setSubjectTokenResolver } from '../credential-state.js'
-import { NotionMCPError } from '../tools/helpers/errors.js'
+import { notionClientForCaller } from '../notion-client.js'
 
 const SERVER_NAME = 'notion'
 
-/**
- * Parse a `--flag=value` argv entry. Used for the BYO OAuth client CLI flags
- * below -- notion's `--http` serve path has no interactive subcommand to
- * attach flags to (unlike wet/mnemo's `auth --client-id`), so the flags ride
- * on the same leading-dash argv that `--http` itself uses (buildCli passes
- * it through to `serve` untouched). Returns null if the flag is absent.
- */
-function argFlag(name: string): string | null {
-  const prefix = `--${name}=`
-  const found = process.argv.find((a) => a.startsWith(prefix))
-  return found ? found.slice(prefix.length) : null
-}
-
-export const subjectContext = new AsyncLocalStorage<{ sub: string }>()
-
-/**
- * Derive the JWT subject from the upstream Notion token response.
- *
- * Notion's OAuth token payload identifies the authorizing principal by
- * ``owner.user.id`` (user-level integrations) and ALWAYS carries
- * ``workspace_id`` + ``bot_id``. There is NO ``owner_user_id`` field. Prefer the
- * human user id for per-user isolation, then fall back to the workspace, then
- * the bot, so the JWT ``sub`` (and thus the per-sub token bucket) is a
- * stable real identity rather than the shared ``'default'`` bucket
- * — collapsing every caller onto ``'default'`` would silently break multi-user
- * isolation. ``'default'`` is reserved for a malformed response only.
- */
-export function deriveSubject(tokens: Record<string, unknown>): string {
-  const owner = tokens.owner as { user?: { id?: unknown } } | undefined
-  const userId = owner?.user?.id
-  if (typeof userId === 'string' && userId) return userId
-  const workspaceId = tokens.workspace_id
-  if (typeof workspaceId === 'string' && workspaceId) return workspaceId
-  const botId = tokens.bot_id
-  if (typeof botId === 'string' && botId) return botId
-  return 'default'
+/** Maps the MCP_AUTH_* environment to a hull `HttpAuthConfig`. */
+export function buildAuthConfig(env: NodeJS.ProcessEnv): HttpAuthConfig {
+  const mode = env.MCP_AUTH_MODE ?? 'multi'
+  switch (mode) {
+    case 'multi':
+      return { mode: 'multi', usersFile: env.MCP_USERS_FILE || undefined }
+    case 'token': {
+      const tokenHash = env.MCP_AUTH_TOKEN_HASH
+      if (!tokenHash) {
+        throw new Error('MCP_AUTH_MODE=token requires MCP_AUTH_TOKEN_HASH (mint with `token hash`)')
+      }
+      const rpm = env.MCP_RPM ? Number.parseInt(env.MCP_RPM, 10) : null
+      return { mode: 'token', tokenHash, rpm }
+    }
+    case 'no-auth':
+      return { mode: 'no-auth' }
+    default:
+      throw new Error(`Unknown MCP_AUTH_MODE "${mode}" (expected multi, token, or no-auth)`)
+  }
 }
 
 export async function startHttp(): Promise<void> {
-  await resolveCredentialState()
-
-  const tokenStore = new NotionTokenStore()
-
-  const notionClientFactory = () => {
-    const ctx = subjectContext.getStore()
-    const token = ctx ? tokenStore.get(ctx.sub) : undefined
-    if (!token) {
-      throw new NotionMCPError(
-        'Notion access token not present for this session',
-        'NOT_CONFIGURED',
-        'Re-authorize via the Notion OAuth flow on /authorize.'
-      )
-    }
-    return new Client({ auth: token, notionVersion: '2025-09-03' })
-  }
-
   const port = process.env.PORT ? Number.parseInt(process.env.PORT, 10) : 0
-  const host = process.env.HOST
+  const host = process.env.HOST || '127.0.0.1'
+  const auth = buildAuthConfig(process.env)
 
-  // BYO OAuth client: CLI flag overrides env var (parity with wet/mnemo's
-  // `auth --client-id`/`--client-secret`; see argFlag doc comment above).
-  const clientId = argFlag('oauth-client-id') || process.env.NOTION_OAUTH_CLIENT_ID
-  const clientSecret = argFlag('oauth-client-secret') || process.env.NOTION_OAUTH_CLIENT_SECRET
-  if (!clientId || !clientSecret) {
-    throw new Error(
-      'NOTION_OAUTH_CLIENT_ID and NOTION_OAUTH_CLIENT_SECRET are required for http mode ' +
-        '(or pass --oauth-client-id=<id> --oauth-client-secret=<secret>).'
-    )
-  }
-
-  // MCP_AUTH_DISABLE=1 skips Bearer JWT verification — for deployments behind
-  // an external auth boundary (reverse proxy, API gateway like agentgateway).
-  // Caller is responsible for upstream auth + providing Notion token via a
-  // separate channel (e.g. NOTION_TOKEN env var resolved by tokenStore default).
-  const authDisabled = process.env.MCP_AUTH_DISABLE === '1'
-
-  // Container deployments should set CREDENTIAL_SECRET in the container env.
-  // When set, mcp-core's JWTIssuer derives a deterministic Ed25519 (EdDSA)
-  // signing key via HKDF-SHA256 with no disk I/O. Without it, JWTIssuer falls
-  // back to RS256 keys persisted to disk, so on an ephemeral container FS the
-  // OAuth identity breaks on every container recreate. No code change is needed
-  // here because runHttpServer/createDelegatedOAuthApp already read it from env.
-
-  const handle = await runHttpServer(() => createMCPServer(notionClientFactory) as unknown as McpServer, {
+  const handle = await runHttpServer(() => createMCPServer(notionClientForCaller) as unknown as McpServer, {
     serverName: SERVER_NAME,
     port,
     host,
-    authDisabled,
-    delegatedOAuth: {
-      flow: 'redirect',
-      upstream: {
-        authorizeUrl: 'https://api.notion.com/v1/oauth/authorize',
-        tokenUrl: 'https://api.notion.com/v1/oauth/token',
-        clientId,
-        clientSecret,
-        scopes: []
-      },
-      onTokenReceived: async (tokens: Record<string, unknown>) => {
-        const accessToken = String(tokens.access_token ?? '')
-        const sub = deriveSubject(tokens)
-        if (accessToken) tokenStore.save(sub, accessToken)
-        // Return sub so mcp-core propagates it into the bearer JWT's `sub`
-        // claim, which `authScope` below then matches back to the stored token.
-        return sub
-      }
-    },
-    authScope: async (claims: { sub?: unknown; anonymous?: unknown }, next: () => Promise<void>) => {
-      // Anonymous caller (auth-disabled mode behind gateway): use 'default'
-      // bucket so a single deployment can serve one Notion token via env.
-      const sub = claims.anonymous === true ? 'default' : typeof claims.sub === 'string' ? claims.sub : 'default'
-      await subjectContext.run({ sub }, next)
-    }
+    auth
   })
-
-  // The server is fully configured once OAuth client credentials are
-  // validated; per-user Notion tokens live in `tokenStore` keyed by JWT
-  // sub. Mark state=configured so `config(action=status)` reflects
-  // server readiness.
-  setState('configured')
-  // Route `getSubjectToken()` to the per-user store so
-  // `config(action=status).has_token` reflects whether THIS caller has
-  // authorized.
-  setSubjectTokenResolver(() => {
-    const ctx = subjectContext.getStore()
-    return ctx ? (tokenStore.get(ctx.sub) ?? null) : null
-  })
-  console.error(`[${SERVER_NAME}] http mode on http://${handle.host}:${handle.port}/mcp`)
+  console.error(`[notion] http mode on ${handle.host}:${handle.port} (auth=${auth.mode})`)
 
   await new Promise<void>((resolve) => {
-    const shutdown = async (): Promise<void> => {
+    const shutdown = async () => {
+      console.error(`[${SERVER_NAME}] shutting down`)
       await handle.close()
       resolve()
     }

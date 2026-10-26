@@ -1,10 +1,17 @@
 /**
  * Config Tool
- * Manage credential state, relay setup, and configuration lifecycle.
+ * Manage credential state and configuration lifecycle.
  * Does NOT require a Notion client -- works independently.
  */
 
-import { getState, getSubjectToken, resetState, resolveCredentialState } from '../../credential-state.js'
+import {
+  type CredentialState,
+  getState,
+  getSubjectToken,
+  resetState,
+  resolveCredentialState,
+  SETUP_HINT
+} from '../../credential-state.js'
 import { NotionMCPError, withErrorHandling } from '../helpers/errors.js'
 
 export interface ConfigInput {
@@ -15,21 +22,27 @@ export interface ConfigInput {
 }
 
 /**
+ * Credential state for the CURRENT caller. The process-global `getState()`
+ * only tracks the default namespace, so multi-user HTTP derives state from
+ * the caller's own token instead.
+ */
+function stateFor(token: string | null): CredentialState {
+  return token !== null ? 'configured' : 'awaiting_setup'
+}
+
+/**
  * Credential/setup-focused fields shared by `status` (kept for backward
  * compatibility -- it has always returned exactly this shape) and the
  * dedicated `setup_status` action (parity with the credential-state-only
  * action every other server in the stack exposes, e.g. wet/mnemo/telegram
  * `config(action="setup_status")`).
  */
-function buildSetupStatusInfo() {
-  const state = getState()
-  const token = getSubjectToken()
-  const publicUrl = process.env.PUBLIC_URL ?? null
+async function buildSetupStatusInfo() {
+  const token = await getSubjectToken()
   return {
-    state,
+    state: stateFor(token),
     has_token: token !== null,
-    setup_url: publicUrl ? `${publicUrl}/authorize` : null,
-    token_source: token ? (process.env.NOTION_TOKEN ? 'environment' : publicUrl ? 'oauth' : 'relay') : null
+    token_source: token ? (process.env.NOTION_TOKEN ? 'environment' : 'config') : null
   }
 }
 
@@ -40,56 +53,42 @@ export async function config(input: ConfigInput): Promise<any> {
   return withErrorHandling(async () => {
     switch (input.action) {
       case 'status': {
-        return { action: 'status', ...buildSetupStatusInfo() }
+        return { action: 'status', ...(await buildSetupStatusInfo()) }
       }
 
       case 'setup_status': {
-        return { action: 'setup_status', ...buildSetupStatusInfo() }
+        return { action: 'setup_status', ...(await buildSetupStatusInfo()) }
       }
 
       case 'setup_start': {
-        // Post stdio-pure + http-multi-user split (2026-05-01): the
-        // daemon-bridge relay setup spawn is gone. In stdio mode the
-        // server requires NOTION_TOKEN env at startup. In HTTP mode the
-        // OAuth flow lives at <PUBLIC_URL>/authorize served by the same
-        // process -- no separate trigger needed.
-        const publicUrl = process.env.PUBLIC_URL
-        if (publicUrl) {
-          return {
-            action: 'setup_start',
-            state: getState(),
-            setup_url: `${publicUrl}/authorize`,
-            message: `Open ${publicUrl}/authorize in your browser to complete the Notion OAuth flow.`
-          }
-        }
         return {
           action: 'setup_start',
-          state: getState(),
-          setup_url: null,
-          message:
-            'In stdio mode set NOTION_TOKEN env var in your MCP plugin config (get token from https://www.notion.so/my-integrations). To use HTTP/OAuth flow run with TRANSPORT_MODE=http and PUBLIC_URL set.'
+          state: stateFor(await getSubjectToken()),
+          message: SETUP_HINT
         }
       }
 
       case 'setup_reset': {
-        resetState()
+        await resetState()
         return {
           action: 'setup_reset',
           state: getState(),
-          message: 'Credential state reset. Token cleared, config file deleted. Use setup_start to reconfigure.'
+          message: 'Credential state reset. Stored token cleared. Use "notion auth" to store a new token.'
         }
       }
 
       case 'setup_complete': {
-        const newState = await resolveCredentialState()
+        await resolveCredentialState()
+        const token = await getSubjectToken()
+        const newState = stateFor(token)
         return {
           action: 'setup_complete',
           state: newState,
-          has_token: getSubjectToken() !== null,
+          has_token: token !== null,
           message:
             newState === 'configured'
               ? 'Credentials verified. Notion tools are ready.'
-              : 'No credentials found. Use setup_start to begin relay setup.'
+              : `No credentials found. ${SETUP_HINT}`
         }
       }
 
@@ -97,7 +96,7 @@ export async function config(input: ConfigInput): Promise<any> {
         return {
           action: 'set',
           ok: false,
-          error: 'Notion has no mutable runtime settings. To update your token, use setup_reset then setup_start.'
+          error: 'Notion has no mutable runtime settings. To update your token, use setup_reset then "notion auth".'
         }
       }
 

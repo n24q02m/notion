@@ -2,7 +2,7 @@ import * as fs from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { bootstrap, getTransportMode, isMain, mode, startServer } from './main.js'
+import { bootstrap, getTransportMode, isMain, mode, relayCommand, startServer } from './main.js'
 
 const startHttpMock = vi.fn()
 const stdioConnectMock = vi.fn().mockResolvedValue(undefined)
@@ -33,24 +33,24 @@ vi.mock('@modelcontextprotocol/sdk/server/stdio.js', () => {
   return { StdioServerTransport: MockStdioServerTransport }
 })
 
-vi.mock('@notionhq/client', () => ({
-  Client: vi.fn().mockImplementation(class {} as any)
+vi.mock('./notion-client.js', () => ({
+  createNotionClient: vi.fn(),
+  notionClientForCaller: vi.fn()
 }))
 
 vi.mock('./tools/registry.js', () => ({
   registerTools: (...args: unknown[]) => {
     registerToolsMock(...args)
-    if (typeof args[1] === 'function') {
-      try {
-        args[1]()
-      } catch (_e) {}
-    }
   }
 }))
 
 vi.mock('./credential-state.js', () => ({
+  DEFAULT_NAMESPACE: 'default',
+  STORE_PLUGIN: 'better-notion',
+  assertNamespace: vi.fn((ns: string) => ns),
+  getState: vi.fn().mockReturnValue('configured'),
   resolveCredentialState: vi.fn().mockResolvedValue('configured'),
-  getNotionToken: vi.fn().mockReturnValue('ntn_test_token')
+  saveNamespaceToken: vi.fn().mockResolvedValue(undefined)
 }))
 
 // Mock node:fs to allow spying on realpathSync in ESM
@@ -224,36 +224,24 @@ describe('main.ts', () => {
   })
 
   describe('startServer', () => {
-    it('verifies notionClientFactory correctly creates Client', async () => {
-      process.env.NOTION_TOKEN = 'ntn_test_token'
-      const { getNotionToken } = await import('./credential-state.js')
-      vi.mocked(getNotionToken).mockReturnValueOnce('ntn_test_token')
+    it('passes notionClientForCaller to registerTools', async () => {
+      const { notionClientForCaller } = await import('./notion-client.js')
 
       await startServer('stdio')
 
-      const factory = registerToolsMock.mock.calls[0][1]
-      expect(typeof factory).toBe('function')
-
-      factory()
-      const { Client } = await import('@notionhq/client')
-      expect(Client).toHaveBeenCalledWith({
-        auth: 'ntn_test_token',
-        notionVersion: '2025-09-03'
-      })
+      expect(registerToolsMock.mock.calls[0][1]).toBe(notionClientForCaller)
     })
 
-    it('verifies notionClientFactory throws when token is missing', async () => {
-      process.env.NOTION_TOKEN = 'ntn_test_token'
-      const { getNotionToken } = await import('./credential-state.js')
-      // Persist the null return: the registerTools mock auto-invokes the
-      // factory once (swallowing the throw), so a one-shot mock would be
-      // consumed before this test's explicit factory() assertion below.
-      vi.mocked(getNotionToken).mockReturnValue(null)
+    it('exits when no credential is configured in stdio mode', async () => {
+      const { getState } = await import('./credential-state.js')
+      vi.mocked(getState).mockReturnValueOnce('awaiting_setup')
+      const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
 
       await startServer('stdio')
 
-      const factory = registerToolsMock.mock.calls[0][1]
-      expect(() => factory()).toThrow('Notion integration token not configured')
+      expect(exitSpy).toHaveBeenCalledWith(1)
+      expect(registerToolsMock).not.toHaveBeenCalled()
+      stderrSpy.mockRestore()
     })
 
     it('verifies call to startHttp when mode is http', async () => {
@@ -283,6 +271,8 @@ describe('main.ts', () => {
 
     it('exits 1 with stderr message when stdio mode is selected without NOTION_TOKEN', async () => {
       delete process.env.NOTION_TOKEN
+      const { getState } = await import('./credential-state.js')
+      vi.mocked(getState).mockReturnValueOnce('awaiting_setup')
       const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
       await startServer('stdio')
       expect(exitSpy).toHaveBeenCalledWith(1)
@@ -391,12 +381,6 @@ describe('main.ts', () => {
       readFileSyncSpy.mockRestore()
     })
 
-    it('verifies notionClientFactory error when token is missing', async () => {
-      const { getNotionToken } = await import('./credential-state.js')
-      vi.mocked(getNotionToken).mockReturnValueOnce(null as any)
-      process.env.NOTION_TOKEN = 'ntn_test_token'
-      await startServer('stdio')
-    })
     it('verifies bootstrap is called when isMain is true', async () => {
       vi.stubEnv('NODE_ENV', 'production') // Not "test"
       process.env.NOTION_TOKEN = 'ntn_test_token'
@@ -518,5 +502,16 @@ describe('main.ts', () => {
 
       onceSpy.mockRestore()
     })
+  })
+})
+
+describe('relayCommand', () => {
+  it('refuses with exit 2 and points to notion auth', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    expect(relayCommand()).toBe(2)
+    expect(errorSpy).toHaveBeenCalledWith('relay was removed; run `notion auth` (see README)')
+
+    errorSpy.mockRestore()
   })
 })

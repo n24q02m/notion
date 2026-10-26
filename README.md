@@ -5,7 +5,7 @@ mcp-name: io.github.n24q02m/better-notion-mcp
 **Markdown-first Notion for AI agents -- pages, databases, blocks, and comments in one call.**
 
 <!-- Badge Row 1: Status -->
-[![Mode](https://img.shields.io/badge/mode-http_remote_oauth_%C2%B7_http_local_relay_%C2%B7_stdio_proxy-5C6BC0)](https://mcp.n24q02m.com/get-started/modes-overview/)
+[![Mode](https://img.shields.io/badge/mode-http_bearer_token_%C2%B7_stdio-5C6BC0)](https://mcp.n24q02m.com/get-started/modes-overview/)
 [![CI](https://github.com/n24q02m/notion/actions/workflows/ci.yml/badge.svg)](https://github.com/n24q02m/notion/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/n24q02m/notion/graph/badge.svg?token=D7FSDVVTAN)](https://codecov.io/gh/n24q02m/notion)
 [![npm](https://img.shields.io/npm/v/@n24q02m/notion?logo=npm&logoColor=white)](https://www.npmjs.com/package/@n24q02m/notion)
@@ -74,10 +74,10 @@ mcp-name: io.github.n24q02m/better-notion-mcp
 ## Features
 
 - **Markdown in, Markdown out** -- human-readable content instead of raw JSON blocks
-- **8 composite tools, 39 actions** -- one call instead of chaining 2+ atomic Notion endpoints (plus `config`, `help`, and a relay-setup tool)
+- **8 composite tools, 39 actions** -- one call instead of chaining 2+ atomic Notion endpoints (plus `config` and `help`)
 - **Auto-pagination and bulk operations** -- no manual cursor handling or looping
 - **Tiered token optimization** -- ~77% reduction via compressed descriptions + on-demand `help` tool
-- **Dual transport** -- local stdio (integration token) or remote HTTP (OAuth 2.1, no token to paste)
+- **Dual transport** -- local stdio (integration token) or remote HTTP (per-user or shared bearer token)
 
 ## Install
 
@@ -117,48 +117,49 @@ docker run --rm -i -e NOTION_TOKEN=ntn_your_token_here n24q02m/notion:latest
 | Cursor / Windsurf / Gemini CLI / any MCP client | `mcpServers` JSON in the client's config — same shape as the example above |
 
 Full per-client walkthroughs: [mcp.n24q02m.com/servers/better-notion-mcp/setup/](https://mcp.n24q02m.com/servers/better-notion-mcp/setup/).
-See the [Documentation](#documentation) section for per-client setup (Claude Code, Codex, Gemini CLI, Cursor, Windsurf) and HTTP/OAuth mode.
+See the [Documentation](#documentation) section for per-client setup (Claude Code, Codex, Gemini CLI, Cursor, Windsurf) and HTTP mode.
 
 ## CLI
 
-Installing the package exposes a `notion` binary (plus the legacy `better-notion-mcp` alias; run it with `npx` or after a global install). It has **no subcommands** -- running it starts the MCP server and speaks the protocol over stdin/stdout, so it is normally launched by an MCP client rather than by hand.
+Installing the package exposes a `notion` binary (plus the legacy `better-notion-mcp` alias; run it with `npx` or after a global install). With no arguments it starts the MCP server and speaks the protocol over stdin/stdout, so it is normally launched by an MCP client rather than by hand. Subcommands: `auth` stores the Notion integration token; `config`, `status`, `logout`, `doctor`, and `token` come from the shared hull CLI.
 
 ```bash
 # Start the stdio server (default transport; requires NOTION_TOKEN)
 NOTION_TOKEN=ntn_your_token_here npx --yes @n24q02m/notion@latest
 
-# Start the remote HTTP server (OAuth 2.1) instead of stdio
+# Start the remote HTTP server (bearer token) instead of stdio
 npx --yes @n24q02m/notion@latest --http
 ```
 
 | Argument / env | Effect |
 |:---------------|:-------|
 | _(none)_ | stdio transport (default); requires `NOTION_TOKEN` |
-| `--http` | HTTP transport with OAuth 2.1 (equivalent to `TRANSPORT_MODE=http` / `MCP_TRANSPORT=http`) |
+| `--http` | HTTP transport; auth chosen by `MCP_AUTH_MODE` (`multi` default, `token`, or `no-auth`) |
 
 See [Configuration](#configuration) for the full environment-variable reference.
 
 ## Remote (HTTP mode)
 
-Deployed with the HTTP transport, the server is a remote endpoint gated by OAuth 2.1 -- no integration token to paste. Point an MCP client that supports remote HTTP servers at the host you deployed it on:
+Deployed with the HTTP transport, the server is a remote endpoint gated by bearer-token auth -- no integration token in the server config. Point an MCP client that supports remote HTTP servers at the host you deployed it on:
 
 ```jsonc
-// MCP client config -- remote HTTP (OAuth 2.1)
+// MCP client config -- remote HTTP (bearer token)
 {
   "mcpServers": {
     "notion": {
       "type": "http",
-      "url": "https://<your-host>/mcp"
+      "url": "https://<your-host>/mcp",
+      "headers": { "Authorization": "Bearer <your-token>" }
     }
   }
 }
 ```
 
-On first connect the client opens Notion's OAuth consent screen; per-user access tokens are held in-process only (see [Trust Model](#trust-model)). To stand up such an instance, see [Self-Hosting (Remote Mode)](#self-hosting-remote-mode).
+In `multi` mode (default) each user is listed in the users file (`MCP_USERS_FILE`, default `~/.hull/users.toml`) and gets their own token and credential namespace. In `token` mode every client shares one token whose scrypt hash is set in `MCP_AUTH_TOKEN_HASH`. To stand up such an instance, see [Self-Hosting (Remote Mode)](#self-hosting-remote-mode).
 
 ## Smithery
 
-The repo ships a [`smithery.yaml`](smithery.yaml) config for [Smithery](https://smithery.ai). Smithery launches the server over stdio (`npx -y @n24q02m/notion`) and requires no install-time config -- provide your Notion credentials at runtime through the server's own setup flow (`NOTION_TOKEN` env, or the relay form; see [Configuration](#configuration)).
+The repo ships a [`smithery.yaml`](smithery.yaml) config for [Smithery](https://smithery.ai). Smithery launches the server over stdio (`npx -y @n24q02m/notion`) and requires no install-time config -- provide your Notion credentials at runtime through `NOTION_TOKEN` or the `config` tool (see [Configuration](#configuration)).
 
 ## Status
 
@@ -184,8 +185,8 @@ The repo ships a [`smithery.yaml`](smithery.yaml) config for [Smithery](https://
 Full docs at **[mcp.n24q02m.com/servers/better-notion-mcp/](https://mcp.n24q02m.com/servers/better-notion-mcp/)**:
 
 - [Setup](https://mcp.n24q02m.com/servers/better-notion-mcp/setup/) -- install methods for Claude Code, Codex, Gemini CLI, Cursor, Windsurf, mcp.json
-- [Modes overview](https://mcp.n24q02m.com/get-started/modes-overview/) -- stdio (local, integration token) and HTTP (remote, OAuth 2.1)
-- [Multi-user setup](https://mcp.n24q02m.com/get-started/multi-user/) -- per-JWT-sub credential model (HTTP mode)
+- [Modes overview](https://mcp.n24q02m.com/get-started/modes-overview/) -- stdio (local, integration token) and HTTP (remote, bearer token)
+- [Multi-user setup](https://mcp.n24q02m.com/get-started/multi-user/) -- per-user credential namespace (HTTP mode)
 
 **Install with AI agent** -- paste this to your AI coding agent:
 
@@ -194,7 +195,7 @@ Full docs at **[mcp.n24q02m.com/servers/better-notion-mcp/](https://mcp.n24q02m.
 
 ## Tools
 
-Eight composite Notion tools (39 actions) plus three infrastructure tools (`config`, `config__open_relay`, `help`):
+Eight composite Notion tools (39 actions) plus two infrastructure tools (`config`, `help`):
 
 | Tool | Actions | Description |
 |:-----|:--------|:------------|
@@ -207,7 +208,6 @@ Eight composite Notion tools (39 actions) plus three infrastructure tools (`conf
 | `content_convert` | `markdown-to-blocks`, `blocks-to-markdown` | Convert between Markdown and Notion blocks (uses a `direction` parameter) |
 | `file_uploads` | `create`, `send`, `complete`, `retrieve`, `list` | Upload files to Notion (single or multi-part) |
 | `config` | `status`, `setup_status`, `setup_start`, `setup_reset`, `setup_complete`, `set`, `cache_clear` | Inspect and manage credential state and configuration lifecycle |
-| `config__open_relay` | - | Open the relay configuration form in the browser and return the relay URL + credential state |
 | `help` | - | Get full documentation for any composite tool (`tool_name` parameter) |
 
 ### MCP Resources
@@ -229,29 +229,27 @@ Eight composite Notion tools (39 actions) plus three infrastructure tools (`conf
 |:---------|:---------|:--------|:------------|
 | `NOTION_TOKEN` | Yes (stdio) | - | Notion integration token |
 | `TRANSPORT_MODE` / `MCP_TRANSPORT` | No | `stdio` | Set either to `http` for remote mode (or pass `--http`) |
-| `PUBLIC_URL` | No (http) | - | Server's public URL for OAuth redirect links |
-| `NOTION_OAUTH_CLIENT_ID` | Yes (http) | - | Notion Public Integration client ID (or `--oauth-client-id=<id>` CLI flag, which overrides the env var) |
-| `NOTION_OAUTH_CLIENT_SECRET` | Yes (http) | - | Notion Public Integration client secret (or `--oauth-client-secret=<secret>` CLI flag, which overrides the env var) |
-| `MCP_AUTH_DISABLE` | No (http) | - | Set to `1` to skip Bearer JWT verification when behind an external auth gateway |
+| `MCP_AUTH_MODE` | No (http) | `multi` | `multi` (per-user tokens from `MCP_USERS_FILE`), `token` (one shared token, needs `MCP_AUTH_TOKEN_HASH`), or `no-auth` (trusted/local use only) |
+| `MCP_USERS_FILE` | No (http, multi) | `~/.hull/users.toml` | Users file for `multi` mode |
+| `MCP_AUTH_TOKEN_HASH` | Yes (token mode) | - | `scrypt$` hash of the shared token (mint with `token hash`) |
+| `MCP_RPM` | No (token mode) | - | Optional per-minute request cap in token mode |
 | `PORT` | No | `0` (OS-assigned) | Server port; set explicitly (e.g. `8080`) to bind a fixed port |
-| `HOST` | No | - | Bind address (http mode) |
+| `HOST` | No | `127.0.0.1` | Bind address (http mode) |
 
 ### Self-Hosting (Remote Mode)
 
-You can self-host the remote server with your own Notion OAuth app.
+Run the HTTP server on your own host and choose an auth mode with `MCP_AUTH_MODE`:
 
-**Prerequisites:**
-1. Create a **Public Integration** at <https://www.notion.so/my-integrations>
-2. Set the redirect URI to `https://your-domain.com/callback`
-3. Note your `client_id` and `client_secret`
+- `multi` (default): list each user in `MCP_USERS_FILE`; each user's Notion token is stored in their own namespace (`~/.better-notion/subs/<ns>/config.json`).
+- `token`: one shared bearer token. Mint the hash with `token hash` and pass it as `MCP_AUTH_TOKEN_HASH`.
+- `no-auth`: no bearer check. Use only on a trusted local network.
 
 ```bash
 docker run -p 8080:8080 \
   -e TRANSPORT_MODE=http \
   -e PORT=8080 \
-  -e PUBLIC_URL=https://your-domain.com \
-  -e NOTION_OAUTH_CLIENT_ID=your-client-id \
-  -e NOTION_OAUTH_CLIENT_SECRET=your-client-secret \
+  -e MCP_AUTH_MODE=token \
+  -e MCP_AUTH_TOKEN_HASH='scrypt$...' \
   n24q02m/notion:latest
 ```
 
@@ -260,16 +258,12 @@ docker run -p 8080:8080 \
 [`docker-compose.http.yml`](docker-compose.http.yml) builds the `http` image target and publishes it on the host loopback interface only (`127.0.0.1:8081`), so the server is never reachable from other machines directly:
 
 ```bash
-export NOTION_OAUTH_CLIENT_ID=your-client-id
-export NOTION_OAUTH_CLIENT_SECRET=your-client-secret
-export CREDENTIAL_SECRET=$(openssl rand -hex 32)
-export PUBLIC_URL=https://your-domain.com
+export MCP_AUTH_MODE=token
+export MCP_AUTH_TOKEN_HASH='scrypt$...'
 docker compose -f docker-compose.http.yml up
 ```
 
-The server listens on <http://localhost:8081/mcp>. To expose it, put your own TLS reverse proxy in front of the loopback port and set `PUBLIC_URL` to the public origin (the Notion redirect URI is `<PUBLIC_URL>/callback`). Set `CREDENTIAL_SECRET`: it derives a deterministic OAuth signing key, so user identity survives a container recreate.
-
-Per-user Notion access tokens are held in-process only and are cleared on restart. Do NOT set `MCP_AUTH_DISABLE` on a shared/public deployment -- it collapses all users into a single token bucket.
+The server listens on <http://localhost:8081/mcp>. To expose it, put your own TLS reverse proxy in front of the loopback port.
 
 Release images are published multi-arch (amd64 + arm64) to Docker Hub (`n24q02m/notion`) and GHCR (`ghcr.io/n24q02m/notion`). There is no n24q02m-hosted HTTP endpoint.
 
@@ -283,13 +277,13 @@ How notion stacks up against direct competitors in each pillar:
 | Composite tool design | Yes (8 composite tools, 39 actions) | No (22 endpoint-mapped tools) | partial (simplified + raw JSON tools) | Yes (2 dispatch tools, 35+ ops) |
 | File uploads to Notion | Yes (`file_uploads`, single + multi-part) | No | No | Yes (`upload_file`, single + multi-part) |
 | Comments | Yes (`comments`: list/get/create) | Yes | Yes | Yes |
-| Remote HTTP + OAuth 2.1 transport | Yes (per-JWT-sub multi-user) | partial (HTTP + bearer token, no OAuth) | No (stdio token only) | No (stdio token only) |
-| Self-hostable | Yes (Docker, own OAuth app) | Yes | Yes | Yes |
+| Remote HTTP + bearer-token auth | Yes (per-user namespaces or shared token) | partial (HTTP + bearer token) | No (stdio token only) | No (stdio token only) |
+| Self-hostable | Yes (Docker, own bearer token) | Yes | Yes | Yes |
 | License | Apache-2.0 | ? | MIT | MIT |
 
 ## Security
 
-- **OAuth 2.1 + PKCE S256** -- Secure authorization with code challenge
+- **Bearer token auth** -- per-user tokens (`multi`) or one scrypt-hashed shared token (`token`)
 - **Rate limiting** -- 120 req/min/IP on HTTP transport
 - **Session owner binding** -- IP check + TTL for pending token binds
 - **Null safety** -- Handles Notion API quirks (comments.list 404, undefined rich_text)
@@ -305,12 +299,13 @@ bun run dev
 
 ## Trust Model
 
-This plugin implements **TC-NearZK** (in-memory, ephemeral). See [the trust model reference](https://mcp.n24q02m.com/servers/mcp-core/trust-model/) for full classification.
+Credentials are never sent to n24q02m: there is no hosted endpoint.
 
-| Mode | Storage | Encryption | Who can read your data? |
+| Mode | Storage | Protection | Who can read your data? |
 |---|---|---|---|
-| HTTP self-host | In-memory `Map<sub, OAuthToken>` | In-process only | Server process (cleared on restart); the operator running it |
-| stdio (local) | `config.enc` in the OS config dir (`%APPDATA%\mcp\Config\config.enc` on Windows, `~/.config/mcp/config.enc` on Linux/macOS) | AES-GCM, machine-bound key | Only your OS user |
+| HTTP self-host (`multi`) | `~/.better-notion/subs/<ns>/config.json` on the server host | File mode 0600 under the server's data dir | The server operator and anyone with access to that host |
+| HTTP self-host (`token`) | `~/.better-notion/config.json` on the server host | File mode 0600 under the server's data dir | The server operator and anyone with access to that host |
+| stdio (local) | `~/.better-notion/config.json` | File mode 0600; machine key in `~/.better-notion/.secret` | Only your OS user |
 
 ## License
 
