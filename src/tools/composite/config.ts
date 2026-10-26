@@ -4,7 +4,14 @@
  * Does NOT require a Notion client -- works independently.
  */
 
-import { getState, getSubjectToken, resetState, resolveCredentialState, SETUP_HINT } from '../../credential-state.js'
+import {
+  type CredentialState,
+  getState,
+  getSubjectToken,
+  resetState,
+  resolveCredentialState,
+  SETUP_HINT
+} from '../../credential-state.js'
 import { NotionMCPError, withErrorHandling } from '../helpers/errors.js'
 
 export interface ConfigInput {
@@ -15,6 +22,15 @@ export interface ConfigInput {
 }
 
 /**
+ * Credential state for the CURRENT caller. The process-global `getState()`
+ * only tracks the default namespace, so multi-user HTTP derives state from
+ * the caller's own token instead.
+ */
+function stateFor(token: string | null): CredentialState {
+  return token !== null ? 'configured' : 'awaiting_setup'
+}
+
+/**
  * Credential/setup-focused fields shared by `status` (kept for backward
  * compatibility -- it has always returned exactly this shape) and the
  * dedicated `setup_status` action (parity with the credential-state-only
@@ -22,10 +38,9 @@ export interface ConfigInput {
  * `config(action="setup_status")`).
  */
 async function buildSetupStatusInfo() {
-  const state = getState()
   const token = await getSubjectToken()
   return {
-    state,
+    state: stateFor(token),
     has_token: token !== null,
     token_source: token ? (process.env.NOTION_TOKEN ? 'environment' : 'config') : null
   }
@@ -48,7 +63,7 @@ export async function config(input: ConfigInput): Promise<any> {
       case 'setup_start': {
         return {
           action: 'setup_start',
-          state: getState(),
+          state: stateFor(await getSubjectToken()),
           message: SETUP_HINT
         }
       }
@@ -63,11 +78,13 @@ export async function config(input: ConfigInput): Promise<any> {
       }
 
       case 'setup_complete': {
-        const newState = await resolveCredentialState()
+        await resolveCredentialState()
+        const token = await getSubjectToken()
+        const newState = stateFor(token)
         return {
           action: 'setup_complete',
           state: newState,
-          has_token: (await getSubjectToken()) !== null,
+          has_token: token !== null,
           message:
             newState === 'configured'
               ? 'Credentials verified. Notion tools are ready.'
