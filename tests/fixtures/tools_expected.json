@@ -1,0 +1,474 @@
+[
+  {
+    "name": "pages",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["create", "get", "get_property", "update", "move", "archive", "restore", "duplicate"],
+          "description": "Action to perform"
+        },
+        "page_id": {
+          "type": "string",
+          "description": "Page ID (required for most actions)"
+        },
+        "page_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Multiple page IDs for batch operations"
+        },
+        "title": {
+          "type": "string",
+          "description": "Page title"
+        },
+        "content": {
+          "type": "string",
+          "description": "Markdown content"
+        },
+        "append_content": {
+          "type": "string",
+          "description": "Markdown to append"
+        },
+        "content_limit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Max page blocks to return for get; use next_cursor to continue"
+        },
+        "content_cursor": {
+          "type": "string",
+          "description": "Cursor from a previous bounded pages get"
+        },
+        "parent_id": {
+          "type": "string",
+          "description": "Parent page or database ID"
+        },
+        "properties": {
+          "type": "object",
+          "description": "Page properties (for database pages). Use simple values -- auto-converted to Notion format. String: title/rich_text/select/status. Number: number. Boolean: checkbox. String[]: multi_select. ISO date string: date. Object with Notion structure: pass through as-is."
+        },
+        "property_id": {
+          "type": "string",
+          "description": "Property ID (for get_property action)"
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon: emoji (e.g. \"(icon)\"), external URL (https://...), or built-in shorthand (name:color, e.g. \"document:gray\")"
+        },
+        "cover": {
+          "type": "string",
+          "description": "Cover image: URL or built-in shorthand (gradient_1..11, solid_red/yellow/blue/beige, nasa_*, met_*, rijksmuseum_*, woodcuts_*)"
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Archive status"
+        }
+      },
+      "required": ["action"]
+    },
+    "annotations": {
+      "title": "Pages",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "databases",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "create",
+            "get",
+            "query",
+            "create_page",
+            "update_page",
+            "delete_page",
+            "create_data_source",
+            "update_data_source",
+            "update_database",
+            "list_templates"
+          ],
+          "description": "Action to perform"
+        },
+        "database_id": {
+          "type": "string",
+          "description": "Database ID (from Notion URL) or data_source_id (from workspace search). Auto-resolved for query/create_page/list_templates."
+        },
+        "data_source_id": {
+          "type": "string",
+          "description": "Data source ID (for update_data_source action)"
+        },
+        "parent_id": {
+          "type": "string",
+          "description": "Parent page ID (for create/update_database)"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title (for database or data source)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description"
+        },
+        "properties": {
+          "type": "object",
+          "description": "Schema properties (for create/update data source)"
+        },
+        "is_inline": {
+          "type": "boolean",
+          "description": "Display as inline (for create/update_database)"
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon (for update_database): emoji (e.g. \"(icon)\"), external URL (https://...), or built-in shorthand (name:color, e.g. \"document:gray\")"
+        },
+        "cover": {
+          "type": "string",
+          "description": "Cover image (for update_database): URL or built-in shorthand (gradient_1..11, solid_red/yellow/blue/beige, nasa_*, met_*, rijksmuseum_*, woodcuts_*)"
+        },
+        "filters": {
+          "type": "object",
+          "description": "Query filters (for query action)"
+        },
+        "sorts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Query sorts"
+        },
+        "limit": {
+          "type": "number",
+          "description": "Max query results"
+        },
+        "search": {
+          "type": "string",
+          "description": "Smart search across text fields (for query)"
+        },
+        "page_id": {
+          "type": "string",
+          "description": "Single page ID (for update_page)"
+        },
+        "page_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Multiple page IDs (for delete_page)"
+        },
+        "page_properties": {
+          "type": "object",
+          "description": "Page properties to update (for update_page)"
+        },
+        "pages": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Array of pages for bulk create/update"
+        }
+      },
+      "required": ["action"]
+    },
+    "annotations": {
+      "title": "Databases",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "blocks",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["get", "children", "append", "update", "delete"],
+          "description": "Action to perform"
+        },
+        "block_id": {
+          "type": "string",
+          "description": "Block ID"
+        },
+        "content": {
+          "type": "string",
+          "description": "Markdown content (for append/update)"
+        },
+        "position": {
+          "type": "string",
+          "enum": ["start", "end", "after_block"],
+          "description": "Insert position for append: start (prepend), end (default), after_block (requires after_block_id)"
+        },
+        "after_block_id": {
+          "type": "string",
+          "description": "Block ID to insert after (when position is after_block)"
+        }
+      },
+      "required": ["action", "block_id"]
+    },
+    "annotations": {
+      "title": "Blocks",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "users",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["list", "get", "me", "from_workspace"],
+          "description": "Action to perform"
+        },
+        "user_id": {
+          "type": "string",
+          "description": "User ID (for get action)"
+        }
+      },
+      "required": ["action"]
+    },
+    "annotations": {
+      "title": "Users",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "workspace",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["info", "search"],
+          "description": "Action to perform"
+        },
+        "query": {
+          "type": "string",
+          "description": "Search query"
+        },
+        "filter": {
+          "type": "object",
+          "properties": {
+            "object": {
+              "type": "string",
+              "enum": ["page", "data_source"],
+              "description": "Filter by type: page or data_source (database)"
+            }
+          }
+        },
+        "sort": {
+          "type": "object",
+          "properties": {
+            "direction": {
+              "type": "string",
+              "enum": ["ascending", "descending"]
+            },
+            "timestamp": {
+              "type": "string",
+              "enum": ["last_edited_time", "created_time"]
+            }
+          }
+        },
+        "limit": {
+          "type": "number",
+          "description": "Max results"
+        }
+      },
+      "required": ["action"]
+    },
+    "annotations": {
+      "title": "Workspace",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "comments",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["list", "get", "create"],
+          "description": "Action to perform"
+        },
+        "page_id": {
+          "type": "string",
+          "description": "Page ID"
+        },
+        "comment_id": {
+          "type": "string",
+          "description": "Comment ID (for get action)"
+        },
+        "discussion_id": {
+          "type": "string",
+          "description": "Discussion ID (for replies)"
+        },
+        "content": {
+          "type": "string",
+          "description": "Comment content (for create)"
+        }
+      },
+      "required": ["action"]
+    },
+    "annotations": {
+      "title": "Comments",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "content_convert",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "direction": {
+          "type": "string",
+          "enum": ["markdown-to-blocks", "blocks-to-markdown"],
+          "description": "Conversion direction"
+        },
+        "content": {
+          "type": "string",
+          "description": "Content to convert (string or array/JSON string)"
+        }
+      },
+      "required": ["direction", "content"]
+    },
+    "annotations": {
+      "title": "Content Convert",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "file_uploads",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["create", "send", "complete", "retrieve", "list"],
+          "description": "Action to perform"
+        },
+        "file_upload_id": {
+          "type": "string",
+          "description": "File upload ID (from create step)"
+        },
+        "filename": {
+          "type": "string",
+          "description": "Filename (for create)"
+        },
+        "content_type": {
+          "type": "string",
+          "description": "MIME type (for create, e.g. \"image/png\")"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["single", "multi_part"],
+          "description": "Upload mode (default: single)"
+        },
+        "number_of_parts": {
+          "type": "number",
+          "description": "Number of parts (for multi_part mode)"
+        },
+        "part_number": {
+          "type": "number",
+          "description": "Part number (for send in multi_part mode)"
+        },
+        "file_content": {
+          "type": "string",
+          "description": "Base64-encoded file content (for send). Must be valid base64: only A-Z, a-z, 0-9, +, /, = chars. Use Buffer.from(bytes).toString(\"base64\") to encode."
+        },
+        "limit": {
+          "type": "number",
+          "description": "Max results for list"
+        }
+      },
+      "required": ["action"]
+    },
+    "annotations": {
+      "title": "File Uploads",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "help",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "tool_name": {
+          "type": "string",
+          "enum": ["pages", "databases", "blocks", "users", "workspace", "comments", "content_convert", "file_uploads"],
+          "description": "Tool to get documentation for"
+        }
+      },
+      "required": ["tool_name"]
+    },
+    "annotations": {
+      "title": "Help",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "config",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["status", "setup_status", "setup_start", "setup_reset", "setup_complete", "set", "cache_clear"],
+          "description": "Action to perform"
+        },
+        "force": {
+          "type": "boolean",
+          "description": "Force setup_start even if already configured"
+        },
+        "key": {
+          "type": "string",
+          "description": "Setting key (for set action)"
+        },
+        "value": {
+          "type": "string",
+          "description": "Setting value (for set action)"
+        }
+      },
+      "required": ["action"]
+    },
+    "annotations": {
+      "title": "Config",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  }
+]

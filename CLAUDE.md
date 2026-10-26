@@ -1,22 +1,20 @@
 # notion
 
-Ten repo/npm/image: `n24q02m/notion` / `@n24q02m/notion` / `n24q02m/notion` (truoc day la `better-notion-mcp`). CON GIU ten cu co chu dich: registry id `io.github.n24q02m/better-notion-mcp`, bin alias `better-notion-mcp`, storage key `better-notion-mcp` (config.enc `servers.<name>` + PerPluginStore `~/.better-notion-mcp` + env `MCP_BETTER_NOTION_MCP_*`, mcp-core derive tu ten nay; doi can option base-dir o core, hoan sang G3), va skret path `/better-notion-mcp/prod`.
+Ten repo/npm/image: `n24q02m/notion` / `@n24q02m/notion` / `n24q02m/notion` (truoc day la `better-notion-mcp`). CON GIU ten cu co chu dich: registry id `io.github.n24q02m/better-notion-mcp`, bin alias `better-notion-mcp`, storage key `better-notion-mcp` (`SERVER_NAME` trong `src/credential-state.ts`; data dir `~/.better-notion` qua `STORE_PLUGIN`), va skret path `/better-notion-mcp/prod`.
 
-TypeScript MCP Server cho Notion API. 11 registered tools = 8 composite (pages, databases, blocks, users, workspace, comments, content_convert, file_uploads) + 3 infra (config, config__open_relay, help), dual-mode stdio/http.
-Xem `AGENTS.md` va `README.md` de hieu architecture va OAuth flow.
+TypeScript MCP Server cho Notion API. 10 registered tools = 8 composite (pages, databases, blocks, users, workspace, comments, content_convert, file_uploads) + 2 infra (config, help), dual-mode stdio/http.
+Xem `AGENTS.md` va `README.md` de hieu architecture.
 
 ## Cau truc
 
 - `src/init-server.ts` -- Transport selector; delegates to `main.ts`
 - `src/main.ts` -- Server entry point: stdio (NOTION_TOKEN required) or http
-- `src/credential-state.ts` -- Single-user token resolution + per-JWT-sub resolver hook
-- `src/relay-schema.ts` -- Relay form schema (Notion token field)
+- `src/credential-state.ts` -- Per-user credential namespace resolution (hull storage)
 - `src/create-server.ts` -- MCP server factory (used by http mode)
 - `src/tools/registry.ts` -- Tool registration + routing
 - `src/tools/composite/` -- 1 file per domain (pages, databases, blocks, comments, users, workspace, content, file-uploads, config)
 - `src/tools/helpers/` -- errors, markdown, richtext, pagination, properties, covers, icons, id, security
-- `src/auth/` -- `notion-token-store.ts` (in-memory per-JWT-sub access token map)
-- `src/transports/http.ts` -- HTTP (remote-oauth multi-user) transport
+- `src/transports/http.ts` -- HTTP transport (bearer-token auth: `multi` / `token` / `no-auth`)
 - `src/docs/` -- Markdown docs served as MCP resources
 - Tests: co-located (`*.test.ts` canh `*.ts`)
 
@@ -57,7 +55,7 @@ mise run fix                # bun run check:fix
 ## Env vars
 
 - **stdio mode** (default): `NOTION_TOKEN` (bat buoc; stdio fails fast if unset, see `main.ts:76`)
-- **http mode** (opt-in via `--http`, `MCP_TRANSPORT=http`, or `TRANSPORT_MODE=http`): `NOTION_OAUTH_CLIENT_ID` + `NOTION_OAUTH_CLIENT_SECRET` (bat buoc, validated `transports/http.ts`; BYO OAuth client cung ho tro `--oauth-client-id=<id>` / `--oauth-client-secret=<secret>` CLI flag -- flag override env var, xem `argFlag()` trong `transports/http.ts`), `PUBLIC_URL` (OAuth redirect URLs), `MCP_AUTH_DISABLE=1` (optional, skip Bearer JWT verification behind external gateway)
+- **http mode** (opt-in via `--http`, `MCP_TRANSPORT=http`, or `TRANSPORT_MODE=http`): `MCP_AUTH_MODE` (`multi` default | `token` | `no-auth`); `MCP_USERS_FILE` (multi, default `~/.hull/users.toml`); `MCP_AUTH_TOKEN_HASH` (token mode, required); `MCP_RPM` (optional cap, token mode).
 - `PORT` (default `0` = OS-assigned random port), `HOST` (optional bind address)
 - Secrets: skret SSM namespace `/better-notion-mcp/prod` (region `ap-southeast-1`)
 
@@ -86,21 +84,21 @@ mise run fix                # bun run check:fix
 - Error handling: `NotionMCPError` + `withErrorHandling()` HOF wrapper
 - `import type` dung rieng biet cho type imports
 - Node builtins phai co `node:` prefix (`node:fs`, `node:path`)
-- SDK pin `@modelcontextprotocol/sdk` v1.x -- v2 removes server-side OAuth
-- Notion API bug: `comments.list` tra 404 voi OAuth tokens tren API version `2025-09-03`
+- SDK pin `@modelcontextprotocol/sdk` v1.x -- pinned; a v2 upgrade needs its own review
+- Notion API bug (seen with OAuth tokens on API version `2025-09-03`): `comments.list` returned 404. The server now uses integration tokens only; re-check if `comments.list` 404s.
 
 ## Modes
 
 Two transports, selected in `init-server.ts:14-15` (delegated to `main.ts`). There is no `MCP_MODE` env var; the old `local-relay` / `remote-oauth` distinction was removed (see `transports/http.ts:4-9`).
 
 - **stdio (default)**: MCP SDK `StdioServerTransport` directly. Single-user; requires `NOTION_TOKEN`. Fails fast with a stderr message if the token is unset (`main.ts:76-91`). No local relay spawn.
-- **http (opt-in, self-hosted)**: enabled via `--http`, `MCP_TRANSPORT=http`, or `TRANSPORT_MODE=http`. Uses delegated OAuth 2.1 redirect flow to Notion at `https://api.notion.com/v1/oauth/authorize`. Requires `NOTION_OAUTH_CLIENT_ID` + `NOTION_OAUTH_CLIENT_SECRET`. Per-user access tokens are stored in-process keyed by JWT `sub` (`auth/notion-token-store.ts`, in-memory `Map`). Multi-user. The project no longer operates a public n24q02m HTTP deployment.
+- **http (opt-in, self-hosted)**: enabled via `--http`, `MCP_TRANSPORT=http`, or `TRANSPORT_MODE=http`. Served by `src/transports/http.ts`; auth via `MCP_AUTH_MODE` (`multi` default, `token`, `no-auth`). Multi mode resolves each caller to a per-user namespace (`src/credential-state.ts`).
 
-**CLI `auth`/`logout` subcommand -- N/A by domain (verified 2026-07-17)**: unlike wet/mnemo (`auth google`) or telegram (`auth`/`login`/`logout`), notion has no interactive CLI-triggered credential flow to standardize. stdio mode reads `NOTION_TOKEN` straight from the env (no local relay, no on-disk session to log out of); http mode is always a delegated browser OAuth redirect served at `/authorize` (no CLI-drivable step). Cross-server auth-naming parity (`auth [<provider>]` + `logout`) is therefore not applicable here.
+**CLI `auth`** (`notion auth [--user <namespace>]`, `src/main.ts` `authCommand`): stores a Notion integration token via hull `PerPluginStore`. The other subcommands (`config`, `status`, `logout`, `doctor`, `token`) come from hull `buildCli`. stdio reads `NOTION_TOKEN` from the env; http credentials are per-user and set through the `config` tool.
 
 ## Config storage path
 
-TS servers (gồm notion; storage key vẫn là `better-notion-mcp`) dùng `$APPDATA\mcp\Config\config.enc` — single shared encrypted store (`servers.<name>` section, machine-bound key) qua `@n24q02m/mcp-core/storage` `resolveConfig`/`deleteConfig`. Python servers (wet/mnemo/crg/imagine) dùng PerPluginStore `~/.<plugin>-mcp/config.json` (config.enc là legacy). Khi debug reset state, xóa `config.enc` của TS server.
+TS servers store credentials via hull storage under `~/.better-notion/` (`STORE_PLUGIN = 'better-notion'` and `SERVER_NAME = 'better-notion-mcp'` in `src/credential-state.ts`): `config.json` for the default namespace, `subs/<ns>/config.json` per user in HTTP multi mode. `.secret` (0600) is the single-user machine key. When debugging reset state, delete the `config.json` of that namespace.
 
 ## E2E
 
@@ -112,14 +110,14 @@ cd ../mcp-core && uv run --project scripts/e2e python -m e2e.driver <config-id>
 
 Configs for this repo: `notion-paste-token`.
 
-Note: `notion-oauth` remains outside the removed T2 matrix. Validate HTTP mode against an operator-owned self-hosted deployment; there is no n24q02m hosted endpoint.
+Note: there is no n24q02m-hosted HTTP endpoint; validate HTTP mode against an operator-owned self-hosted deployment.
 
 Tier policy:
 
 - **T0** (precommit + CI on PR / main push) - runs without upstream identity. Skret keys not required.
-- **T2 non-interaction** (`make e2e-config CONFIG=<id>` locally) - driver pre-fills relay form from skret AWS SSM `/better-notion-mcp/prod` (`ap-southeast-1`). No user gate.
-- **T2 interaction** - driver fills relay form, then prints upstream user-gate URL; user signs in / types OTP at provider. Driver enforces per-flow timeouts (device-code 900s, oauth-redirect 300s, browser-form 600s) and emits `[poll] elapsed=Xs remaining=Ys status=<body>` every 30s. On timeout, container logs + last `setup-status` are saved to `<tmp>/e2e-diag/` BEFORE teardown for post-mortem.
+- **T2 non-interaction** (`make e2e-config CONFIG=<id>` locally) - token from skret AWS SSM `/better-notion-mcp/prod` (`ap-southeast-1`). No user gate.
+- **T2 interaction** - not applicable to notion: the only credential is an integration token, so no provider sign-in or user gate. The `mcp-core` matrix still names the removed relay form for this config; that file is outside this repo and needs its own update.
 
-Multi-user remote mode (deployment property; not a separate config) requires `NOTION_OAUTH_CLIENT_ID` + `NOTION_OAUTH_CLIENT_SECRET` (validated at startup, `transports/http.ts:51-53`). Per-user access tokens are held in-process only (`auth/notion-token-store.ts`), so no credential-store encryption secret is needed.
+Multi-user HTTP mode (deployment property; not a separate config) requires `MCP_AUTH_MODE=multi` and a users file (`MCP_USERS_FILE`, default `~/.hull/users.toml`).
 
-References: `mcp-core/scripts/e2e/matrix.yaml`, `~/.claude/skills/mcp-dev/references/e2e-full-matrix.md` (harness-readiness gate), `~/.claude/skills/mcp-dev/references/secrets-skret.md` (per-server credential layout), `~/.claude/skills/mcp-dev/references/multi-user-pattern.md` (per-JWT-sub isolation).
+References: `mcp-core/scripts/e2e/matrix.yaml`, `~/.claude/skills/mcp-dev/references/e2e-full-matrix.md` (harness-readiness gate), `~/.claude/skills/mcp-dev/references/secrets-skret.md` (per-server credential layout), `~/.claude/skills/mcp-dev/references/multi-user-pattern.md` (per-user namespace isolation).

@@ -1,5 +1,5 @@
 /**
- * Tool Registry - 8 composite Notion tools + 3 infra tools (config, config__open_relay, help)
+ * Tool Registry - 8 composite Notion tools + 2 infra tools (config, help)
  * Consolidated registration for maximum coverage with minimal tools
  */
 
@@ -13,9 +13,8 @@ import {
   ListToolsRequestSchema,
   ReadResourceRequestSchema
 } from '@modelcontextprotocol/sdk/types.js'
-import { buildOpenRelayHandler } from '@n24q02m/mcp-core'
 import type { Client } from '@notionhq/client'
-import { getState } from '../credential-state.js'
+import { getSubjectToken, SETUP_HINT } from '../credential-state.js'
 // Import mega tools
 import { blocks } from './composite/blocks.js'
 import { commentsManage } from './composite/comments.js'
@@ -30,14 +29,7 @@ import { aiReadableMessage, findClosestMatch, NotionMCPError } from './helpers/e
 import { EXTERNAL_CONTENT_TOOLS, wrapToolResult } from './helpers/security.js'
 
 // Tools that work without a Notion token
-const TOKEN_FREE_TOOLS = new Set(['help', 'content_convert', 'config', 'config__open_relay'])
-
-// publicUrl is null in stdio mode (no relay form to open). HTTP mode
-// substitutes it with PUBLIC_URL so the tool returns a valid /authorize URL.
-const openRelayHandler = buildOpenRelayHandler({
-  serverName: 'better-notion-mcp',
-  publicUrl: process.env.PUBLIC_URL ?? null
-})
+const TOKEN_FREE_TOOLS = new Set(['help', 'content_convert', 'config'])
 
 // Get docs directory path - works for both bundled CLI and unbundled code
 const __filename = fileURLToPath(import.meta.url)
@@ -76,7 +68,7 @@ const RESOURCE_MAP = new Map(RESOURCES.map((r) => [r.uri, r]))
 const AVAILABLE_RESOURCE_URIS = RESOURCES.map((r) => r.uri).join(', ')
 
 /**
- * 11 registered tools (8 composite Notion tools + config + config__open_relay + help)
+ * 10 registered tools (8 composite Notion tools + config + help)
  * covering ~95% of the official Notion API.
  * Compressed descriptions for token optimization (~77% reduction)
  *
@@ -416,7 +408,7 @@ const TOOLS = [
   {
     name: 'config',
     description:
-      'Manage server configuration and credential state.\n\nActions:\n- status: current credential state, token source, setup URL\n- setup_status: credential/setup state only (alias-equivalent to status for notion; kept for cross-server parity)\n- setup_start (-> force): trigger relay setup to configure Notion token via browser\n- setup_reset: clear credentials and config, return to awaiting_setup\n- setup_complete: re-check credentials after external config changes\n- set: update a runtime setting (notion has no mutable settings; returns info)\n- cache_clear: clear any cached state (no-op for notion)',
+      'Manage server configuration and credential state.\n\nActions:\n- status: current credential state and token source\n- setup_status: credential/setup state only (alias-equivalent to status for notion; kept for cross-server parity)\n- setup_start (-> force): show how to store a Notion token with `notion auth`\n- setup_reset: clear stored credentials, return to awaiting_setup\n- setup_complete: re-check credentials after external config changes\n- set: update a runtime setting (notion has no mutable settings; returns info)\n- cache_clear: clear any cached state (no-op for notion)',
     annotations: {
       title: 'Config',
       readOnlyHint: false,
@@ -448,25 +440,6 @@ const TOOLS = [
       required: ['action']
     },
     outputSchema: { type: 'object', additionalProperties: true }
-  },
-  {
-    name: 'config__open_relay',
-    description:
-      'Open the relay configuration form for better-notion-mcp in the user browser. Returns the relay URL, whether the browser launched, and the current credential state.',
-    annotations: {
-      title: 'Open Relay',
-      readOnlyHint: false,
-      destructiveHint: false,
-      idempotentHint: false,
-      openWorldHint: true
-    },
-    inputSchema: {
-      type: 'object',
-      properties: {},
-      additionalProperties: false,
-      required: []
-    },
-    outputSchema: { type: 'object', additionalProperties: true }
   }
 ]
 
@@ -482,10 +455,10 @@ const ALL_TOOL_NAMES_STRING = ALL_TOOL_NAMES.join(', ')
 
 /**
  * Register all tools with MCP server
- * @param notionClientFactory - Returns a Notion Client.
+ * @param notionClientFactory - Resolves the calling user's Notion Client per invocation.
  *   Called per tool invocation to support both singleton (stdio) and per-request (HTTP) patterns.
  */
-export function registerTools(server: Server, notionClientFactory: () => Client) {
+export function registerTools(server: Server, notionClientFactory: () => Promise<Client>) {
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: TOOLS
   }))
@@ -538,47 +511,36 @@ export function registerTools(server: Server, notionClientFactory: () => Client)
       }
     }
 
-    // Credential guard. In stdio mode the server exits at startup if
-    // NOTION_TOKEN is missing (see main.ts startServer('stdio')); reaching
-    // this branch means HTTP mode where the per-subject token store is
-    // empty for the current caller. help and content_convert work without
-    // a token.
-    if (!TOKEN_FREE_TOOLS.has(name)) {
-      const credState = getState()
-      if (credState !== 'configured') {
-        const publicUrl = process.env.PUBLIC_URL
-        const setupInstructions = publicUrl
-          ? `Notion access token is not present for this session. Open ${publicUrl}/authorize in your browser to complete the Notion OAuth flow, then retry the tool.`
-          : 'Notion access token is not present. In stdio mode set NOTION_TOKEN env var (https://www.notion.so/my-integrations). In HTTP mode complete the OAuth flow at <PUBLIC_URL>/authorize.'
-        return {
-          content: [{ type: 'text', text: setupInstructions }],
-          isError: true
-        }
+    // Credential guard for token-bound tools. help, content_convert, and config
+    // work without a token. The token is resolved per caller (see notion-client.ts).
+    if (!TOKEN_FREE_TOOLS.has(name) && (await getSubjectToken()) === null) {
+      return {
+        content: [{ type: 'text', text: SETUP_HINT }],
+        isError: true
       }
     }
 
     try {
       let result
-      const notion = notionClientFactory()
 
       switch (name) {
         case 'pages':
-          result = await pages(notion, args as any)
+          result = await pages(await notionClientFactory(), args as any)
           break
         case 'databases':
-          result = await databases(notion, args as any)
+          result = await databases(await notionClientFactory(), args as any)
           break
         case 'blocks':
-          result = await blocks(notion, args as any)
+          result = await blocks(await notionClientFactory(), args as any)
           break
         case 'users':
-          result = await users(notion, args as any)
+          result = await users(await notionClientFactory(), args as any)
           break
         case 'workspace':
-          result = await workspace(notion, args as any)
+          result = await workspace(await notionClientFactory(), args as any)
           break
         case 'comments':
-          result = await commentsManage(notion, args as any)
+          result = await commentsManage(await notionClientFactory(), args as any)
           break
         case 'content_convert':
           result = await contentConvert(args as any)
@@ -586,11 +548,8 @@ export function registerTools(server: Server, notionClientFactory: () => Client)
         case 'config':
           result = await config(args as any)
           break
-        case 'config__open_relay':
-          result = await openRelayHandler()
-          break
         case 'file_uploads':
-          result = await fileUploads(notion, args as any)
+          result = await fileUploads(await notionClientFactory(), args as any)
           break
         case 'help': {
           const toolName = (args as { tool_name: string }).tool_name

@@ -2,30 +2,31 @@
  * Unified entry point for the notion MCP server
  *
  * TRANSPORT_MODE selects the transport:
- *   - "stdio" (default): Local mode with NOTION_TOKEN env var, MCP SDK
- *     StdioServerTransport directly (no daemon proxy hop). See spec
- *     2026-04-30-multi-mode-stdio-http-architecture.md Task 3.1.
- *   - "http": Remote mode with OAuth 2.1 via Notion
+ *   - "stdio" (default): single-user. Token from NOTION_TOKEN env or from
+ *     `notion auth`. Uses the MCP SDK StdioServerTransport directly.
+ *   - "http": multi-user Streamable HTTP. Auth mode from MCP_AUTH_MODE
+ *     (see transports/http.ts).
  */
 
 import { readFileSync, realpathSync } from 'node:fs'
 import { dirname, join } from 'node:path'
+import { createInterface } from 'node:readline/promises'
 import { fileURLToPath } from 'node:url'
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import { buildCli } from '@n24q02m/mcp-core'
-import { Client } from '@notionhq/client'
-import { getNotionToken, resolveCredentialState } from './credential-state.js'
+import { buildCli } from '@n24q02m/hull'
+import {
+  assertNamespace,
+  DEFAULT_NAMESPACE,
+  getState,
+  resolveCredentialState,
+  STORE_PLUGIN,
+  saveNamespaceToken
+} from './credential-state.js'
+import { createNotionClient, notionClientForCaller } from './notion-client.js'
 import { registerTools } from './tools/registry.js'
 
 const SERVER_NAME = 'notion'
-
-// Credential namespace handed to buildCli (`config status|delete`, `doctor`).
-// Deliberately NOT renamed with SERVER_NAME: mcp-core derives the on-disk store
-// as ~/.${plugin}-mcp, so 'better-notion' keeps resolving to ~/.better-notion-mcp,
-// the same store credential-state.ts reads via its 'better-notion-mcp' storage key.
-// Renaming it would orphan saved credentials; the data-dir move is deferred to G3.
-const STORE_PLUGIN = 'better-notion'
 
 function getPackageVersion(): string {
   try {
@@ -85,18 +86,18 @@ export async function startServer(mode: string): Promise<void> {
     return
   }
 
-  // Stdio mode is single-user and requires NOTION_TOKEN env. Fail fast
-  // with a clear stderr message instead of starting a server that can't
-  // serve any tools. Spec 2026-05-01-stdio-pure-http-multiuser.md §5.2.1.
-  if (!process.env.NOTION_TOKEN) {
-    const msg = `[${SERVER_NAME}] NOTION_TOKEN required for stdio mode but not set.
+  // Stdio is single-user. Fail fast when no token is available from the env
+  // or from `notion auth`, instead of starting a server that cannot serve tools.
+  await resolveCredentialState()
+  if (getState() !== 'configured') {
+    const msg = `[${SERVER_NAME}] Notion integration token required for stdio mode but not set.
 
 Options:
   1. Set env in plugin config:
      {"command": "npx", "args": [...], "env": {"NOTION_TOKEN": "ntn_..."}}
 
-  2. Switch to HTTP mode (browser-based setup):
-     See https://mcp.n24q02m.com/servers/better-notion-mcp/setup/ "Self-Hosting HTTP Mode"
+  2. Store a token once on this machine:
+     npx -y @n24q02m/better-notion-mcp auth
 
 Documentation: https://mcp.n24q02m.com/servers/better-notion-mcp/
 `
@@ -105,26 +106,12 @@ Documentation: https://mcp.n24q02m.com/servers/better-notion-mcp/
     return
   }
 
-  // Direct MCP SDK stdio transport (no daemon proxy hop).
-  await resolveCredentialState()
-
   const server = new Server(
     { name: SERVER_NAME, version: getPackageVersion() },
     { capabilities: { tools: {}, resources: {} } }
   )
 
-  // Stdio is single-user: tokens come from NOTION_TOKEN env or local relay
-  // config.enc. The factory returns a client built from whatever token is
-  // currently saved in credential-state.
-  const notionClientFactory = (): Client => {
-    const token = getNotionToken()
-    if (!token) {
-      throw new Error('Notion integration token not configured. Set NOTION_TOKEN env var or run the relay setup form.')
-    }
-    return new Client({ auth: token, notionVersion: '2025-09-03' })
-  }
-
-  registerTools(server, notionClientFactory)
+  registerTools(server, notionClientForCaller)
 
   const transport = new StdioServerTransport()
   await server.connect(transport)
@@ -145,21 +132,15 @@ export async function bootstrap(selectedMode: string = mode) {
     process.exit(1)
   }
 }
-// Rebuild target: mcp-core 1.11.5 (P0 fork-bomb fix)
 
 /**
- * `serve` entry point for `buildCli` (config/relay/doctor/--version/-h
- * built-ins; bare/flag argv routes here).
+ * `serve` entry point for `buildCli`.
  *
- * `bootstrap()` already resolves as soon as the transport is ready -- for
- * http mode that means `startHttp()` has already blocked until its own
- * SIGINT/SIGTERM shutdown completes (see transports/http.ts), but for stdio
- * mode `server.connect(transport)` resolves the instant the stdin listener
- * attaches, not when the session ends. If this function returned right
- * there, buildCli's `.then((code) => process.exit(code))` would kill the
- * process immediately after startup. So stdio keeps this promise pending
- * until SIGINT/SIGTERM, mirroring the shutdown-wait pattern http already
- * uses.
+ * `bootstrap()` resolves as soon as the transport is ready. For stdio,
+ * `server.connect` resolves when stdin attaches, not when the session ends,
+ * so this keeps the promise pending until SIGINT/SIGTERM. Otherwise buildCli's
+ * `.then((code) => process.exit(code))` would kill the process right after
+ * startup. HTTP blocks inside `startHttp()` until its own shutdown.
  */
 async function serve(): Promise<void> {
   await bootstrap()
@@ -174,9 +155,67 @@ async function serve(): Promise<void> {
   })
 }
 
+function parseUserFlag(argv: string[]): string {
+  const idx = argv.indexOf('--user')
+  if (idx === -1) return DEFAULT_NAMESPACE
+  const value = argv[idx + 1]
+  if (!value || value.startsWith('--')) {
+    throw new Error('--user requires a namespace value, e.g. --user alice')
+  }
+  return assertNamespace(value)
+}
+
+async function readTokenInteractively(): Promise<string> {
+  const fromEnv = process.env.NOTION_TOKEN?.trim()
+  if (fromEnv) return fromEnv
+  const rl = createInterface({ input: process.stdin, output: process.stderr })
+  try {
+    return (await rl.question('Notion integration token (ntn_... or secret_...): ')).trim()
+  } finally {
+    rl.close()
+  }
+}
+
+/**
+ * `notion auth [--user <namespace>]`: store a Notion integration token.
+ *
+ * The token is read from NOTION_TOKEN or prompted for (never accepted as an
+ * argv value, so it stays out of shell history). It is verified with
+ * Notion `users.me` before it is saved. Credential values are never printed.
+ */
+export async function authCommand(argv: string[]): Promise<number> {
+  let namespace: string
+  try {
+    namespace = parseUserFlag(argv)
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error))
+    return 2
+  }
+
+  const token = await readTokenInteractively()
+  if (!/^(ntn_|secret_)[A-Za-z0-9]+$/.test(token)) {
+    console.error('Token must be a Notion integration token starting with "ntn_" or "secret_".')
+    return 2
+  }
+
+  try {
+    await createNotionClient(token).users.me({})
+  } catch {
+    console.error('Notion rejected this token (users.me failed). Nothing was saved.')
+    return 1
+  }
+
+  await saveNamespaceToken(namespace, token)
+  console.log(`Saved Notion token for namespace "${namespace}".`)
+  return 0
+}
+
 // Only execute the CLI if we're the main module and not in a test environment.
 if (isMain(import.meta.url) && process.env.NODE_ENV !== 'test') {
-  buildCli(SERVER_NAME, { serve, version: getPackageVersion(), pluginName: STORE_PLUGIN })(process.argv.slice(2)).then(
-    (code) => process.exit(code)
-  )
+  buildCli(SERVER_NAME, {
+    serve,
+    version: getPackageVersion(),
+    pluginName: STORE_PLUGIN,
+    extra: { auth: authCommand }
+  })(process.argv.slice(2)).then((code) => process.exit(code))
 }

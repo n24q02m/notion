@@ -1,168 +1,180 @@
 /**
  * Tests for credential state management.
  *
- * Post stdio-pure + http-multi-user split (2026-05-01): no relay spawn,
- * no setupUrl, no triggerRelaySetup. Just env/file resolution + state
- * machine + per-subject token resolver.
+ * Covers env/config resolution, the awaiting_setup/configured state machine,
+ * and per-caller token lookup keyed by hull's request-scoped namespace.
  */
 
-import { deleteConfig } from '@n24q02m/mcp-core'
-import { resolveConfig } from '@n24q02m/mcp-core/storage'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const h = vi.hoisted(() => ({
+  readConfig: vi.fn(),
+  writeConfig: vi.fn(),
+  deleteConfig: vi.fn(),
+  resolveConfig: vi.fn(),
+  storeLoad: vi.fn(),
+  storeSave: vi.fn(),
+  storeClear: vi.fn(),
+  currentUser: vi.fn()
+}))
+
+vi.mock('@n24q02m/hull/storage', () => ({
+  readConfig: h.readConfig,
+  writeConfig: h.writeConfig,
+  deleteConfig: h.deleteConfig,
+  resolveConfig: h.resolveConfig,
+  PerPluginStore: class {
+    load = h.storeLoad
+    save = h.storeSave
+    clear = h.storeClear
+  }
+}))
+
+vi.mock('@n24q02m/hull/token-auth', () => ({
+  currentUser: h.currentUser
+}))
+
 import {
-  getNotionToken,
+  assertNamespace,
   getState,
   getSubjectToken,
   resetState,
   resolveCredentialState,
-  setState,
-  setSubjectTokenResolver
+  saveNamespaceToken
 } from './credential-state.js'
 
-vi.mock('@n24q02m/mcp-core', () => ({
-  deleteConfig: vi.fn()
-}))
+const SERVER_NAME = 'better-notion-mcp'
+const STORE_PLUGIN = 'better-notion'
 
-vi.mock('@n24q02m/mcp-core/storage', () => ({
-  resolveConfig: vi.fn()
-}))
+function asCaller(namespace: string) {
+  h.currentUser.mockReturnValue({ uid: 'fixture-uid', namespace, mode: 'stdio' } as never)
+}
 
 describe('credential-state', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.resetAllMocks()
-    vi.spyOn(console, 'error').mockImplementation(() => {})
-
-    vi.mocked(deleteConfig).mockResolvedValue(undefined as never)
-    vi.mocked(resolveConfig).mockResolvedValue({ config: null, source: null } as never)
-
-    resetState()
+    asCaller('default')
+    h.readConfig.mockResolvedValue(null)
+    h.resolveConfig.mockResolvedValue({ config: null, source: null } as never)
+    h.deleteConfig.mockResolvedValue(undefined)
+    h.writeConfig.mockResolvedValue(undefined)
+    h.storeLoad.mockResolvedValue(null)
+    h.storeSave.mockResolvedValue(undefined)
+    h.storeClear.mockResolvedValue(undefined)
     delete process.env.NOTION_TOKEN
-  })
 
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-
-  it('initial state is awaiting_setup', () => {
-    expect(getState()).toBe('awaiting_setup')
-    expect(getNotionToken()).toBeNull()
-  })
-
-  describe('getNotionToken', () => {
-    it('returns null when not configured', () => {
-      expect(getNotionToken()).toBeNull()
-    })
-
-    it('returns the token when configured via env', async () => {
-      process.env.NOTION_TOKEN = 'test-token'
-      await resolveCredentialState()
-      expect(getNotionToken()).toBe('test-token')
-    })
+    await resolveCredentialState()
   })
 
   describe('resolveCredentialState', () => {
-    it('configures when NOTION_TOKEN env var is present', async () => {
-      process.env.NOTION_TOKEN = 'env-token'
-      const state = await resolveCredentialState()
-      expect(state).toBe('configured')
-      expect(getNotionToken()).toBe('env-token')
+    it('starts awaiting_setup when no env token and no config file', () => {
+      expect(getState()).toBe('awaiting_setup')
     })
 
-    it('configures when config file has token', async () => {
-      vi.mocked(resolveConfig).mockResolvedValue({
-        config: { NOTION_TOKEN: 'file-token' },
-        source: 'file'
-      } as never)
-      const state = await resolveCredentialState()
-      expect(state).toBe('configured')
-      expect(getNotionToken()).toBe('file-token')
-    })
+    it('becomes configured from the NOTION_TOKEN env var', async () => {
+      process.env.NOTION_TOKEN = 'fixture-env-value'
 
-    it('stays in awaiting_setup when nothing found', async () => {
-      const state = await resolveCredentialState()
-      expect(state).toBe('awaiting_setup')
-    })
-
-    it('handles config read failure gracefully', async () => {
-      vi.mocked(resolveConfig).mockRejectedValue(new Error('read error') as never)
-      const state = await resolveCredentialState()
-      expect(state).toBe('awaiting_setup')
-    })
-
-    it('stays in awaiting_setup when config file exists but is missing NOTION_TOKEN', async () => {
-      vi.mocked(resolveConfig).mockResolvedValue({
-        config: {}, // Missing NOTION_TOKEN
-        source: 'file'
-      } as never)
-      const state = await resolveCredentialState()
-      expect(state).toBe('awaiting_setup')
-      expect(getNotionToken()).toBeNull()
-    })
-
-    it('clears notion token when resolveCredentialState falls back to awaiting_setup', async () => {
-      // 1. Setup a configured state
-      process.env.NOTION_TOKEN = 'initial-token'
-      await resolveCredentialState()
+      await expect(resolveCredentialState()).resolves.toBe('configured')
       expect(getState()).toBe('configured')
-      expect(getNotionToken()).toBe('initial-token')
+      await expect(getSubjectToken()).resolves.toBe('fixture-env-value')
+    })
 
-      // 2. Remove env var and make resolveConfig fail
-      delete process.env.NOTION_TOKEN
-      vi.mocked(resolveConfig).mockRejectedValue(new Error('read error') as never)
+    it('becomes configured from the saved config file', async () => {
+      h.resolveConfig.mockResolvedValue({ config: { NOTION_TOKEN: 'fixture-file-value' }, source: 'config' } as never)
 
-      // 3. Resolve again
-      const state = await resolveCredentialState()
-      expect(state).toBe('awaiting_setup')
-      expect(getNotionToken()).toBeNull()
+      await expect(resolveCredentialState()).resolves.toBe('configured')
+      expect(h.resolveConfig).toHaveBeenCalledWith(SERVER_NAME, ['NOTION_TOKEN'])
+      await expect(getSubjectToken()).resolves.toBe('fixture-file-value')
+    })
+
+    it('stays awaiting_setup when the config read throws', async () => {
+      h.resolveConfig.mockRejectedValue(new Error('fixture read failure'))
+
+      await expect(resolveCredentialState()).resolves.toBe('awaiting_setup')
+      await expect(getSubjectToken()).resolves.toBeNull()
+    })
+  })
+
+  describe('getSubjectToken', () => {
+    it('reads the default namespace from the saved config', async () => {
+      h.readConfig.mockResolvedValue({ NOTION_TOKEN: 'fixture-saved-value' })
+
+      await expect(getSubjectToken()).resolves.toBe('fixture-saved-value')
+      expect(h.readConfig).toHaveBeenCalledWith(SERVER_NAME, STORE_PLUGIN)
+    })
+
+    it('reads a non-default namespace from its per-plugin store', async () => {
+      asCaller('team-a')
+      h.storeLoad.mockResolvedValue({ NOTION_TOKEN: 'fixture-team-value' })
+
+      await expect(getSubjectToken()).resolves.toBe('fixture-team-value')
+      expect(h.readConfig).not.toHaveBeenCalled()
+    })
+
+    it('returns null for a non-default namespace with no stored token', async () => {
+      asCaller('team-a')
+      h.storeLoad.mockResolvedValue(null)
+
+      await expect(getSubjectToken()).resolves.toBeNull()
+    })
+
+    it('rejects an invalid namespace before touching storage', async () => {
+      asCaller('../escape')
+
+      await expect(getSubjectToken()).rejects.toThrow('Invalid namespace')
+      expect(h.storeLoad).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('saveNamespaceToken', () => {
+    it('writes the default namespace through writeConfig', async () => {
+      await saveNamespaceToken('default', 'fixture-save-value')
+
+      expect(h.writeConfig).toHaveBeenCalledWith(SERVER_NAME, { NOTION_TOKEN: 'fixture-save-value' }, STORE_PLUGIN)
+    })
+
+    it('writes a non-default namespace through its per-plugin store', async () => {
+      await saveNamespaceToken('team-a', 'fixture-save-value')
+
+      expect(h.storeSave).toHaveBeenCalledWith({ NOTION_TOKEN: 'fixture-save-value' })
+      expect(h.writeConfig).not.toHaveBeenCalled()
     })
   })
 
   describe('resetState', () => {
-    it('resets all state and calls deleteConfig', () => {
-      setState('configured')
-      resetState()
+    it('clears the default token, state, and saved config', async () => {
+      process.env.NOTION_TOKEN = 'fixture-env-value'
+      await resolveCredentialState()
+      expect(getState()).toBe('configured')
+
+      await resetState()
+
       expect(getState()).toBe('awaiting_setup')
-      expect(getNotionToken()).toBeNull()
-      expect(deleteConfig).toHaveBeenCalledWith('better-notion-mcp')
+      expect(h.deleteConfig).toHaveBeenCalledWith(SERVER_NAME, STORE_PLUGIN)
+      await expect(getSubjectToken()).resolves.toBeNull()
     })
 
-    it('handles deleteConfig failure in resetState', async () => {
-      vi.mocked(deleteConfig).mockRejectedValue(new Error('delete failed') as never)
-      resetState()
-      // Allow the unreturned promise catch block to execute
-      await new Promise((r) => setTimeout(r, 0))
-      expect(getState()).toBe('awaiting_setup')
-      expect(deleteConfig).toHaveBeenCalled()
+    it('clears only the caller namespace and leaves the default state alone', async () => {
+      process.env.NOTION_TOKEN = 'fixture-env-value'
+      await resolveCredentialState()
+      asCaller('team-a')
+
+      await resetState()
+
+      expect(h.storeClear).toHaveBeenCalled()
+      expect(h.deleteConfig).not.toHaveBeenCalled()
+      expect(getState()).toBe('configured')
     })
   })
 
-  describe('subject token resolver', () => {
-    it('defaults to single-user module global when no resolver injected', () => {
-      setState('awaiting_setup')
-      expect(getSubjectToken()).toBeNull()
+  describe('assertNamespace', () => {
+    it('accepts letters, digits, dash, and underscore', () => {
+      expect(assertNamespace('team_a-1')).toBe('team_a-1')
     })
 
-    it('returns injected per-subject token for remote-oauth mode', () => {
-      let currentSub = 'alice'
-      const storeByAlice = 'ntn_alice_token'
-      const storeByBob = 'ntn_bob_token'
-      setSubjectTokenResolver(() => {
-        if (currentSub === 'alice') return storeByAlice
-        if (currentSub === 'bob') return storeByBob
-        return null
-      })
-      expect(getSubjectToken()).toBe(storeByAlice)
-      currentSub = 'bob'
-      expect(getSubjectToken()).toBe(storeByBob)
-      currentSub = 'unknown'
-      expect(getSubjectToken()).toBeNull()
-    })
-
-    it('restores default resolver on resetState', () => {
-      setSubjectTokenResolver(() => 'forced-token')
-      expect(getSubjectToken()).toBe('forced-token')
-      resetState()
-      expect(getSubjectToken()).toBeNull()
+    it('rejects names that start with a non-alphanumeric or contain a path separator', () => {
+      expect(() => assertNamespace('-leading')).toThrow('Invalid namespace')
+      expect(() => assertNamespace('a/b')).toThrow('Invalid namespace')
     })
   })
 })

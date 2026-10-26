@@ -5,7 +5,7 @@
  *  - stdio (default): NOTION_TOKEN env required, MCP SDK StdioServerTransport
  *    directly (no daemon proxy hop). Single-user.
  *  - http (opt-in): `--http`, `MCP_TRANSPORT=http`, or `TRANSPORT_MODE=http`.
- *    Always remote-oauth, always multi-user (per-JWT-sub Notion token store).
+ *    Multi-user per-user token auth or single shared token (MCP_AUTH_MODE), served by hull runHttpServer.
  *
  * Spec: 2026-05-01-stdio-pure-http-multiuser.md §5.2.1.
  */

@@ -25,11 +25,10 @@ function getVersion(): string {
 
 /**
  * Create a configured MCP server with all tools registered
- * @param notionClientFactory - Returns a Notion Client per invocation.
- *   Stdio: always returns the same singleton.
- *   HTTP: returns a per-request client with the user's OAuth token.
+ * @param notionClientFactory - Resolves the calling user's Notion Client per invocation.
+ *   Stdio resolves the default namespace; HTTP resolves the authenticated caller.
  */
-export function createMCPServer(notionClientFactory: () => Client): Server {
+export function createMCPServer(notionClientFactory: () => Promise<Client>): Server {
   const server = new Server({ name: 'notion', version: getVersion() }, { capabilities: { tools: {}, resources: {} } })
   registerTools(server, notionClientFactory)
   return server

@@ -18,7 +18,7 @@ async function build() {
     banner: {
       js: "#!/usr/bin/env node\nimport { createRequire } from 'module';const require = createRequire(import.meta.url);"
     },
-    external: ['util', '@notionhq/client', '@modelcontextprotocol/sdk', '@n24q02m/mcp-core']
+    external: ['util', '@notionhq/client', '@modelcontextprotocol/sdk', '@n24q02m/hull']
   })
 
   // Make the output file executable

@@ -1,100 +1,107 @@
 /**
- * Non-blocking credential state management for the notion MCP server.
+ * Credential state for the notion MCP server.
  *
- * State machine: awaiting_setup -> configured
- * Reset: configured -> awaiting_setup (via reset)
+ * The Notion integration token is stored per namespace, mirroring the
+ * telegram layout:
+ *  - `default` namespace: `~/.better-notion/config.json` (stdio, no-auth,
+ *    and token-mode HTTP always resolve to this namespace).
+ *  - any other namespace (HTTP multi-user): `~/.better-notion/subs/<ns>/config.json`,
+ *    written by `notion auth --user <ns>`.
  *
- * Post stdio-pure + http-multi-user split (2026-05-01): the daemon-bridge
- * relay setup spawn is gone. In stdio mode the server fails fast with a
- * clear stderr message when NOTION_TOKEN is missing (see main.ts). In HTTP
- * mode the OAuth 2.1 AS in mcp-core serves the credential form directly at
- * /authorize on the same port as /mcp -- no separate spawn, no random port.
- *
- * This module is the single source of truth for "is the server configured?"
- * It supports two token resolution strategies:
- *  - stdio / single-user: module-global ``_notionToken`` from env or
- *    config.enc, set during ``resolveCredentialState``.
- *  - HTTP / multi-user (remote-oauth): per-JWT-sub resolver injected by the
- *    HTTP transport so ``config(action=status)`` reflects whether the
- *    CURRENT caller has a Notion access token.
+ * `NOTION_TOKEN` in the environment overrides the `default` namespace only.
  */
 
-import { deleteConfig } from '@n24q02m/mcp-core'
-import { resolveConfig } from '@n24q02m/mcp-core/storage'
+import { deleteConfig, PerPluginStore, readConfig, resolveConfig, writeConfig } from '@n24q02m/hull/storage'
+import { currentUser } from '@n24q02m/hull/token-auth'
 
-// Storage key for mcp-core resolveConfig/deleteConfig. Deliberately NOT renamed
-// with the package/server name: mcp-core derives the PerPluginStore dir
-// (~/.better-notion-mcp), the legacy config.enc `servers.<name>` entry and the
-// MCP_BETTER_NOTION_MCP_* env overrides from it, so changing it would orphan
-// saved credentials. The data-dir move is deferred to the G3 hull rewire.
+// Storage key for hull's config helpers. Deliberately NOT renamed: hull derives
+// the store directory and legacy env overrides from it, so renaming would
+// orphan saved credentials.
 const SERVER_NAME = 'better-notion-mcp'
+// Plugin slug used for the on-disk store directory (~/.better-notion/).
+export const STORE_PLUGIN = 'better-notion'
 const CREDENTIAL_KEY = 'NOTION_TOKEN'
 const REQUIRED_FIELDS = [CREDENTIAL_KEY]
+export const DEFAULT_NAMESPACE = 'default'
+const NAMESPACE_RE = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/
+
+export const SETUP_HINT =
+  'Run "notion auth" on the server to store a Notion integration token (use --user <namespace> for multi-user HTTP).'
 
 export type CredentialState = 'awaiting_setup' | 'configured'
 
-// Module-level state
 let _state: CredentialState = 'awaiting_setup'
-let _notionToken: string | null = null
+let _defaultToken: string | null = null
 
 export function getState(): CredentialState {
   return _state
 }
 
-export function getNotionToken(): string | null {
-  return _notionToken
+export function assertNamespace(namespace: string): string {
+  if (!NAMESPACE_RE.test(namespace)) {
+    throw new Error(
+      `Invalid namespace "${namespace}": use letters, digits, "-" or "_" (max 64 chars, must start with a letter or digit).`
+    )
+  }
+  return namespace
+}
+
+async function loadNamespaceToken(namespace: string): Promise<string | null> {
+  if (namespace === DEFAULT_NAMESPACE) {
+    const cfg = await readConfig(SERVER_NAME, STORE_PLUGIN)
+    return cfg?.[CREDENTIAL_KEY] || null
+  }
+  const payload = await new PerPluginStore(STORE_PLUGIN, assertNamespace(namespace)).load()
+  const token = payload?.[CREDENTIAL_KEY]
+  return typeof token === 'string' && token ? token : null
+}
+
+/** Persist a token for `namespace`. Used by `notion auth`. */
+export async function saveNamespaceToken(namespace: string, token: string): Promise<void> {
+  if (namespace === DEFAULT_NAMESPACE) {
+    await writeConfig(SERVER_NAME, { [CREDENTIAL_KEY]: token }, STORE_PLUGIN)
+    return
+  }
+  await new PerPluginStore(STORE_PLUGIN, assertNamespace(namespace)).save({
+    [CREDENTIAL_KEY]: token
+  })
+}
+
+async function clearNamespaceToken(namespace: string): Promise<void> {
+  if (namespace === DEFAULT_NAMESPACE) {
+    await deleteConfig(SERVER_NAME, STORE_PLUGIN)
+    return
+  }
+  await new PerPluginStore(STORE_PLUGIN, assertNamespace(namespace)).clear()
 }
 
 /**
- * Default token resolver for single-user mode.
+ * Notion token for the CURRENT caller. The namespace comes from hull's
+ * request-scoped identity (`currentUser()`); stdio and single-user HTTP
+ * resolve to `default`.
  */
-function defaultResolver(): string | null {
-  return _notionToken
+export async function getSubjectToken(): Promise<string | null> {
+  const namespace = currentUser().namespace
+  if (namespace === DEFAULT_NAMESPACE && _defaultToken) return _defaultToken
+  return loadNamespaceToken(namespace)
 }
 
 /**
- * Per-request token resolver. Stdio / single-user leaves the default
- * resolver, which reads the module global. ``remote-oauth`` HTTP mode
- * injects a resolver that reads the per-JWT-sub ``NotionTokenStore`` so
- * that ``config(action=status)`` reflects whether the CURRENT caller has a
- * Notion access token -- not whether the server process has any global
- * token, which is always null in multi-user remote-oauth mode.
- */
-let _subjectTokenResolver: () => string | null = defaultResolver
-
-export function setSubjectTokenResolver(fn: () => string | null): void {
-  _subjectTokenResolver = fn
-}
-
-export function getSubjectToken(): string | null {
-  return _subjectTokenResolver()
-}
-
-/**
- * Fast, synchronous-ish credential check. Called during startup.
- *
- * Checks (in order):
- * 1. ENV VARS -- NOTION_TOKEN present -> configured
- * 2. CONFIG FILE -- saved relay config has token -> configured
- * 3. NOTHING -- awaiting_setup
- *
- * Returns new state. Takes <50ms (single file read).
+ * Resolve the default-namespace token at startup: env first, then the saved
+ * config file. Non-default namespaces are resolved per request.
  */
 export async function resolveCredentialState(): Promise<CredentialState> {
-  // 1. Check env var
   const envToken = process.env.NOTION_TOKEN
   if (envToken) {
-    _notionToken = envToken
+    _defaultToken = envToken
     _state = 'configured'
     return _state
   }
 
-  // 2. Check saved relay config file (HTTP mode only -- stdio shouldn't get
-  // here without env, see main.ts startServer('stdio') guard).
   try {
     const result = await resolveConfig(SERVER_NAME, REQUIRED_FIELDS)
     if (result.config?.[CREDENTIAL_KEY]) {
-      _notionToken = result.config[CREDENTIAL_KEY]
+      _defaultToken = result.config[CREDENTIAL_KEY]
       _state = 'configured'
       return _state
     }
@@ -102,19 +109,17 @@ export async function resolveCredentialState(): Promise<CredentialState> {
     // Config file read failure is non-fatal
   }
 
-  // 3. Nothing found
-  _notionToken = null
+  _defaultToken = null
   _state = 'awaiting_setup'
   return _state
 }
 
-export function setState(state: CredentialState): void {
-  _state = state
-}
-
-export function resetState(): void {
-  _state = 'awaiting_setup'
-  _notionToken = null
-  _subjectTokenResolver = defaultResolver
-  deleteConfig(SERVER_NAME).catch(() => {})
+/** Clear the CURRENT caller's stored token and any cached default token. */
+export async function resetState(): Promise<void> {
+  const namespace = currentUser().namespace
+  if (namespace === DEFAULT_NAMESPACE) {
+    _defaultToken = null
+    _state = 'awaiting_setup'
+  }
+  await clearNamespaceToken(namespace)
 }

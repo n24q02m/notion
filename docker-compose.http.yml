@@ -1,6 +1,8 @@
 # HTTP mode (self-host) -- use with:
 # docker compose -f docker-compose.http.yml up
 # Published on host loopback only; put your own TLS reverse proxy in front.
+# Auth: MCP_AUTH_MODE=multi (default, per-user tokens via MCP_USERS_FILE) or
+# MCP_AUTH_MODE=token (single shared bearer; MCP_AUTH_TOKEN_HASH required).
 services:
   notion:
     build:
@@ -10,11 +12,10 @@ services:
       - MCP_TRANSPORT=http
       - PORT=8080
       - HOST=0.0.0.0
-      - PUBLIC_URL=${PUBLIC_URL:-http://localhost:8081}
-      - NOTION_OAUTH_CLIENT_ID=${NOTION_OAUTH_CLIENT_ID}
-      - NOTION_OAUTH_CLIENT_SECRET=${NOTION_OAUTH_CLIENT_SECRET}
-      - CREDENTIAL_SECRET=${CREDENTIAL_SECRET}
-      - MCP_RELAY_PASSWORD=${MCP_RELAY_PASSWORD}
+      - MCP_AUTH_MODE=${MCP_AUTH_MODE:-multi}
+      - MCP_AUTH_TOKEN_HASH=${MCP_AUTH_TOKEN_HASH:-}
+      - MCP_USERS_FILE=${MCP_USERS_FILE:-}
+      - MCP_RPM=${MCP_RPM:-}
     ports:
       - "127.0.0.1:8081:8080"
     volumes:
