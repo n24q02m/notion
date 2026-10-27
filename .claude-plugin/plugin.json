@@ -1,7 +1,7 @@
 {
   "name": "notion",
   "description": "Markdown-first Notion API integration — 8 composite tools, ~95% coverage",
-  "version": "2.42.0-beta.1",
+  "version": "2.42.0",
   "userConfig": {
     "NOTION_TOKEN": {
       "type": "string",
