@@ -2,6 +2,70 @@
 
 <!-- version list -->
 
+## v2.42.0-beta.1 (2026-10-27)
+
+### Bug Fixes
+
+- Align main and init-server test mocks with credential-state API
+  ([#1302](https://github.com/n24q02m/notion/pull/1302),
+  [`39b2627`](https://github.com/n24q02m/notion/commit/39b2627c3e9a70b78f6b7c0af09ab19a1f268c72))
+
+- Align registry and plugin metadata with renamed identity
+  ([#1300](https://github.com/n24q02m/notion/pull/1300),
+  [`a0cd5aa`](https://github.com/n24q02m/notion/commit/a0cd5aa5d78cd4fd40f747ac3fdffa7ad761a06c))
+
+- Derive config state from the calling user's token
+  ([#1302](https://github.com/n24q02m/notion/pull/1302),
+  [`39b2627`](https://github.com/n24q02m/notion/commit/39b2627c3e9a70b78f6b7c0af09ab19a1f268c72))
+
+- Format repo settings, drop stale archive banner and add skret config
+  ([#1297](https://github.com/n24q02m/notion/pull/1297),
+  [`510dbee`](https://github.com/n24q02m/notion/commit/510dbee8b8c703801390e89e0b68a4e78a462be4))
+
+- Point homepage at docs.n24q02m.com/servers/notion/
+  ([#1301](https://github.com/n24q02m/notion/pull/1301),
+  [`6f87719`](https://github.com/n24q02m/notion/commit/6f8771913eb846b7efdebd1e9d903facf77ca544))
+
+- Refuse removed relay subcommand with pointer to notion auth
+  ([#1302](https://github.com/n24q02m/notion/pull/1302),
+  [`39b2627`](https://github.com/n24q02m/notion/commit/39b2627c3e9a70b78f6b7c0af09ab19a1f268c72))
+
+### Chores
+
+- Bump mcp-core to 1.24.3 (backlog disposition pre-archive, user 2026-09-13)
+  ([`ecc4409`](https://github.com/n24q02m/notion/commit/ecc44091b5635f300968461eb182b83dbdfb5495))
+
+### Documentation
+
+- Add mode badge, install matrix, CD-managed deployment note
+  ([#1294](https://github.com/n24q02m/notion/pull/1294),
+  [`637eb5d`](https://github.com/n24q02m/notion/commit/637eb5df93e945e763b63cdb22aab2d4dbe105fd))
+
+- Align mode badge with fleet standard (label 'mode', color 5C6BC0)
+  ([`72d65a6`](https://github.com/n24q02m/notion/commit/72d65a6a69c1059b91f98068bf244570fc447ec4))
+
+- Archival notice — repo no longer maintained (2026-09-13)
+  ([#1296](https://github.com/n24q02m/notion/pull/1296),
+  [`ff7c08c`](https://github.com/n24q02m/notion/commit/ff7c08c646b095b3aa20bd763aabf887c02e5312))
+
+### Features
+
+- Make cd dispatch-only, add renovate minimum release age and repo settings contract
+  ([#1297](https://github.com/n24q02m/notion/pull/1297),
+  [`510dbee`](https://github.com/n24q02m/notion/commit/510dbee8b8c703801390e89e0b68a4e78a462be4))
+
+- Remove cloudflare worker hosting surface ([#1299](https://github.com/n24q02m/notion/pull/1299),
+  [`82cf6fc`](https://github.com/n24q02m/notion/commit/82cf6fc26fb17a329eafa5fbdab6c6e4679f7409))
+
+- Rename identity to notion (npm @n24q02m/notion, image n24q02m/notion)
+  ([#1298](https://github.com/n24q02m/notion/pull/1298),
+  [`09ef615`](https://github.com/n24q02m/notion/commit/09ef615e8cbcb483efe060dd5dd7f97c1ae2af2a))
+
+- Switch to hull 0.4 and drop relay credential flows
+  ([#1302](https://github.com/n24q02m/notion/pull/1302),
+  [`39b2627`](https://github.com/n24q02m/notion/commit/39b2627c3e9a70b78f6b7c0af09ab19a1f268c72))
+
+
 ## v2.41.6 (2026-09-13)
 
 ### Bug Fixes
