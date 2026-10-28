@@ -69,6 +69,13 @@ export async function config(input: ConfigInput): Promise<any> {
       }
 
       case 'setup_reset': {
+        if (!input.force) {
+          throw new NotionMCPError(
+            'setup_reset clears stored credentials and requires confirmation.',
+            'VALIDATION_ERROR',
+            'Pass force: true to confirm credential reset.'
+          )
+        }
         await resetState()
         return {
           action: 'setup_reset',

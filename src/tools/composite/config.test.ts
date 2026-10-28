@@ -107,8 +107,14 @@ describe('config', () => {
   })
 
   describe('setup_reset action', () => {
-    it('should reset state and return confirmation', async () => {
-      const result = await config({ action: 'setup_reset' })
+    it('should require force: true to reset state', async () => {
+      await expect(config({ action: 'setup_reset' })).rejects.toThrow(
+        'setup_reset clears stored credentials and requires confirmation.'
+      )
+    })
+
+    it('should reset state and return confirmation when force is true', async () => {
+      const result = await config({ action: 'setup_reset', force: true })
 
       expect(resetState).toHaveBeenCalled()
       expect(result.action).toBe('setup_reset')
