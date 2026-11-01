@@ -5,7 +5,7 @@ mcp-name: io.github.n24q02m/better-notion-mcp
 **Markdown-first Notion for AI agents -- pages, databases, blocks, and comments in one call.**
 
 <!-- Badge Row 1: Status -->
-[![Mode](https://img.shields.io/badge/mode-http_bearer_token_%C2%B7_stdio-5C6BC0)](https://mcp.n24q02m.com/get-started/modes-overview/)
+![Mode](https://img.shields.io/badge/mode-http_bearer_token_%C2%B7_stdio-5C6BC0)
 [![CI](https://github.com/n24q02m/notion/actions/workflows/ci.yml/badge.svg)](https://github.com/n24q02m/notion/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/n24q02m/notion/graph/badge.svg?token=D7FSDVVTAN)](https://codecov.io/gh/n24q02m/notion)
 [![npm](https://img.shields.io/npm/v/@n24q02m/notion?logo=npm&logoColor=white)](https://www.npmjs.com/package/@n24q02m/notion)
@@ -116,7 +116,7 @@ docker run --rm -i -e NOTION_TOKEN=ntn_your_token_here n24q02m/notion:latest
 | OpenCode | `mcpServers` block in `opencode.json` |
 | Cursor / Windsurf / Gemini CLI / any MCP client | `mcpServers` JSON in the client's config — same shape as the example above |
 
-Full per-client walkthroughs: [mcp.n24q02m.com/servers/better-notion-mcp/setup/](https://mcp.n24q02m.com/servers/better-notion-mcp/setup/).
+Full per-client walkthroughs: [docs.n24q02m.com/servers/notion/setup/](https://docs.n24q02m.com/servers/notion/setup/).
 See the [Documentation](#documentation) section for per-client setup (Claude Code, Codex, Gemini CLI, Cursor, Windsurf) and HTTP mode.
 
 ## CLI
@@ -167,7 +167,7 @@ The repo ships a [`smithery.yaml`](smithery.yaml) config for [Smithery](https://
 >
 > Past months saw significant churn around credential handling and the daemon-bridge auto-spawn pattern. This caused multi-process races, browser tab spam, and inconsistent setup UX across plugins. **The architecture is now stable**: 2 clean modes (stdio + HTTP), no daemon-bridge layer, no auto-spawn from stdio.
 >
-> Apologies for the instability period. If you encountered issues with prior versions, please update to the latest release and follow the current [Setup guide](https://mcp.n24q02m.com/servers/better-notion-mcp/setup/) -- most prior workarounds are no longer needed.
+> Apologies for the instability period. If you encountered issues with prior versions, please update to the latest release and follow the current [Setup guide](https://docs.n24q02m.com/servers/notion/setup/) -- most prior workarounds are no longer needed.
 >
 > **Related plugins from the same author**:
 > - [wet](https://github.com/n24q02m/wet) -- Web search + content extraction
@@ -182,11 +182,9 @@ The repo ships a [`smithery.yaml`](smithery.yaml) config for [Smithery](https://
 
 ## Documentation
 
-Full docs at **[mcp.n24q02m.com/servers/better-notion-mcp/](https://mcp.n24q02m.com/servers/better-notion-mcp/)**:
+Full docs at **[docs.n24q02m.com/servers/notion/](https://docs.n24q02m.com/servers/notion/)**:
 
-- [Setup](https://mcp.n24q02m.com/servers/better-notion-mcp/setup/) -- install methods for Claude Code, Codex, Gemini CLI, Cursor, Windsurf, mcp.json
-- [Modes overview](https://mcp.n24q02m.com/get-started/modes-overview/) -- stdio (local, integration token) and HTTP (remote, bearer token)
-- [Multi-user setup](https://mcp.n24q02m.com/get-started/multi-user/) -- per-user credential namespace (HTTP mode)
+- [Setup](https://docs.n24q02m.com/servers/notion/setup/) -- install methods for Claude Code, Codex, Gemini CLI, Cursor, Windsurf, mcp.json
 
 **Install with AI agent** -- paste this to your AI coding agent:
 

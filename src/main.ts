@@ -99,7 +99,7 @@ Options:
   2. Store a token once on this machine:
      npx -y @n24q02m/better-notion-mcp auth
 
-Documentation: https://mcp.n24q02m.com/servers/better-notion-mcp/
+Documentation: https://docs.n24q02m.com/servers/notion/
 `
     process.stderr.write(msg)
     process.exit(1)
