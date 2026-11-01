@@ -2,7 +2,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "mcp__plugin_better-notion-mcp_better-notion-mcp__",
+        "matcher": "mcp__plugin_notion_notion__",
         "hooks": [
           {
             "type": "command",
