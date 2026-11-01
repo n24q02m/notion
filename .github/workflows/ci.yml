@@ -84,8 +84,16 @@ jobs:
         with:
           node-version: "24"
 
+      - name: Setup uv and Python 3.13
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          python-version: "3.13"
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
+      - name: Test SessionStart hook
+        run: uv run --with pytest==9.0.3 python -m pytest hooks/tests -q
 
       - name: Run Biome check
         run: bun run check
