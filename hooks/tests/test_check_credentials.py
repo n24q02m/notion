@@ -31,6 +31,15 @@ class TestCheckCredentials(unittest.TestCase):
 
     @patch.dict(os.environ, {}, clear=True)
     @patch("os.path.exists")
+    @patch("os.path.expanduser")
+    def test_is_configured_notion_auth_store(self, mock_expanduser, mock_exists):
+        mock_expanduser.return_value = "/home/user"
+        # Token stored by `notion auth` lives in ~/.better-notion/config.json
+        mock_exists.side_effect = lambda p: p == "/home/user/.better-notion/config.json"
+        self.assertTrue(check_credentials._is_configured())
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch("os.path.exists")
     def test_not_configured(self, mock_exists):
         mock_exists.return_value = False
         self.assertFalse(check_credentials._is_configured())
@@ -57,6 +66,8 @@ class TestCheckCredentials(unittest.TestCase):
         self.assertIn(
             "better-notion-mcp: credentials not yet configured", output["message"]
         )
+        self.assertIn("notion auth", output["message"])
+        self.assertNotIn("relay", output["message"].lower())
 
     @patch.dict(os.environ, {"NOTION_TOKEN": "secret_123"}, clear=True)
     @patch("sys.stdin", io.StringIO(json.dumps({"tool_name": "list_pages"})))
