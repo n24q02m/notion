@@ -44,3 +44,7 @@ package-lock.json
 *.bak
 /*.patch
 /*.diff
+
+# Python bytecode (hooks tests)
+__pycache__/
+*.pyc
