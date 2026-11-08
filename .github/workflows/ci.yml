@@ -4,13 +4,8 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review, edited]
-  pull_request_target:
-    branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [main]
-  issues:
-    types: [opened, reopened]
 permissions:
   contents: read
   pull-requests: write
@@ -153,48 +148,3 @@ jobs:
         with:
           fail-on-severity: moderate
           comment-summary-in-pr: always
-
-  email-notify:
-    name: Email Notification
-    if: >-
-      (github.event_name == 'issues' || github.event_name == 'pull_request_target')
-      && github.actor != 'n24q02m'
-      && github.event.sender.type != 'Bot'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
-        with:
-          egress-policy: audit
-
-      - name: Parse SMTP credential
-        run: |
-          echo "SMTP_USER=${SMTP_CREDENTIAL%%:*}" >> $GITHUB_ENV
-          echo "SMTP_PASS=${SMTP_CREDENTIAL#*:}" >> $GITHUB_ENV
-        env:
-          SMTP_CREDENTIAL: ${{ secrets.SMTP_CREDENTIAL }}
-
-      - name: Send email notification
-        uses: dawidd6/action-send-mail@94de994a9f6fffee200243214e17002e2920bb59 # v18
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ env.SMTP_USER }}
-          password: ${{ env.SMTP_PASS }}
-          subject: >-
-            [${{ github.event.repository.name }}]
-            ${{ github.event_name == 'issues' && 'Issue' || 'PR' }}
-            #${{ github.event.issue.number || github.event.pull_request.number }}:
-            ${{ github.event.issue.title || github.event.pull_request.title }}
-          to: ${{ env.SMTP_USER }}
-          from: GitHub Notify <${{ env.SMTP_USER }}>
-          body: |
-            ${{ github.event_name == 'issues' && 'New issue' || 'New pull request' }} in ${{ github.repository }}
-
-            Title: ${{ github.event.issue.title || github.event.pull_request.title }}
-            Author: ${{ github.actor }}
-            URL: ${{ github.event.issue.html_url || github.event.pull_request.html_url }}
-            Action: ${{ github.event.action }}
-
-            ---
-            ${{ github.event.issue.body || github.event.pull_request.body || 'No description provided.' }}
