@@ -168,26 +168,36 @@ jobs:
           egress-policy: audit
 
       - name: Parse SMTP credential
-        run: |
-          echo "SMTP_USER=${SMTP_CREDENTIAL%%:*}" >> $GITHUB_ENV
-          echo "SMTP_PASS=${SMTP_CREDENTIAL#*:}" >> $GITHUB_ENV
+        id: smtp
         env:
           SMTP_CREDENTIAL: ${{ secrets.SMTP_CREDENTIAL }}
+        run: |
+          # GitHub masks the secret's exact value only, not the two parts split out of
+          # it. Mask each part before anything can print it, and pass them on as step
+          # outputs: a GITHUB_ENV value is echoed in the env header of every later step.
+          user="${SMTP_CREDENTIAL%%:*}"
+          pass="${SMTP_CREDENTIAL#*:}"
+          echo "::add-mask::$user"
+          echo "::add-mask::$pass"
+          {
+            echo "user=$user"
+            echo "pass=$pass"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Send email notification
         uses: dawidd6/action-send-mail@94de994a9f6fffee200243214e17002e2920bb59 # v18
         with:
           server_address: smtp.gmail.com
           server_port: 587
-          username: ${{ env.SMTP_USER }}
-          password: ${{ env.SMTP_PASS }}
+          username: ${{ steps.smtp.outputs.user }}
+          password: ${{ steps.smtp.outputs.pass }}
           subject: >-
             [${{ github.event.repository.name }}]
             ${{ github.event_name == 'issues' && 'Issue' || 'PR' }}
             #${{ github.event.issue.number || github.event.pull_request.number }}:
             ${{ github.event.issue.title || github.event.pull_request.title }}
-          to: ${{ env.SMTP_USER }}
-          from: GitHub Notify <${{ env.SMTP_USER }}>
+          to: ${{ steps.smtp.outputs.user }}
+          from: GitHub Notify <${{ steps.smtp.outputs.user }}>
           body: |
             ${{ github.event_name == 'issues' && 'New issue' || 'New pull request' }} in ${{ github.repository }}
 
