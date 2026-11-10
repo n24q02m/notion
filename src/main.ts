@@ -23,6 +23,7 @@ import {
   STORE_PLUGIN,
   saveNamespaceToken
 } from './credential-state.js'
+import { applyDataDirOverride } from './data-dir.js'
 import { createNotionClient, notionClientForCaller } from './notion-client.js'
 import { registerTools } from './tools/registry.js'
 
@@ -74,6 +75,8 @@ export function getTransportMode(env: NodeJS.ProcessEnv = process.env, argv: str
  * Dynamically imports and starts the server for the specified mode.
  */
 export async function startServer(mode: string): Promise<void> {
+  // `NOTION_DATA_DIR`, if set, must be in force before the first credential read.
+  applyDataDirOverride()
   if (process.env.BETTER_NOTION_MCP_BOOTSTRAPPED) {
     console.error(`[${SERVER_NAME}] Startup aborted: server already running in this process tree.`)
     return
@@ -222,6 +225,9 @@ export function relayCommand(): number {
 
 // Only execute the CLI if we're the main module and not in a test environment.
 if (isMain(import.meta.url) && process.env.NODE_ENV !== 'test') {
+  // Before buildCli parses argv: its built-in `config`, `status` and `doctor`
+  // commands read the credential store.
+  applyDataDirOverride()
   buildCli(SERVER_NAME, {
     serve,
     version: getPackageVersion(),

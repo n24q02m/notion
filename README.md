@@ -229,6 +229,7 @@ Eight composite Notion tools (39 actions) plus two infrastructure tools (`config
 | `TRANSPORT_MODE` / `MCP_TRANSPORT` | No | `stdio` | Set either to `http` for remote mode (or pass `--http`) |
 | `MCP_AUTH_MODE` | No (http) | `multi` | `multi` (per-user tokens from `MCP_USERS_FILE`), `token` (one shared token, needs `MCP_AUTH_TOKEN_HASH`), or `no-auth` (trusted/local use only) |
 | `MCP_USERS_FILE` | No (http, multi) | `~/.hull/users.toml` | Users file for `multi` mode |
+| `NOTION_DATA_DIR` | No | `$HOME` | Base directory for the credential store. Tokens live in `<dir>/.better-notion/` (`config.json`, or `subs/<namespace>/config.json` in multi-user HTTP). A relative value is resolved under `$HOME` and must stay inside it; use an absolute path (e.g. `/data`) to point at a mounted volume |
 | `MCP_AUTH_TOKEN_HASH` | Yes (token mode) | - | `scrypt$` hash of the shared token (mint with `token hash`) |
 | `MCP_RPM` | No (token mode) | - | Optional per-minute request cap in token mode |
 | `PORT` | No | `0` (OS-assigned) | Server port; set explicitly (e.g. `8080`) to bind a fixed port |
