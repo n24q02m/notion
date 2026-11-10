@@ -1,6 +1,6 @@
 # notion
 
-Ten repo/npm/image: `n24q02m/notion` / `@n24q02m/notion` / `n24q02m/notion` (truoc day la `better-notion-mcp`). CON GIU ten cu co chu dich: registry id `io.github.n24q02m/better-notion-mcp`, bin alias `better-notion-mcp`, storage key `better-notion-mcp` (`SERVER_NAME` trong `src/credential-state.ts`; data dir `~/.notion` qua `STORE_PLUGIN`, store cu `~/.better-notion` duoc copy sang luc startup), va skret path `/better-notion-mcp/prod`.
+Ten repo/npm/image: `n24q02m/notion` / `@n24q02m/notion` / `n24q02m/notion` (truoc day la `better-notion-mcp`). CON GIU ten cu co chu dich: registry id `io.github.n24q02m/better-notion-mcp` (lap lai o `server.json` `name`, `package.json` `mcpName`, README dong `mcp-name:` va Dockerfile label `io.modelcontextprotocol.server.name` -- doi mot cho la lech registry), bin alias `better-notion-mcp`, storage key `better-notion-mcp` (`SERVER_NAME` trong `src/credential-state.ts`; data dir `~/.notion` qua `STORE_PLUGIN`, store cu `~/.better-notion` duoc copy sang luc startup), va skret path `/better-notion-mcp/prod`. Nhung cho con mang ten cu ma khong doi duoc: Glama listing slug, row trong khoi cross-promo auto-generated (link GitHub cu redirect sang repo moi), va lich su trong `CHANGELOG.md`.
 
 TypeScript MCP Server cho Notion API. 10 registered tools = 8 composite (pages, databases, blocks, users, workspace, comments, content_convert, file_uploads) + 2 infra (config, help), dual-mode stdio/http.
 Xem `AGENTS.md` va `README.md` de hieu architecture.

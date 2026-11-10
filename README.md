@@ -111,7 +111,7 @@ docker run --rm -i -e NOTION_TOKEN=ntn_your_token_here n24q02m/notion:latest
 
 | Client | Install |
 |:-------|:--------|
-| Claude Code | `/plugin marketplace add n24q02m/claude-plugins` + `/plugin install better-notion-mcp@n24q02m-plugins` (stdio; prompts for `NOTION_TOKEN`), or an `mcpServers` entry in `.mcp.json` / client settings |
+| Claude Code | `/plugin marketplace add n24q02m/claude-plugins` + `/plugin install notion@n24q02m-plugins` (stdio; prompts for `NOTION_TOKEN`), or an `mcpServers` entry in `.mcp.json` / client settings |
 | Codex CLI | `[mcp_servers.notion]` block in `~/.codex/config.toml` (stdio `command`/`args` or HTTP `type`/`url`) |
 | OpenCode | `mcpServers` block in `opencode.json` |
 | Cursor / Windsurf / Gemini CLI / any MCP client | `mcpServers` JSON in the client's config — same shape as the example above |
@@ -234,7 +234,7 @@ Full docs at **[docs.n24q02m.com/servers/notion/](https://docs.n24q02m.com/serve
 **Install with AI agent** -- paste this to your AI coding agent:
 
 > Install MCP server `notion` following the steps at
-> https://raw.githubusercontent.com/n24q02m/claude-plugins/main/plugins/better-notion-mcp/setup-with-agent.md
+> https://raw.githubusercontent.com/n24q02m/claude-plugins/main/plugins/notion/setup-with-agent.md
 
 ## Tools
 

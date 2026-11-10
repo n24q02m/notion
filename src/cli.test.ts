@@ -15,7 +15,7 @@ vi.mock('./tools/composite/config.js', () => ({ config: vi.fn() }))
 vi.mock('node:fs/promises', () => ({ readFile: vi.fn() }))
 
 vi.mock('./credential-state.js', () => ({
-  STORE_PLUGIN: 'better-notion',
+  STORE_PLUGIN: 'notion',
   SETUP_HINT: 'Run "notion auth" on the server to store a Notion integration token.',
   resolveCredentialState: vi.fn(async () => 'configured'),
   getSubjectToken: vi.fn(async () => 'fixture-stored-value')

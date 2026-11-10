@@ -67,11 +67,11 @@ Smoke the surface without touching a Notion workspace: `notion content_convert -
 | `HOST` | no (HTTP) | `127.0.0.1` | bind address |
 | `NOTION_DATA_DIR` | no | home directory | base directory that holds the credential store |
 
-Credential state is hull's encrypted per-plugin store, keyed by namespace. The default namespace lives in `<base>/.better-notion/config.json`; HTTP `multi` callers resolve to `<base>/.better-notion/subs/<namespace>/config.json`. The machine key that decrypts the blob is `<base>/.better-notion/.secret`, written with mode 0600 on POSIX. There is no second store.
+Credential state is hull's encrypted per-plugin store, keyed by namespace. The default namespace lives in `<base>/.notion/config.json`; HTTP `multi` callers resolve to `<base>/.notion/subs/<namespace>/config.json`. The machine key that decrypts the blob is `<base>/.notion/.secret`, written with mode 0600 on POSIX. A store an earlier release wrote under `<base>/.better-notion/` is copied forward once at startup (`src/data-dir-migration.ts`); there is no second live store.
 
 `notion auth [--user <namespace>]` stores a token. It reads the token from `NOTION_TOKEN` or prompts on stdin -- never from argv, so it stays out of shell history -- verifies it with Notion `users.me` before saving, and prints no credential values. The `relay` subcommand is intentionally a stub that points at `notion auth`; the mcp-core relay flow was removed with the move to hull.
 
-`NOTION_DATA_DIR` replaces the base directory outright, which is how a container mounts one volume (`NOTION_DATA_DIR=/data` puts the store at `/data/.better-notion/`). A relative value is resolved under the home directory and must stay inside it, so `..` cannot walk out; an absolute value is an explicit operator choice and is taken as-is. Empty means "use the default". Because hull derives the blob, the machine key, and the legacy fallbacks from one home directory, the override moves all of them together -- do not point only part of the store somewhere else, or the next run cannot decrypt what was written.
+`NOTION_DATA_DIR` replaces the base directory outright, which is how a container mounts one volume (`NOTION_DATA_DIR=/data` puts the store at `/data/.notion/`). A relative value is resolved under the home directory and must stay inside it, so `..` cannot walk out; an absolute value is an explicit operator choice and is taken as-is. Empty means "use the default". Because hull derives the blob, the machine key, and the legacy fallbacks from one home directory, the override moves all of them together -- do not point only part of the store somewhere else, or the next run cannot decrypt what was written.
 
 Never commit tokens, `.secret`, `config.json`, or captured protocol output. Do not use an external service as the source of truth for local development or verification.
 
@@ -103,7 +103,7 @@ Rollback is forward: revert or fix the source commit and dispatch the pipeline a
 - There is no vendor-hosted endpoint; every HTTP deployment is self-hosted and its bearer token is the operator's responsibility.
 - The legacy `@n24q02m/better-notion-mcp` package receives one final release, then freezes. The Registry id keeps the old name for continuity; the repository, package, image, and binary are `notion`.
 - `no-auth` is loopback-only by design and is not a remote deployment mode.
-- The store plugin key and some on-disk names keep their pre-rename spelling on purpose (`better-notion`), so renaming them would orphan saved credentials. Treat name and storage path as independent surfaces.
+- Two names keep their pre-rename spelling on purpose: hull's storage key for this server is `better-notion-mcp` (`SERVER_NAME` in `src/credential-state.ts`, while `STORE_PLUGIN = 'notion'` sets the on-disk directory), and the pre-rename store directory `better-notion` stays a read-only migration source. Renaming either would orphan saved credentials, so treat the product name and the storage surfaces as independent.
 - Token validation happens at `notion auth`; a token later revoked in Notion surfaces as an authentication error at call time, not at startup.
 - The version line at the top of this file is a release snapshot, not a live value.
 
