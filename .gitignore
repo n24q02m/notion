@@ -14,11 +14,6 @@ coverage/
 .env
 logs_*/
 *.log
-.jules/
-
-# AI Agent
-JULES.md
-
 # Code review knowledge graph
 .code-review-graph/
 
@@ -27,8 +22,6 @@ JULES.md
 docs/superpowers/
 
 # AI Assistant / Rules
-.jules/
-.jules
 .superpower/
 superpower/
 superpowers/
