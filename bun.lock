@@ -5,9 +5,9 @@
     "": {
       "name": "@n24q02m/notion",
       "dependencies": {
-        "@modelcontextprotocol/sdk": "^1.30.1",
+        "@modelcontextprotocol/sdk": "^1.32.2",
         "@n24q02m/hull": "^0.4.0",
-        "@notionhq/client": "^5.26.0",
+        "@notionhq/client": "^5.30.0",
         "zod": "^4.6.7",
       },
       "devDependencies": {
@@ -117,7 +117,7 @@
 
     "@n24q02m/hull": ["@n24q02m/hull@0.4.0", "", { "dependencies": { "@modelcontextprotocol/sdk": "^1.30.1", "better-sqlite3": "^13.0.3", "env-paths": "^4.0.0", "jose": "^6.2.12", "smol-toml": "^1.9.0" } }, "sha512-TonGbbQ6mRN65vU7Hz52tYO6C86mtJB2un9QDhPhJdh3GJkemJMP7ju3XKOuclaMnYwCfBQ4B8G3JVJthiwWuA=="],
 
-    "@notionhq/client": ["@notionhq/client@5.26.0", "", {}, "sha512-Oc3438nQ5YmZkVO7YJG8fcTYl0V46CirdCvO33azZ9f7ZfD2rsHE4fUVANJiBB9Xf1sqpCs82nd8oKPxeXLmMg=="],
+    "@notionhq/client": ["@notionhq/client@5.31.1", "", {}, "sha512-LuVlgHTkHPZf0LOILKVaDboYOyIXNHP9x2DSMhrJzUJjB7GzWjves1OA+8iqJxn1QPW6OqXdp0sS/z0Vh+JACA=="],
 
     "@oxc-project/types": ["@oxc-project/types@0.149.0", "", {}, "sha512-Efcc+iF0j3Bf67YjEqIqWXbX5XddXoK/Mw4K1/JuXwRCZ8N16VR7iT23nlCc9XrveFVh/E5Rqs2StT0V8v9LdA=="],
 
