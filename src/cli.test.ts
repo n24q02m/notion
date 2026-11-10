@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import type { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import type { Client } from '@notionhq/client'
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
@@ -23,12 +24,15 @@ vi.mock('./credential-state.js', () => ({
 
 import { readFile } from 'node:fs/promises'
 import {
+  BUILTIN_OPERATOR_COMMANDS,
   CliUsageError,
   formatToolResult,
   parseToolArgs,
   printCliHelp,
   runCli,
   runToolCommand,
+  SERVER_OPERATOR_COMMANDS,
+  TOOL_COMMAND_NAMES,
   TOOL_COMMANDS
 } from './cli.js'
 import { getSubjectToken, resolveCredentialState } from './credential-state.js'
@@ -43,6 +47,7 @@ import { pages } from './tools/composite/pages.js'
 import { users } from './tools/composite/users.js'
 import type { WorkspaceResult } from './tools/composite/workspace.js'
 import { workspace } from './tools/composite/workspace.js'
+import { TOOLS } from './tools/definitions.js'
 import { NotionMCPError } from './tools/helpers/errors.js'
 import { registerTools } from './tools/registry.js'
 
@@ -107,6 +112,12 @@ describe('CLI tool subcommands', () => {
       argv: ['--direction', 'markdown-to-blocks', '--content', '# Title'],
       handler: vi.mocked(contentConvert),
       expected: { direction: 'markdown-to-blocks', content: '# Title' }
+    },
+    {
+      name: 'config-tool',
+      argv: ['status'],
+      handler: vi.mocked(config),
+      expected: { action: 'status' }
     },
     {
       name: 'file_uploads',
@@ -187,8 +198,9 @@ describe('CLI tool subcommands', () => {
     console.error.mockRestore()
   })
 
-  it('does not expose the config tool as a tool subcommand', () => {
-    expect(TOOL_COMMANDS.map((command) => command.name)).not.toContain('config')
+  it('leaves the plain `config` spelling to the operator command', async () => {
+    expect(TOOL_COMMANDS.find((command) => command.name === 'config')?.command).toBe('config-tool')
+    expect(TOOL_COMMANDS.map((command) => command.command)).not.toContain('config')
     expect(config).not.toHaveBeenCalled()
   })
 })
@@ -290,6 +302,12 @@ describe('flag parsing', () => {
   it('accepts snake_case flag spellings', () => {
     const { args } = parseToolArgs(['get', '--page_id', 'page-1'], findCommand('pages'))
     expect(args).toEqual({ action: 'get', page_id: 'page-1' })
+  })
+
+  it("fills a tool's single required property from a leading positional", () => {
+    expect(parseToolArgs(['pages'], findCommand('help'))).toEqual({ args: { tool_name: 'pages' }, json: false })
+    expect(parseToolArgs(['--tool-name', 'pages'], findCommand('help')).args).toEqual({ tool_name: 'pages' })
+    expect(() => parseToolArgs([], findCommand('help'))).toThrow('missing required --tool-name')
   })
 
   it('splits a comma list and accumulates repeated flags', () => {
@@ -444,29 +462,155 @@ describe('runCli dispatch', () => {
   })
 })
 
+type RequestHandler = (request: { params: { name: string; arguments?: Record<string, unknown> } }) => Promise<unknown>
+
+/** The MCP `CallTool` handler `registerTools` installs, over a minimal server double. */
+function callToolHandler(): RequestHandler {
+  const handlers: RequestHandler[] = []
+  const server = { setRequestHandler: (_schema: unknown, handler: RequestHandler) => handlers.push(handler) }
+  registerTools(server as unknown as Server, async () => ({}) as unknown as Client)
+  // Registration order is ListTools, ListResources, ReadResource, CallTool.
+  return handlers[3]
+}
+
 describe('handler reuse with the MCP server', () => {
-  it('calls the same pages() handler from the MCP tool and the CLI', async () => {
-    type RequestHandler = (request: {
-      params: { name: string; arguments?: Record<string, unknown> }
-    }) => Promise<unknown>
-    const handlers: RequestHandler[] = []
-    // Minimal MCP server double: this test only needs setRequestHandler.
-    const server = { setRequestHandler: (_schema: unknown, handler: RequestHandler) => handlers.push(handler) }
-    registerTools(server as unknown as Server, async () => ({}) as unknown as Client)
-    vi.mocked(pages).mockResolvedValue(STUB_RESULT as unknown as PagesResult)
+  // One row per registered handler-backed tool: the same call through the MCP
+  // tool and through its CLI subcommand must reach the same composite handler
+  // with byte-identical input.
+  const rows: Array<{ tool: string; argv: string[]; args: Record<string, unknown>; handler: Mock }> = [
+    {
+      tool: 'pages',
+      argv: ['get', '--page-id', 'page-1'],
+      args: { action: 'get', page_id: 'page-1' },
+      handler: vi.mocked(pages)
+    },
+    {
+      tool: 'databases',
+      argv: ['query', '--database-id', 'db-1', '--limit', '5'],
+      args: { action: 'query', database_id: 'db-1', limit: 5 },
+      handler: vi.mocked(databases)
+    },
+    {
+      tool: 'blocks',
+      argv: ['append', '--block-id', 'block-1', '--content', '# Title'],
+      args: { action: 'append', block_id: 'block-1', content: '# Title' },
+      handler: vi.mocked(blocks)
+    },
+    { tool: 'users', argv: ['me'], args: { action: 'me' }, handler: vi.mocked(users) },
+    {
+      tool: 'workspace',
+      argv: ['search', '--query', 'roadmap'],
+      args: { action: 'search', query: 'roadmap' },
+      handler: vi.mocked(workspace)
+    },
+    {
+      tool: 'comments',
+      argv: ['list', '--page-id', 'page-1'],
+      args: { action: 'list', page_id: 'page-1' },
+      handler: vi.mocked(commentsManage)
+    },
+    {
+      tool: 'content_convert',
+      argv: ['--direction', 'markdown-to-blocks', '--content', '# Title'],
+      args: { direction: 'markdown-to-blocks', content: '# Title' },
+      handler: vi.mocked(contentConvert)
+    },
+    {
+      tool: 'config',
+      argv: ['status'],
+      args: { action: 'status' },
+      handler: vi.mocked(config)
+    },
+    {
+      tool: 'file_uploads',
+      argv: ['list', '--limit', '10'],
+      args: { action: 'list', limit: 10 },
+      handler: vi.mocked(fileUploads)
+    }
+  ]
+
+  for (const row of rows) {
+    it(`dispatches ${row.tool} to the same handler from the MCP tool and the CLI`, async () => {
+      const callTool = callToolHandler()
+      row.handler.mockResolvedValue(STUB_RESULT)
+      const console = spyConsole()
+      const command = TOOL_COMMANDS.find((spec) => spec.name === row.tool)?.command
+      expect(command, row.tool).toBeDefined()
+
+      await callTool({ params: { name: row.tool, arguments: row.args } })
+      const code = await runToolCommand(command as string, [...row.argv, '--json'])
+
+      expect(code, row.tool).toBe(0)
+      expect(row.handler, row.tool).toHaveBeenCalledTimes(2)
+      const [mcpCall, cliCall] = row.handler.mock.calls
+      // Composites take (client, input) or (input); the input is the last argument.
+      expect(cliCall.at(-1), row.tool).toEqual(mcpCall.at(-1))
+      expect(cliCall.at(-1), row.tool).toEqual(row.args)
+      console.log.mockRestore()
+      console.error.mockRestore()
+    })
+  }
+
+  it('reads the help documentation through the same path from the MCP tool and the CLI', async () => {
+    const callTool = callToolHandler()
+    vi.mocked(readFile).mockResolvedValue('# Pages documentation')
     const console = spyConsole()
 
-    // Registration order is ListTools, ListResources, ReadResource, CallTool.
-    const callTool = handlers[3]
-    await callTool({ params: { name: 'pages', arguments: { action: 'get', page_id: 'page-1' } } })
-    const code = await runToolCommand('pages', ['get', '--page-id', 'page-1', '--json'])
+    const mcpResult = (await callTool({ params: { name: 'help', arguments: { tool_name: 'pages' } } })) as {
+      content: Array<{ text: string }>
+    }
+    const code = await runToolCommand('help', ['pages', '--json'])
 
     expect(code).toBe(0)
-    expect(pages).toHaveBeenCalledTimes(2)
-    const [mcpCall, cliCall] = vi.mocked(pages).mock.calls
-    expect(cliCall[1]).toEqual(mcpCall[1])
+    expect(String(mcpResult.content[0].text)).toContain('# Pages documentation')
+    const [mcpRead, cliRead] = vi.mocked(readFile).mock.calls
+    expect(cliRead[0]).toEqual(mcpRead[0])
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify({ tool: 'pages', documentation: '# Pages documentation' }))
     console.log.mockRestore()
     console.error.mockRestore()
+  })
+})
+
+describe('CLI parity with the tool registry', () => {
+  const fixture: Array<{ name: string }> = JSON.parse(
+    readFileSync(new URL('../tests/fixtures/tools_expected.json', import.meta.url), 'utf8')
+  )
+
+  it('derives exactly one command per registered tool', () => {
+    expect(TOOL_COMMANDS.map((spec) => spec.name)).toEqual(TOOLS.map((tool) => tool.name))
+    const commands = TOOL_COMMANDS.map((spec) => spec.command)
+    expect(new Set(commands).size).toBe(commands.length)
+  })
+
+  it('covers every tool in the published tool-surface fixture', () => {
+    const covered = new Set(TOOL_COMMANDS.map((spec) => spec.name))
+    expect(fixture.filter((tool) => !covered.has(tool.name)).map((tool) => tool.name)).toEqual([])
+    expect(fixture).toHaveLength(TOOLS.length)
+  })
+
+  it('keeps every tool spelling clear of the operator commands', () => {
+    const operator = new Set([...BUILTIN_OPERATOR_COMMANDS, ...SERVER_OPERATOR_COMMANDS])
+    const spellings = TOOL_COMMANDS.flatMap((spec) => [spec.command, ...spec.aliases])
+    expect(spellings.filter((spelling) => operator.has(spelling))).toEqual([])
+    // The one name that would collide is recorded, not silently dropped.
+    expect(TOOL_COMMAND_NAMES).toEqual({ config: 'config-tool' })
+  })
+
+  it('dispatches every tool command through the built CLI', async () => {
+    for (const spec of TOOL_COMMANDS) {
+      const console = spyConsole()
+      const code = await runCli([spec.command, '--help'], { serve: () => 0, version: '9.9.9' })
+      expect(code, spec.command).toBe(0)
+      expect(
+        vi
+          .mocked(console.log)
+          .mock.calls.map((call) => String(call[0]))
+          .join('\n'),
+        spec.command
+      ).toContain(`usage: notion ${spec.command}`)
+      console.log.mockRestore()
+      console.error.mockRestore()
+    }
   })
 })
 
