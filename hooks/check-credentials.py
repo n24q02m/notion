@@ -2,10 +2,13 @@
 """PreToolUse hook: hint when better-notion-mcp credentials are not configured.
 
 Non-blocking hint only. A Notion integration token comes from the NOTION_TOKEN
-env var or from `notion auth` (stored in ~/.better-notion/config.json). In stdio
-mode the server refuses to start without a token and prints setup options on
-stderr; in HTTP mode the token is per user namespace (`notion auth --user <ns>`).
-There is no relay or browser setup form.
+env var or from `notion auth` (stored in ~/.notion/config.json). In stdio mode the
+server refuses to start without a token and prints setup options on stderr; in
+HTTP mode the token is per user namespace (`notion auth --user <ns>`). A store an
+earlier release wrote under ~/.better-notion/ is copied forward on startup
+(src/data-dir-migration.ts); it and ~/.better-notion-mcp/ are still accepted here
+so an install that has not restarted yet is not nagged. There is no relay or
+browser setup form.
 """
 
 import json
@@ -49,7 +52,9 @@ def _is_configured() -> bool:
             return True
     home = os.path.expanduser("~")
     for p in (
+        home + "/.notion/config.json",
         home + "/.better-notion/config.json",
+        home + "/.better-notion-mcp/config.json",
         home + "/.config/mcp/config.enc",
         os.path.join(home, ".config", "mcp", "config.enc"),
     ):

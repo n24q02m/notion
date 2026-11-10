@@ -38,6 +38,13 @@ vi.mock('./notion-client.js', () => ({
   notionClientForCaller: vi.fn()
 }))
 
+// Startup resolves the data dir and migrates a pre-rename store: keep both off the
+// real home directory so this suite never writes outside its temp paths.
+vi.mock('./data-dir.js', () => ({
+  applyDataDirOverride: vi.fn(),
+  prepareDataDir: vi.fn().mockResolvedValue({ migrated: [], kept: [], deferred: [] })
+}))
+
 vi.mock('./tools/registry.js', () => ({
   registerTools: (...args: unknown[]) => {
     registerToolsMock(...args)

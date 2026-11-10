@@ -34,7 +34,17 @@ class TestCheckCredentials(unittest.TestCase):
     @patch("os.path.expanduser")
     def test_is_configured_notion_auth_store(self, mock_expanduser, mock_exists):
         mock_expanduser.return_value = "/home/user"
-        # Token stored by `notion auth` lives in ~/.better-notion/config.json
+        # Token stored by `notion auth` lives in ~/.notion/config.json
+        mock_exists.side_effect = lambda p: p == "/home/user/.notion/config.json"
+        self.assertTrue(check_credentials._is_configured())
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch("os.path.exists")
+    @patch("os.path.expanduser")
+    def test_is_configured_pre_rename_store(self, mock_expanduser, mock_exists):
+        # A store from before the data-dir rename is copied forward on startup; the
+        # hook still accepts it so an install that has not restarted yet is not nagged.
+        mock_expanduser.return_value = "/home/user"
         mock_exists.side_effect = lambda p: p == "/home/user/.better-notion/config.json"
         self.assertTrue(check_credentials._is_configured())
 

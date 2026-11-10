@@ -1,6 +1,6 @@
 # notion
 
-Ten repo/npm/image: `n24q02m/notion` / `@n24q02m/notion` / `n24q02m/notion` (truoc day la `better-notion-mcp`). CON GIU ten cu co chu dich: registry id `io.github.n24q02m/better-notion-mcp`, bin alias `better-notion-mcp`, storage key `better-notion-mcp` (`SERVER_NAME` trong `src/credential-state.ts`; data dir `~/.better-notion` qua `STORE_PLUGIN`), va skret path `/better-notion-mcp/prod`.
+Ten repo/npm/image: `n24q02m/notion` / `@n24q02m/notion` / `n24q02m/notion` (truoc day la `better-notion-mcp`). CON GIU ten cu co chu dich: registry id `io.github.n24q02m/better-notion-mcp`, bin alias `better-notion-mcp`, storage key `better-notion-mcp` (`SERVER_NAME` trong `src/credential-state.ts`; data dir `~/.notion` qua `STORE_PLUGIN`, store cu `~/.better-notion` duoc copy sang luc startup), va skret path `/better-notion-mcp/prod`.
 
 TypeScript MCP Server cho Notion API. 10 registered tools = 8 composite (pages, databases, blocks, users, workspace, comments, content_convert, file_uploads) + 2 infra (config, help), dual-mode stdio/http.
 Xem `AGENTS.md` va `README.md` de hieu architecture.
@@ -98,7 +98,7 @@ Two transports, selected in `init-server.ts:14-15` (delegated to `main.ts`). The
 
 ## Config storage path
 
-TS servers store credentials via hull storage under `~/.better-notion/` (`STORE_PLUGIN = 'better-notion'` and `SERVER_NAME = 'better-notion-mcp'` in `src/credential-state.ts`): `config.json` for the default namespace, `subs/<ns>/config.json` per user in HTTP multi mode. `.secret` (0600) is the single-user machine key. When debugging reset state, delete the `config.json` of that namespace.
+TS servers store credentials via hull storage under `~/.notion/` (`STORE_PLUGIN = 'notion'` and `SERVER_NAME = 'better-notion-mcp'` in `src/credential-state.ts`): `config.json` for the default namespace, `subs/<ns>/config.json` per user in HTTP multi mode. `.secret` (0600) is the single-user machine key. A store an earlier release wrote under `~/.better-notion/` is copied forward on startup (`src/data-dir-migration.ts`), and `~/.better-notion-mcp/` from even earlier is read as a hull fallback. When debugging reset state, delete the `config.json` of that namespace.
 
 ## E2E
 
