@@ -138,19 +138,19 @@ npx --yes @n24q02m/notion@latest --http
 
 ### Tool commands
 
-Each MCP tool that acts on a workspace also has a CLI subcommand, and the
-subcommand runs the same handler the MCP tool runs -- `notion pages get` and the
+Every MCP tool has a CLI subcommand, and the subcommand runs the same handler the
+MCP tool runs -- `notion pages get` and the
 `pages` tool both go through `invokeTool` and `src/tools/composite/pages.ts`.
-flags come from the tool's own JSON input schema: property names in kebab-case
+Flags come from the tool's own JSON input schema: property names in kebab-case
 (`--page-id`), the snake_case spelling also accepted, arrays as a comma list or
 a repeated flag, and `object` / array-of-object flags as JSON. A tool's `action`
 is accepted as the first positional argument or as `--action`.
 
 Add `--json` for compact JSON on stdout; without it the result prints as a
 readable block. Tool failures exit 1 with a one-line message on stderr, usage
-errors exit 2. `content_convert` and `help` need no token; every other tool
-resolves the token exactly as the server does (`NOTION_TOKEN`, else the token
-stored by `notion auth`).
+errors exit 2. `content_convert`, `help`, and `config` need no token; every other
+tool resolves the token exactly as the server does (`NOTION_TOKEN`, else the
+token stored by `notion auth`).
 
 | Tool | Command | Example |
 |:-----|:--------|:--------|
@@ -162,7 +162,8 @@ stored by `notion auth`).
 | `comments` | `notion comments <action> [flags]` | `notion comments list --page-id <page-id>` |
 | `content_convert` | `notion content_convert --direction <d> --content <text>` | `notion content_convert --direction markdown-to-blocks --content '# Title'` |
 | `file_uploads` | `notion file_uploads <action> [flags]` | `notion file_uploads list --limit 10` |
-| `help` | `notion help --tool-name <tool>` | `notion help --tool-name databases` |
+| `help` | `notion help <tool>` | `notion help databases` |
+| `config` | `notion config-tool <action>` | `notion config-tool status` |
 
 ```bash
 # Read a page as JSON without an MCP client
@@ -171,16 +172,20 @@ notion pages get --page-id 2f1c... --json
 # Convert markdown offline (no token)
 notion content_convert --direction markdown-to-blocks --content '# Title'
 
+# Credential state and per-tool documentation (no token)
+notion config-tool status --json
+notion help pages
+
 # Print one tool's flags and actions
 notion pages --help
 ```
 
 `notion --help` lists the tool commands and the operator commands as separate
-groups. The `config` MCP tool is the one tool without a subcommand of its own:
-it manages server credential state, which the operator commands already cover --
-`notion config status` (also `status`, and the tool's `setup_status` /
-`setup_complete`), `notion config delete --yes` (the tool's `setup_reset`), and
-`notion auth` (where the tool's `setup_start` points); the tool's `set` and
+groups. One name needs a suffix: the MCP `config` tool is `notion config-tool`,
+because the operator `notion config status` / `notion config delete --yes`
+commands own the plain word and manage the stored credential file. The tool
+covers the same lifecycle (`status`, `setup_start`, `setup_complete`,
+`setup_reset`) as data instead of as operator commands; its `set` and
 `cache_clear` actions are no-ops for Notion.
 
 ## Remote (HTTP mode)

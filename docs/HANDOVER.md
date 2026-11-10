@@ -37,7 +37,7 @@ MCP resources are the per-tool documentation files served from `src/docs/`: `not
 
 `notion <tool> <action> [--flag <value>]... [--json]` runs the same handler the MCP tool runs. Flags come from the tool's own JSON Schema in kebab-case (`--page-id`), the snake_case spelling is also accepted, arrays take a comma list or a repeated flag, and object/array-of-object flags take JSON. `--json` prints compact JSON on stdout; a tool failure exits 1 with one line on stderr, a usage error exits 2.
 
-`config` is the one tool without a subcommand: its actions are credential lifecycle, and the operator commands already cover them (`notion config status`, `notion config delete --yes`, `notion auth`). `notion --help` lists tool subcommands and operator commands as separate groups.
+Every registered tool therefore has a subcommand; the list is derived from `TOOLS`, never hand-written, so a new tool cannot end up MCP-only. The one name that needs a suffix is `config`, reachable as `notion config-tool <action>`: hull's operator `notion config status` / `notion config delete --yes` own the plain word and manage the stored credential file. `notion --help` lists tool subcommands and operator commands as separate groups.
 
 ## Build and verify
 
@@ -51,7 +51,7 @@ MCP resources are the per-tool documentation files served from `src/docs/`: `not
 
 CI is the authoritative check: `ci.yml` runs the PR-title conventional-commit gate, the session-hook tests, `bun run check`, the covered test run, and the build on Ubuntu, Windows, and macOS, plus `verify_readme_sync.py` (README, `package.json`, and `server.json` metadata must agree) and dependency review. Local commands are source evidence only; a green local run does not stand in for the exact CI run.
 
-Smoke the surface without touching a Notion workspace: `notion content_convert --direction markdown-to-blocks --content '# Title'` needs no token, and `notion help --tool-name pages` returns the same documentation the MCP resource serves. A representative live check must call a workspace operation such as `notion users me` or a page read; a credential-status answer alone only proves the CLI started.
+Smoke the surface without touching a Notion workspace: `notion content_convert --direction markdown-to-blocks --content '# Title'` needs no token, `notion help pages` returns the same documentation the MCP resource serves, and `notion config-tool status --json` reports credential state. A representative live check must call a workspace operation such as `notion users me` or a page read; a credential-status answer alone only proves the CLI started.
 
 ## Configuration and credentials
 

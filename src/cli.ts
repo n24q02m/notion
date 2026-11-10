@@ -7,6 +7,13 @@
  * `pages` tool cannot diverge. Operator commands (`config`, `doctor`, `auth`,
  * ...) stay exactly as `buildCli` layers them.
  *
+ * Every tool in `TOOLS` gets a subcommand -- the list is derived, never
+ * hand-written, so a tool added to the registry cannot end up MCP-only. The
+ * `config` tool is the single name that collides with a hull operator command
+ * (`notion config status|delete` manages the credential file), so it is spelled
+ * `config-tool`; the collision itself is what `TOOL_COMMAND_NAMES` records and
+ * a test pins it.
+ *
  * Output convention: human text on stdout by default, JSON on stdout with
  * `--json`. Failures go to stderr with exit code 1 (tool error) or 2 (usage).
  */
@@ -22,10 +29,17 @@ import { invokeTool } from './tools/invoke.js'
 const SERVER_NAME = 'notion'
 
 /** Operator commands `buildCli` provides plus the two this server supplies. */
-const BUILTIN_OPERATOR_COMMANDS = ['config', 'doctor', 'logout', 'status', 'token']
+export const BUILTIN_OPERATOR_COMMANDS = ['config', 'doctor', 'logout', 'status', 'token']
 
-/** MCP tool whose CLI form is the operator `config` command (see README). */
-const CONFIG_TOOL = 'config'
+/** The operator commands `src/main.ts` adds on top of hull's built-ins. */
+export const SERVER_OPERATOR_COMMANDS = ['auth', 'relay']
+
+/**
+ * Tool name -> CLI subcommand, for the names a tool cannot spell as itself.
+ * `config` is the only collision: hull's operator `config` (credential file)
+ * owns the plain word, so the MCP tool is reachable as `config-tool`.
+ */
+export const TOOL_COMMAND_NAMES: Readonly<Record<string, string>> = { config: 'config-tool' }
 
 interface ToolSchema {
   type?: string
@@ -37,8 +51,10 @@ interface ToolSchema {
 }
 
 export interface ToolCommandSpec {
-  /** MCP tool name, also the primary subcommand name. */
+  /** MCP tool name, as registered in `TOOLS`. */
   name: string
+  /** Primary CLI subcommand; the tool name unless `TOOL_COMMAND_NAMES` overrides it. */
+  command: string
   /** Extra subcommand spellings (kebab-case for snake_case tool names). */
   aliases: string[]
   summary: string
@@ -69,6 +85,7 @@ function toCommandSpec(tool: RawTool): ToolCommandSpec {
   const firstLine = tool.description.split('\n')[0].trim()
   return {
     name: tool.name,
+    command: TOOL_COMMAND_NAMES[tool.name] ?? tool.name,
     aliases: tool.name.includes('_') ? [tool.name.replace(/_/g, '-')] : [],
     summary: firstLine.length > 72 ? `${firstLine.slice(0, 69)}...` : firstLine,
     properties,
@@ -78,15 +95,14 @@ function toCommandSpec(tool: RawTool): ToolCommandSpec {
 }
 
 /**
- * Tool subcommands. The `config` tool is the one exception: its actions are
- * server lifecycle (`status`, reset, setup hints) and the operator `config`
- * command already owns them, so it is not duplicated here.
+ * Tool subcommands: one per registered MCP tool, derived from `TOOLS` so the
+ * registry is the only place a tool is declared.
  */
-export const TOOL_COMMANDS: ToolCommandSpec[] = TOOLS.filter((tool) => tool.name !== CONFIG_TOOL).map(toCommandSpec)
+export const TOOL_COMMANDS: ToolCommandSpec[] = TOOLS.map(toCommandSpec)
 
 const COMMANDS = new Map<string, ToolCommandSpec>()
 for (const spec of TOOL_COMMANDS) {
-  COMMANDS.set(spec.name, spec)
+  COMMANDS.set(spec.command, spec)
   for (const alias of spec.aliases) COMMANDS.set(alias, spec)
 }
 
@@ -137,12 +153,24 @@ export interface ParsedToolArgs {
 }
 
 /**
+ * The property a bare leading argument fills: the only required one when the
+ * tool has no `action` (the `help` tool's `tool_name`). Tools with actions take
+ * the action positionally instead.
+ */
+function positionalProperty(spec: ToolCommandSpec): string | undefined {
+  if (spec.properties.action !== undefined) return undefined
+  return spec.required.length === 1 ? spec.required[0] : undefined
+}
+
+/**
  * Parse a tool subcommand's argv into the tool's own argument object.
  *
  * Flags are the schema's property names in kebab-case (the snake_case spelling
  * is accepted too). A leading positional is accepted when it is one of the
- * tool's `action` values, so `notion pages get --page-id X` and
- * `notion pages --action get --page-id X` are the same call.
+ * tool's `action` values -- or, for a tool without actions, when it is the
+ * tool's single required property -- so `notion pages get --page-id X`,
+ * `notion pages --action get --page-id X` and `notion help pages` are the same
+ * calls as their flag forms.
  */
 export function parseToolArgs(argv: string[], spec: ToolCommandSpec): ParsedToolArgs {
   const args: Record<string, unknown> = {}
@@ -152,11 +180,17 @@ export function parseToolArgs(argv: string[], spec: ToolCommandSpec): ParsedTool
     flagToProperty.set(`--${property}`, property)
   }
 
+  const positional = positionalProperty(spec)
   let index = 0
   const first = argv[0]
-  if (first !== undefined && !first.startsWith('-') && spec.actions.includes(first)) {
-    args.action = first
-    index = 1
+  if (first !== undefined && !first.startsWith('-')) {
+    if (spec.actions.includes(first)) {
+      args.action = first
+      index = 1
+    } else if (positional !== undefined) {
+      args[positional] = coerceValue(`<${positional}>`, first, spec.properties[positional] ?? {})
+      index = 1
+    }
   }
 
   let json = false
@@ -248,10 +282,11 @@ function flagValueLabel(schema: ToolSchema): string {
 }
 
 export function printToolUsage(spec: ToolCommandSpec, write: (line: string) => void = console.log): void {
-  const usage = spec.actions.length > 0 ? `${spec.name} <action>` : spec.name
+  const usage = spec.actions.length > 0 ? `${spec.command} <action>` : spec.command
   write(`usage: ${SERVER_NAME} ${usage} [flags]`)
   write('')
   write(spec.summary)
+  if (spec.command !== spec.name) write(`MCP tool: ${spec.name} (the plain name is an operator command)`)
   if (spec.aliases.length > 0) write(`alias: ${spec.aliases.join(', ')}`)
   if (spec.actions.length > 0) {
     write('')
@@ -291,25 +326,29 @@ export function printCliHelp(operatorCommands: string[] = []): void {
   console.log('Tool commands run the same handlers without a server; --json prints JSON on stdout.')
   console.log('')
   console.log('tool commands:')
-  const labels = TOOL_COMMANDS.map((spec) =>
-    spec.aliases.length > 0 ? `${spec.name} (alias: ${spec.aliases.join(', ')})` : spec.name
-  )
+  const labels = TOOL_COMMANDS.map((spec) => {
+    const collar = spec.command === spec.name ? '' : ` (MCP tool \`${spec.name}\`)`
+    const alias = spec.aliases.length > 0 ? ` (alias: ${spec.aliases.join(', ')})` : ''
+    return `${spec.command}${alias}${collar}`
+  })
   const width = labels.reduce((max, label) => Math.max(max, label.length), 0)
   for (const [index, spec] of TOOL_COMMANDS.entries()) {
     console.log(`  ${labels[index].padEnd(width)}  ${spec.summary}`)
   }
   console.log('')
   console.log('operator commands:')
-  console.log(`  ${[...BUILTIN_OPERATOR_COMMANDS, ...operatorCommands].sort().join(', ')}`)
+  const operators = [...BUILTIN_OPERATOR_COMMANDS, ...SERVER_OPERATOR_COMMANDS, ...operatorCommands]
+  console.log(`  ${[...new Set(operators)].sort().join(', ')}`)
   console.log('')
-  console.log(`\`${SERVER_NAME} config status\` and \`${SERVER_NAME} config delete --yes\` cover the`)
-  console.log(`config tool's credential actions; \`${SERVER_NAME} <tool> --help\` lists a tool's flags.`)
+  console.log(`\`${SERVER_NAME} config status\` and \`${SERVER_NAME} config delete --yes\` are the operator`)
+  console.log(`credential-file commands; \`${SERVER_NAME} config-tool <action>\` runs the config MCP tool.`)
+  console.log(`\`${SERVER_NAME} <tool> --help\` lists a tool's flags.`)
 }
 
 /**
  * Parse flags for one tool and run it through the shared invoker.
  *
- * @param name - tool name or CLI alias
+ * @param name - CLI subcommand or alias (`config-tool` for the config tool)
  * @param argv - arguments after the subcommand name
  */
 export async function runToolCommand(name: string, argv: string[]): Promise<number> {
@@ -328,7 +367,7 @@ export async function runToolCommand(name: string, argv: string[]): Promise<numb
       return 0
     }
     if (error instanceof CliUsageError) {
-      console.error(`${SERVER_NAME} ${spec.name}: ${error.message}`)
+      console.error(`${SERVER_NAME} ${spec.command}: ${error.message}`)
       printToolUsage(spec, (line) => console.error(line))
       return 2
     }
@@ -347,7 +386,7 @@ export async function runToolCommand(name: string, argv: string[]): Promise<numb
       console.error(aiReadableMessage(error))
       return 1
     }
-    console.error(`${SERVER_NAME} ${spec.name}: ${error instanceof Error ? error.message : String(error)}`)
+    console.error(`${SERVER_NAME} ${spec.command}: ${error instanceof Error ? error.message : String(error)}`)
     return 1
   }
 }
@@ -355,8 +394,8 @@ export async function runToolCommand(name: string, argv: string[]): Promise<numb
 function toolHandlers(): Record<string, CliHandler> {
   const handlers: Record<string, CliHandler> = {}
   for (const spec of TOOL_COMMANDS) {
-    const handler: CliHandler = (argv) => runToolCommand(spec.name, argv)
-    handlers[spec.name] = handler
+    const handler: CliHandler = (argv) => runToolCommand(spec.command, argv)
+    handlers[spec.command] = handler
     for (const alias of spec.aliases) handlers[alias] = handler
   }
   return handlers
