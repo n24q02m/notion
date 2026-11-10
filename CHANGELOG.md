@@ -2,6 +2,85 @@
 
 <!-- version list -->
 
+## v2.43.0-beta.1 (2026-11-10)
+
+### Bug Fixes
+
+- Assert hooks.json points at the shipped credential hook
+  ([#1317](https://github.com/n24q02m/notion/pull/1317),
+  [`b432ae8`](https://github.com/n24q02m/notion/commit/b432ae8ff210c1df4cb6575ff2f03f9011bd61e5))
+
+- Bound page markdown with an explicit max_chars cap
+  ([#1316](https://github.com/n24q02m/notion/pull/1316),
+  [`f9cc840`](https://github.com/n24q02m/notion/commit/f9cc840b997af74f3f8b74baab9c71097552a6f3))
+
+- Drop stale relay wording from credentials hook, untrack pyc bytecode
+  ([#1304](https://github.com/n24q02m/notion/pull/1304),
+  [`9fec760`](https://github.com/n24q02m/notion/commit/9fec760caed7cd160a91a6dc7a2ad03c6a652d6d))
+
+- Expose every notion tool from the cli ([#1324](https://github.com/n24q02m/notion/pull/1324),
+  [`86449d3`](https://github.com/n24q02m/notion/commit/86449d3b96f6b83f7f8a1d6e9ff69a78f9794b10))
+
+- Honor NOTION_DATA_DIR with an escape-guarded data-dir resolver
+  ([#1318](https://github.com/n24q02m/notion/pull/1318),
+  [`5353a8c`](https://github.com/n24q02m/notion/commit/5353a8cdec50ce1a5cef0aa8cba9a3d5d6b626a1))
+
+- Honor NOTION_DATA_DIR with an escape-guarded resolver
+  ([#1318](https://github.com/n24q02m/notion/pull/1318),
+  [`5353a8c`](https://github.com/n24q02m/notion/commit/5353a8cdec50ce1a5cef0aa8cba9a3d5d6b626a1))
+
+- Keep the escape test native to the platform ([#1318](https://github.com/n24q02m/notion/pull/1318),
+  [`5353a8c`](https://github.com/n24q02m/notion/commit/5353a8cdec50ce1a5cef0aa8cba9a3d5d6b626a1))
+
+- Match credential hook to the real plugin tool prefix
+  ([#1307](https://github.com/n24q02m/notion/pull/1307),
+  [`3f53cab`](https://github.com/n24q02m/notion/commit/3f53cab35cbf3db65bff655023afb5480528d124))
+
+- Move .jules ledgers to docs/engineering-lessons.md
+  ([#1319](https://github.com/n24q02m/notion/pull/1319),
+  [`aa157be`](https://github.com/n24q02m/notion/commit/aa157bef7d71eba484d7e1f83832ec53e618d5ec))
+
+- Move the credential store to ~/.notion and migrate the old one
+  ([#1321](https://github.com/n24q02m/notion/pull/1321),
+  [`6d30ff3`](https://github.com/n24q02m/notion/commit/6d30ff35bdc3cd9cf5f3906bbb9f5abd653b0af0))
+
+- Point docs links at docs.n24q02m.com and drop relay-era mode pages
+  ([#1305](https://github.com/n24q02m/notion/pull/1305),
+  [`3cdc833`](https://github.com/n24q02m/notion/commit/3cdc833a2c17c02aa8b202b0716d611b28761cbe))
+
+- Remove the email notification and bot governance workflows
+  ([#1315](https://github.com/n24q02m/notion/pull/1315),
+  [`826faa8`](https://github.com/n24q02m/notion/commit/826faa8144a013766792e32a0057a052ecd3d4df))
+
+- Require force flag for credential reset in config tool
+  ([#1303](https://github.com/n24q02m/notion/pull/1303),
+  [`1a2dcd2`](https://github.com/n24q02m/notion/commit/1a2dcd2fd11a045f05aea40fb26c389f9beae5bd))
+
+- Run every notion tool from the cli ([#1320](https://github.com/n24q02m/notion/pull/1320),
+  [`7403e00`](https://github.com/n24q02m/notion/commit/7403e004b5cb48fab3b10a53ac5cf4664913ba01))
+
+- Run SessionStart hook tests in ci ([#1306](https://github.com/n24q02m/notion/pull/1306),
+  [`ba48c02`](https://github.com/n24q02m/notion/commit/ba48c02e6f6f30c0aa7602979dde8adf95e87906))
+
+- Stop advertising the pre-rename package and plugin name
+  ([#1323](https://github.com/n24q02m/notion/pull/1323),
+  [`90fa7d8`](https://github.com/n24q02m/notion/commit/90fa7d87ac03d86b43ae7c73116395f4fcfc87cd))
+
+- **deps**: Update minor dependencies ([#1311](https://github.com/n24q02m/notion/pull/1311),
+  [`8414585`](https://github.com/n24q02m/notion/commit/84145850d1ac00b19bad42e188fe626877595a63))
+
+- **deps**: Update patch dependencies ([#1310](https://github.com/n24q02m/notion/pull/1310),
+  [`a8bcdf3`](https://github.com/n24q02m/notion/commit/a8bcdf300c0568cebacc7adc2bff700973ce19f2))
+
+### Features
+
+- Add check-credentials hook and tests
+  ([`d340492`](https://github.com/n24q02m/notion/commit/d3404929b227e0aa3a67992ccb9f9f1194c3ad66))
+
+- Document the notion server handover ([#1322](https://github.com/n24q02m/notion/pull/1322),
+  [`2762679`](https://github.com/n24q02m/notion/commit/276267908ac61c567efb0988df6210b610056dc9))
+
+
 ## v2.42.0 (2026-10-27)
 
 
