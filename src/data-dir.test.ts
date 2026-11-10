@@ -44,8 +44,13 @@ describe('resolveDataDir', () => {
   })
 
   it('rejects a relative DATA_DIR override that escapes the base dir', () => {
-    for (const hostile of ['..', '../..', '../../etc', 'state/../../..', '..\\..\\windows']) {
-      expect(() => resolveDataDir({ [DATA_DIR_ENV]: hostile }, HOME), hostile).toThrow(DataDirEscapeError)
+    // Native separators, so the traversal is real on POSIX and on Windows; a
+    // backslash path is only a traversal where the platform treats it as one.
+    const hostile = ['..', '../..', '../../etc', 'state/../../..', join('..', '..', 'windows')]
+    if (process.platform === 'win32') hostile.push('..\\..\\windows')
+
+    for (const value of hostile) {
+      expect(() => resolveDataDir({ [DATA_DIR_ENV]: value }, HOME), value).toThrow(DataDirEscapeError)
     }
   })
 
