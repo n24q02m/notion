@@ -30,7 +30,10 @@ vi.mock('./tools/registry.js', () => ({
 
 vi.mock('./credential-state.js', () => ({
   resolveCredentialState: vi.fn().mockResolvedValue(undefined),
-  getState: vi.fn().mockReturnValue('configured')
+  getState: vi.fn().mockReturnValue('configured'),
+  // data-dir.ts derives the store directory name from these slugs.
+  STORE_PLUGIN: 'notion',
+  LEGACY_STORE_PLUGIN: 'better-notion'
 }))
 
 // Mock process.exit to prevent test runner from exiting

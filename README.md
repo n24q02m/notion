@@ -274,7 +274,7 @@ Eight composite Notion tools (39 actions) plus two infrastructure tools (`config
 | `TRANSPORT_MODE` / `MCP_TRANSPORT` | No | `stdio` | Set either to `http` for remote mode (or pass `--http`) |
 | `MCP_AUTH_MODE` | No (http) | `multi` | `multi` (per-user tokens from `MCP_USERS_FILE`), `token` (one shared token, needs `MCP_AUTH_TOKEN_HASH`), or `no-auth` (trusted/local use only) |
 | `MCP_USERS_FILE` | No (http, multi) | `~/.hull/users.toml` | Users file for `multi` mode |
-| `NOTION_DATA_DIR` | No | `$HOME` | Base directory for the credential store. Tokens live in `<dir>/.better-notion/` (`config.json`, or `subs/<namespace>/config.json` in multi-user HTTP). A relative value is resolved under `$HOME` and must stay inside it; use an absolute path (e.g. `/data`) to point at a mounted volume |
+| `NOTION_DATA_DIR` | No | `$HOME` | Base directory for the credential store. Tokens live in `<dir>/.notion/` (`config.json`, or `subs/<namespace>/config.json` in multi-user HTTP); a store an earlier release wrote under `<dir>/.better-notion/` is copied forward on startup. A relative value is resolved under `$HOME` and must stay inside it; use an absolute path (e.g. `/data`) to point at a mounted volume |
 | `MCP_AUTH_TOKEN_HASH` | Yes (token mode) | - | `scrypt$` hash of the shared token (mint with `token hash`) |
 | `MCP_RPM` | No (token mode) | - | Optional per-minute request cap in token mode |
 | `PORT` | No | `0` (OS-assigned) | Server port; set explicitly (e.g. `8080`) to bind a fixed port |
@@ -284,7 +284,7 @@ Eight composite Notion tools (39 actions) plus two infrastructure tools (`config
 
 Run the HTTP server on your own host and choose an auth mode with `MCP_AUTH_MODE`:
 
-- `multi` (default): list each user in `MCP_USERS_FILE`; each user's Notion token is stored in their own namespace (`~/.better-notion/subs/<ns>/config.json`).
+- `multi` (default): list each user in `MCP_USERS_FILE`; each user's Notion token is stored in their own namespace (`~/.notion/subs/<ns>/config.json`).
 - `token`: one shared bearer token. Mint the hash with `token hash` and pass it as `MCP_AUTH_TOKEN_HASH`.
 - `no-auth`: no bearer check. Use only on a trusted local network.
 
@@ -347,9 +347,9 @@ Credentials are never sent to n24q02m: there is no hosted endpoint.
 
 | Mode | Storage | Protection | Who can read your data? |
 |---|---|---|---|
-| HTTP self-host (`multi`) | `~/.better-notion/subs/<ns>/config.json` on the server host | File mode 0600 under the server's data dir | The server operator and anyone with access to that host |
-| HTTP self-host (`token`) | `~/.better-notion/config.json` on the server host | File mode 0600 under the server's data dir | The server operator and anyone with access to that host |
-| stdio (local) | `~/.better-notion/config.json` | File mode 0600; machine key in `~/.better-notion/.secret` | Only your OS user |
+| HTTP self-host (`multi`) | `~/.notion/subs/<ns>/config.json` on the server host | File mode 0600 under the server's data dir | The server operator and anyone with access to that host |
+| HTTP self-host (`token`) | `~/.notion/config.json` on the server host | File mode 0600 under the server's data dir | The server operator and anyone with access to that host |
+| stdio (local) | `~/.notion/config.json` | File mode 0600; machine key in `~/.notion/.secret` | Only your OS user |
 
 ## License
 

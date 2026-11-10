@@ -44,7 +44,7 @@ import {
 } from './credential-state.js'
 
 const SERVER_NAME = 'better-notion-mcp'
-const STORE_PLUGIN = 'better-notion'
+const STORE_PLUGIN = 'notion'
 
 function asCaller(namespace: string) {
   h.currentUser.mockReturnValue({ uid: 'fixture-uid', namespace, mode: 'stdio' } as never)

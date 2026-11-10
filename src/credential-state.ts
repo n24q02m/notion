@@ -3,12 +3,15 @@
  *
  * The Notion integration token is stored per namespace, mirroring the
  * telegram layout:
- *  - `default` namespace: `~/.better-notion/config.json` (stdio, no-auth,
+ *  - `default` namespace: `~/.notion/config.json` (stdio, no-auth,
  *    and token-mode HTTP always resolve to this namespace).
- *  - any other namespace (HTTP multi-user): `~/.better-notion/subs/<ns>/config.json`,
+ *  - any other namespace (HTTP multi-user): `~/.notion/subs/<ns>/config.json`,
  *    written by `notion auth --user <ns>`.
  *
  * `NOTION_TOKEN` in the environment overrides the `default` namespace only.
+ *
+ * The store used to live under the `better-notion` slug (`~/.better-notion/`);
+ * src/data-dir-migration.ts copies it forward on startup.
  */
 
 import { deleteConfig, PerPluginStore, readConfig, resolveConfig, writeConfig } from '@n24q02m/hull/storage'
@@ -18,8 +21,13 @@ import { currentUser } from '@n24q02m/hull/token-auth'
 // the store directory and legacy env overrides from it, so renaming would
 // orphan saved credentials.
 const SERVER_NAME = 'better-notion-mcp'
-// Plugin slug used for the on-disk store directory (~/.better-notion/).
-export const STORE_PLUGIN = 'better-notion'
+// Plugin slug used for the on-disk store directory (~/.notion/): the short product
+// name, so the path matches the server identity.
+export const STORE_PLUGIN = 'notion'
+
+// Slug every release up to 0.4.x passed to hull. It is a migration source only: the
+// store under ~/.better-notion/ is re-encrypted into STORE_PLUGIN's store at startup.
+export const LEGACY_STORE_PLUGIN = 'better-notion'
 const CREDENTIAL_KEY = 'NOTION_TOKEN'
 const REQUIRED_FIELDS = [CREDENTIAL_KEY]
 export const DEFAULT_NAMESPACE = 'default'

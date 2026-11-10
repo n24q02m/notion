@@ -4,13 +4,15 @@
  * that a hostile value cannot walk out of the base.
  *
  * Notion state is hull's per-plugin credential store, so the base is hull's
- * home directory and the store lands in `<base>/.better-notion/` (`config.json`
+ * home directory and the store lands in `<base>/.notion/` (`config.json`
  * for the default namespace, `subs/<ns>/config.json` for the others). The
  * directory name is `STORE_PLUGIN` from src/credential-state.ts with the leading
- * dot hull's layout adds; a test pins the two together.
+ * dot hull's layout adds; a test pins the two together. A store an earlier
+ * release wrote under `~/.better-notion/` is copied forward once at startup
+ * (see src/data-dir-migration.ts).
  *
  * `NOTION_DATA_DIR` replaces the base outright, so a container can mount a
- * single volume: `-e NOTION_DATA_DIR=/data` -> `/data/.better-notion/config.json`.
+ * single volume: `-e NOTION_DATA_DIR=/data` -> `/data/.notion/config.json`.
  *
  * Guard: a RELATIVE value is resolved against `$HOME` and must stay inside it,
  * so `..`, `../..`, `..\\..` and NUL bytes cannot leave the base. An ABSOLUTE
@@ -24,12 +26,14 @@ import { isAbsolute, join, resolve, sep } from 'node:path'
 // hull derives the store directory from one process-wide home; it exposes that
 // override only under this name (there is no production alias in 0.4.x).
 import { setHomeDirForTesting as overrideHullHomeDir } from '@n24q02m/hull/storage'
+import { STORE_PLUGIN } from './credential-state.js'
+import { type MigrationReport, migrateLegacyStore } from './data-dir-migration.js'
 
 /** Env var that replaces the base directory. */
 export const DATA_DIR_ENV = 'NOTION_DATA_DIR'
 
 /** Directory name this server owns under the base (hull's `.<STORE_PLUGIN>`). */
-export const DATA_DIR_NAME = '.better-notion'
+export const DATA_DIR_NAME = `.${STORE_PLUGIN}`
 
 /** A `DATA_DIR` value that would leave the base directory. */
 export class DataDirEscapeError extends Error {
@@ -86,4 +90,14 @@ export function applyDataDirOverride(env: NodeJS.ProcessEnv = process.env): stri
   const base = resolveBaseDir(env)
   overrideHullHomeDir(base)
   return base
+}
+
+/**
+ * Prepare the store before the first credential read: put `NOTION_DATA_DIR` in
+ * force (so hull's home is the base this process writes under) and copy a
+ * pre-rename store forward. Both steps are process-wide and idempotent.
+ */
+export async function prepareDataDir(env: NodeJS.ProcessEnv = process.env): Promise<MigrationReport> {
+  applyDataDirOverride(env)
+  return migrateLegacyStore()
 }
