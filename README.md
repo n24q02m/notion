@@ -121,7 +121,7 @@ See the [Documentation](#documentation) section for per-client setup (Claude Cod
 
 ## CLI
 
-Installing the package exposes a `notion` binary (plus the legacy `better-notion-mcp` alias; run it with `npx` or after a global install). With no arguments it starts the MCP server and speaks the protocol over stdin/stdout, so it is normally launched by an MCP client rather than by hand. Subcommands: `auth` stores the Notion integration token; `config`, `status`, `logout`, `doctor`, and `token` come from the shared hull CLI.
+Installing the package exposes a `notion` binary (plus the legacy `better-notion-mcp` alias; run it with `npx` or after a global install). With no arguments it starts the MCP server and speaks the protocol over stdin/stdout, so it is normally launched by an MCP client rather than by hand. Every tool is also callable directly (see [Tool commands](#tool-commands)); `auth` stores the Notion integration token, and `config`, `status`, `logout`, `doctor`, and `token` come from the shared hull CLI.
 
 ```bash
 # Start the stdio server (default transport; requires NOTION_TOKEN)
@@ -136,7 +136,52 @@ npx --yes @n24q02m/notion@latest --http
 | _(none)_ | stdio transport (default); requires `NOTION_TOKEN` |
 | `--http` | HTTP transport; auth chosen by `MCP_AUTH_MODE` (`multi` default, `token`, or `no-auth`) |
 
-See [Configuration](#configuration) for the full environment-variable reference.
+### Tool commands
+
+Each MCP tool that acts on a workspace also has a CLI subcommand, and the
+subcommand runs the same handler the MCP tool runs -- `notion pages get` and the
+`pages` tool both go through `invokeTool` and `src/tools/composite/pages.ts`.
+flags come from the tool's own JSON input schema: property names in kebab-case
+(`--page-id`), the snake_case spelling also accepted, arrays as a comma list or
+a repeated flag, and `object` / array-of-object flags as JSON. A tool's `action`
+is accepted as the first positional argument or as `--action`.
+
+Add `--json` for compact JSON on stdout; without it the result prints as a
+readable block. Tool failures exit 1 with a one-line message on stderr, usage
+errors exit 2. `content_convert` and `help` need no token; every other tool
+resolves the token exactly as the server does (`NOTION_TOKEN`, else the token
+stored by `notion auth`).
+
+| Tool | Command | Example |
+|:-----|:--------|:--------|
+| `pages` | `notion pages <action> [flags]` | `notion pages get --page-id <page-id> --json` |
+| `databases` | `notion databases <action> [flags]` | `notion databases query --database-id <db-id> --limit 5` |
+| `blocks` | `notion blocks <action> --block-id <id>` | `notion blocks append --block-id <block-id> --content '## Update'` |
+| `users` | `notion users <action>` | `notion users me` |
+| `workspace` | `notion workspace <action> [flags]` | `notion workspace search --query roadmap` |
+| `comments` | `notion comments <action> [flags]` | `notion comments list --page-id <page-id>` |
+| `content_convert` | `notion content_convert --direction <d> --content <text>` | `notion content_convert --direction markdown-to-blocks --content '# Title'` |
+| `file_uploads` | `notion file_uploads <action> [flags]` | `notion file_uploads list --limit 10` |
+| `help` | `notion help --tool-name <tool>` | `notion help --tool-name databases` |
+
+```bash
+# Read a page as JSON without an MCP client
+notion pages get --page-id 2f1c... --json
+
+# Convert markdown offline (no token)
+notion content_convert --direction markdown-to-blocks --content '# Title'
+
+# Print one tool's flags and actions
+notion pages --help
+```
+
+`notion --help` lists the tool commands and the operator commands as separate
+groups. The `config` MCP tool is the one tool without a subcommand of its own:
+it manages server credential state, which the operator commands already cover --
+`notion config status` (also `status`, and the tool's `setup_status` /
+`setup_complete`), `notion config delete --yes` (the tool's `setup_reset`), and
+`notion auth` (where the tool's `setup_start` points); the tool's `set` and
+`cache_clear` actions are no-ops for Notion.
 
 ## Remote (HTTP mode)
 
