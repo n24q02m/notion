@@ -4,6 +4,7 @@
  */
 
 import type { Client, PageObjectResponse } from '@notionhq/client'
+import { boundMarkdown, DEFAULT_MARKDOWN_MAX_CHARS, MAX_MARKDOWN_MAX_CHARS } from '../helpers/bounds.js'
 import { formatCover } from '../helpers/covers.js'
 import { NotionMCPError, retryWithBackoff, withErrorHandling } from '../helpers/errors.js'
 import { formatIcon } from '../helpers/icons.js'
@@ -32,7 +33,10 @@ export interface GetPageResult {
   properties: Record<string, any>
   content: string
   block_count: number
+  content_max_chars: number
+  content_char_count: number
   content_truncated?: boolean
+  content_chars_omitted?: number
   next_cursor?: string | null
 }
 
@@ -58,6 +62,7 @@ export interface PagesInput {
   // get content params
   content_limit?: number
   content_cursor?: string
+  max_chars?: number
 
   // Archive/Restore params
   archived?: boolean
@@ -92,6 +97,16 @@ async function getPage(notion: Client, input: PagesInput): Promise<GetPageResult
     )
   }
 
+  const maxChars = input.max_chars ?? DEFAULT_MARKDOWN_MAX_CHARS
+
+  if (!Number.isInteger(maxChars) || maxChars < 1 || maxChars > MAX_MARKDOWN_MAX_CHARS) {
+    throw new NotionMCPError(
+      `max_chars must be an integer between 1 and ${MAX_MARKDOWN_MAX_CHARS}`,
+      'VALIDATION_ERROR',
+      'Provide a max_chars between 1 and 100000'
+    )
+  }
+
   const page = (await notion.pages.retrieve({ page_id: input.page_id })) as PageObjectResponse
   const bounded = input.content_limit !== undefined || input.content_cursor !== undefined
   let blocks: NotionBlock[]
@@ -120,6 +135,8 @@ async function getPage(notion: Client, input: PagesInput): Promise<GetPageResult
   // Recursively fetch children for blocks that need them (tables, toggles, columns)
   await populateDeepChildren(notion, blocks as unknown as Parameters<typeof populateDeepChildren>[1])
 
+  const boundedMarkdown = boundMarkdown(blocksToMarkdown(blocks), maxChars)
+
   const result: GetPageResult = {
     action: 'get',
     page_id: page.id,
@@ -130,13 +147,21 @@ async function getPage(notion: Client, input: PagesInput): Promise<GetPageResult
     icon: page.icon || null,
     cover: page.cover || null,
     properties: extractPageProperties(page.properties),
-    content: blocksToMarkdown(blocks),
-    block_count: blocks.length
+    content: boundedMarkdown.markdown,
+    block_count: blocks.length,
+    content_max_chars: maxChars,
+    content_char_count: boundedMarkdown.totalCharacters
+  }
+
+  if (boundedMarkdown.truncated) {
+    result.content_chars_omitted = boundedMarkdown.totalCharacters - maxChars
   }
 
   if (bounded) {
-    result.content_truncated = hasMore
+    result.content_truncated = hasMore || boundedMarkdown.truncated
     result.next_cursor = nextCursor
+  } else if (boundedMarkdown.truncated) {
+    result.content_truncated = true
   }
 
   return result

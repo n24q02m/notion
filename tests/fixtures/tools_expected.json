@@ -42,6 +42,12 @@
           "type": "string",
           "description": "Cursor from a previous bounded pages get"
         },
+        "max_chars": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 100000,
+          "description": "Max markdown characters returned by get (1-100000, default 20000); truncated content ends with an explicit marker"
+        },
         "parent_id": {
           "type": "string",
           "description": "Parent page or database ID"

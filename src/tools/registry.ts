@@ -82,7 +82,7 @@ const TOOLS = [
   {
     name: 'pages',
     description:
-      'Page CRUD for individual pages and database rows.\n\nActions (required params -> optional):\n- create (parent_id -> title, content, properties, icon, cover)\n- get (page_id -> content_limit, content_cursor): returns markdown content; bounded reads return content_truncated and next_cursor\n- get_property (page_id, property_id)\n- update (page_id -> title, content, append_content, properties, icon, cover, archived)\n- move (page_id, parent_id)\n- archive (page_id) / restore (page_id)\n- duplicate (page_id -> parent_id)\n\nUse `databases` instead for querying or bulk row operations. Property format: simple values auto-convert -- string for title/rich_text/select/status, number for number, boolean for checkbox, string[] for multi_select, ISO date "2025-01-15" for date. Example: properties: {"Name": "My Page", "Status": "In Progress", "Tags": ["urgent", "work"]}',
+      'Page CRUD for individual pages and database rows.\n\nActions (required params -> optional):\n- create (parent_id -> title, content, properties, icon, cover)\n- get (page_id -> max_chars, content_limit, content_cursor): returns markdown bounded to max_chars (default 20000, max 100000) with an explicit [Truncated: showing N of M characters] marker; content_char_count and content_truncated report the true size, and bounded block reads also return next_cursor\n- get_property (page_id, property_id)\n- update (page_id -> title, content, append_content, properties, icon, cover, archived)\n- move (page_id, parent_id)\n- archive (page_id) / restore (page_id)\n- duplicate (page_id -> parent_id)\n\nUse `databases` instead for querying or bulk row operations. Property format: simple values auto-convert -- string for title/rich_text/select/status, number for number, boolean for checkbox, string[] for multi_select, ISO date "2025-01-15" for date. Example: properties: {"Name": "My Page", "Status": "In Progress", "Tags": ["urgent", "work"]}',
     annotations: {
       title: 'Pages',
       readOnlyHint: false,
@@ -110,6 +110,13 @@ const TOOLS = [
           description: 'Max page blocks to return for get; use next_cursor to continue'
         },
         content_cursor: { type: 'string', description: 'Cursor from a previous bounded pages get' },
+        max_chars: {
+          type: 'number',
+          minimum: 1,
+          maximum: 100000,
+          description:
+            'Max markdown characters returned by get (1-100000, default 20000); truncated content ends with an explicit marker'
+        },
         parent_id: { type: 'string', description: 'Parent page or database ID' },
         properties: {
           type: 'object',
