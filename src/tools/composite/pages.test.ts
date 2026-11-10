@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { blocksToMarkdown } from '../helpers/markdown.js'
 import {
   type ArchivePageResult,
   type CreatePageResult,
@@ -212,8 +213,85 @@ describe('pages', () => {
         cover: null,
         properties: { Name: 'Test' },
         content: '# Mock markdown',
-        block_count: 1
+        block_count: 1,
+        content_max_chars: 20_000,
+        content_char_count: 15
       })
+    })
+
+    it('bounds markdown by default and reports the true size in the marker', async () => {
+      const hugeMarkdown = 'z'.repeat(45_123)
+      vi.mocked(blocksToMarkdown).mockReturnValueOnce(hugeMarkdown)
+      mockNotion.pages.retrieve.mockResolvedValue({
+        id: 'page-5',
+        url: 'https://notion.so/page-5',
+        created_time: '2024-01-01T00:00:00.000Z',
+        last_edited_time: '2024-01-02T00:00:00.000Z',
+        archived: false,
+        properties: {}
+      })
+      mockNotion.blocks.children.list.mockResolvedValue({
+        results: [{ id: 'block-1', type: 'paragraph' }],
+        next_cursor: null,
+        has_more: false
+      })
+
+      const result = (await pages(mockNotion as any, { action: 'get', page_id: 'page-5' })) as GetPageResult
+
+      expect(result.content_max_chars).toBe(20_000)
+      expect(result.content_char_count).toBe(45_123)
+      expect(result.content_chars_omitted).toBe(25_123)
+      expect(result.content_truncated).toBe(true)
+      expect(result.content.startsWith('z'.repeat(20_000))).toBe(true)
+      expect(result.content).toContain(
+        '[Truncated: showing 20000 of 45123 characters (25123 omitted). Pass a larger max_chars (up to 100000) or page blocks with content_limit/content_cursor.]'
+      )
+    })
+
+    it('honours max_chars and returns small pages whole', async () => {
+      const markdown = 'q'.repeat(300)
+      vi.mocked(blocksToMarkdown).mockReturnValueOnce(markdown)
+      mockNotion.pages.retrieve.mockResolvedValue({
+        id: 'page-6',
+        url: 'https://notion.so/page-6',
+        created_time: '2024-01-01T00:00:00.000Z',
+        last_edited_time: '2024-01-02T00:00:00.000Z',
+        archived: false,
+        properties: {}
+      })
+      mockNotion.blocks.children.list.mockResolvedValue({
+        results: [{ id: 'block-1', type: 'paragraph' }],
+        next_cursor: null,
+        has_more: false
+      })
+
+      const result = (await pages(mockNotion as any, {
+        action: 'get',
+        page_id: 'page-6',
+        max_chars: 100
+      })) as GetPageResult
+
+      expect(result.content_max_chars).toBe(100)
+      expect(result.content_char_count).toBe(300)
+      expect(result.content).toContain('[Truncated: showing 100 of 300 characters (200 omitted).')
+
+      vi.mocked(blocksToMarkdown).mockReturnValueOnce('short')
+      const small = (await pages(mockNotion as any, {
+        action: 'get',
+        page_id: 'page-6',
+        max_chars: 100
+      })) as GetPageResult
+
+      expect(small.content).toBe('short')
+      expect(small.content_truncated).toBeUndefined()
+      expect(small.content_chars_omitted).toBeUndefined()
+    })
+
+    it('rejects max_chars outside the supported range', async () => {
+      await expect(pages(mockNotion as any, { action: 'get', page_id: 'page-1', max_chars: 100_001 })).rejects.toThrow(
+        'max_chars must be an integer between 1 and 100000'
+      )
+      expect(mockNotion.pages.retrieve).not.toHaveBeenCalled()
     })
 
     it('bounds content and exposes the continuation cursor', async () => {
