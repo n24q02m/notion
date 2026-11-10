@@ -53,7 +53,7 @@ vi.mock('./tools/registry.js', () => ({
 
 vi.mock('./credential-state.js', () => ({
   DEFAULT_NAMESPACE: 'default',
-  STORE_PLUGIN: 'better-notion',
+  STORE_PLUGIN: 'notion',
   assertNamespace: vi.fn((ns: string) => ns),
   getState: vi.fn().mockReturnValue('configured'),
   resolveCredentialState: vi.fn().mockResolvedValue('configured'),
@@ -284,6 +284,10 @@ describe('main.ts', () => {
       await startServer('stdio')
       expect(exitSpy).toHaveBeenCalledWith(1)
       expect(stderrSpy).toHaveBeenCalledWith(expect.stringContaining('NOTION_TOKEN'))
+      // The setup command must name the published package: the legacy
+      // @n24q02m/better-notion-mcp name is frozen and must not be advertised.
+      expect(stderrSpy).toHaveBeenCalledWith(expect.stringContaining('npx -y @n24q02m/notion auth'))
+      expect(stderrSpy).not.toHaveBeenCalledWith(expect.stringContaining('better-notion-mcp'))
       expect(stdioServerCtor).not.toHaveBeenCalled()
       stderrSpy.mockRestore()
     })

@@ -73,10 +73,10 @@ class TestCheckCredentials(unittest.TestCase):
 
         mock_exit.assert_called_with(0)
         output = json.loads(mock_stdout.getvalue())
-        self.assertIn(
-            "better-notion-mcp: credentials not yet configured", output["message"]
-        )
-        self.assertIn("notion auth", output["message"])
+        self.assertIn("notion: credentials not yet configured", output["message"])
+        self.assertIn("@n24q02m/notion auth", output["message"])
+        # The legacy package name is frozen and must not be advertised.
+        self.assertNotIn("better-notion-mcp", output["message"])
         self.assertNotIn("relay", output["message"].lower())
 
     @patch.dict(os.environ, {"NOTION_TOKEN": "secret_123"}, clear=True)

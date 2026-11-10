@@ -100,7 +100,7 @@ Options:
      {"command": "npx", "args": [...], "env": {"NOTION_TOKEN": "ntn_..."}}
 
   2. Store a token once on this machine:
-     npx -y @n24q02m/better-notion-mcp auth
+     npx -y @n24q02m/notion auth
 
 Documentation: https://docs.n24q02m.com/servers/notion/
 `
