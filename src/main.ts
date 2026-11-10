@@ -14,13 +14,12 @@ import { createInterface } from 'node:readline/promises'
 import { fileURLToPath } from 'node:url'
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import { buildCli } from '@n24q02m/hull'
+import { runCli } from './cli.js'
 import {
   assertNamespace,
   DEFAULT_NAMESPACE,
   getState,
   resolveCredentialState,
-  STORE_PLUGIN,
   saveNamespaceToken
 } from './credential-state.js'
 import { applyDataDirOverride } from './data-dir.js'
@@ -137,11 +136,11 @@ export async function bootstrap(selectedMode: string = mode) {
 }
 
 /**
- * `serve` entry point for `buildCli`.
+ * `serve` entry point for the CLI (`src/cli.ts`).
  *
  * `bootstrap()` resolves as soon as the transport is ready. For stdio,
  * `server.connect` resolves when stdin attaches, not when the session ends,
- * so this keeps the promise pending until SIGINT/SIGTERM. Otherwise buildCli's
+ * so this keeps the promise pending until SIGINT/SIGTERM. Otherwise the CLI's
  * `.then((code) => process.exit(code))` would kill the process right after
  * startup. HTTP blocks inside `startHttp()` until its own shutdown.
  */
@@ -225,13 +224,12 @@ export function relayCommand(): number {
 
 // Only execute the CLI if we're the main module and not in a test environment.
 if (isMain(import.meta.url) && process.env.NODE_ENV !== 'test') {
-  // Before buildCli parses argv: its built-in `config`, `status` and `doctor`
-  // commands read the credential store.
+  // Before the CLI parses argv: its built-in `config`, `status` and `doctor`
+  // commands and every tool subcommand read the credential store.
   applyDataDirOverride()
-  buildCli(SERVER_NAME, {
+  runCli(process.argv.slice(2), {
     serve,
     version: getPackageVersion(),
-    pluginName: STORE_PLUGIN,
-    extra: { auth: authCommand, relay: relayCommand }
-  })(process.argv.slice(2)).then((code) => process.exit(code))
+    operator: { auth: authCommand, relay: relayCommand }
+  }).then((code) => process.exit(code))
 }
