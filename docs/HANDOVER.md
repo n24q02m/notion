@@ -2,7 +2,7 @@
 
 ## Current product
 
-`notion` is a Markdown-first Notion MCP server: pages, databases, blocks, comments, users, workspace search, Markdown/block conversion, and file uploads for AI agents. The published package is `@n24q02m/notion`; the `notion` binary also answers to its legacy name `better-notion-mcp`, and the MCP Registry id stays `io.github.n24q02m/better-notion-mcp`.
+`notion` is a Markdown-first Notion MCP server: pages, databases, blocks, comments, users, workspace search, Markdown/block conversion, and file uploads for AI agents. The published package is `@n24q02m/notion`; the `notion` binary also answers to its legacy name `better-notion-mcp`, and its MCP Registry id is `io.github.n24q02m/notion`.
 
 **Version: 2.42.0** -- the `version` field of `package.json` at the commit that added this handover. `semantic-release.toml` bumps `package.json`, `.claude-plugin/plugin.json`, and `server.json` together on every release, so treat this line as a snapshot and re-read `package.json` before using it as current.
 
@@ -101,7 +101,7 @@ Rollback is forward: revert or fix the source commit and dispatch the pipeline a
 ## Known limits
 
 - There is no vendor-hosted endpoint; every HTTP deployment is self-hosted and its bearer token is the operator's responsibility.
-- The legacy `@n24q02m/better-notion-mcp` package receives one final release, then freezes. The Registry id keeps the old name for continuity; the repository, package, image, and binary are `notion`.
+- The legacy `@n24q02m/better-notion-mcp` package receives one final release, then freezes. The Registry id is `io.github.n24q02m/notion`; the pre-rename `io.github.n24q02m/better-notion-mcp` entry stays frozen in the registry and is never republished, while the repository, package, image, and binary are `notion`.
 - `no-auth` is loopback-only by design and is not a remote deployment mode.
 - Two names keep their pre-rename spelling on purpose: hull's storage key for this server is `better-notion-mcp` (`SERVER_NAME` in `src/credential-state.ts`, while `STORE_PLUGIN = 'notion'` sets the on-disk directory), and the pre-rename store directory `better-notion` stays a read-only migration source. Renaming either would orphan saved credentials, so treat the product name and the storage surfaces as independent.
 - Token validation happens at `notion auth`; a token later revoked in Notion surfaces as an authentication error at call time, not at startup.

@@ -32,9 +32,9 @@ RUN npx tsc -build && node scripts/build-cli.js
 FROM node:24.22.1-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS base
 
 LABEL org.opencontainers.image.source="https://github.com/n24q02m/notion"
-# MCP Registry id keeps its pre-rename spelling; it must match server.json
-# `name` and package.json `mcpName`, so it is not the package name.
-LABEL io.modelcontextprotocol.server.name="io.github.n24q02m/better-notion-mcp"
+# MCP Registry id must match server.json `name` and package.json `mcpName`;
+# it is the GitHub owner/repo pair, so it is not the package name.
+LABEL io.modelcontextprotocol.server.name="io.github.n24q02m/notion"
 
 # Copy built package from builder stage
 COPY --from=builder /app/build /usr/local/lib/node_modules/@n24q02m/notion/build
