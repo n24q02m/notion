@@ -2,6 +2,18 @@
 
 <!-- version list -->
 
+## v2.43.0 (2026-11-12)
+
+### Bug Fixes
+
+- Declare the renamed registry identity ([#1326](https://github.com/n24q02m/notion/pull/1326),
+  [`338f973`](https://github.com/n24q02m/notion/commit/338f97314122a7046d23318cebddf422d7c6f482))
+
+- Point the sister-project table at the renamed notion repo
+  ([#1325](https://github.com/n24q02m/notion/pull/1325),
+  [`05c0cde`](https://github.com/n24q02m/notion/commit/05c0cde2ad525bf27fa91136581fa8c9a3a76945))
+
+
 ## v2.43.0-beta.1 (2026-11-10)
 
 ### Bug Fixes
