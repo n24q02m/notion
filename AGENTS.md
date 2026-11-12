@@ -64,14 +64,14 @@ import { blocksToMarkdown, markdownToBlocks } from '../helpers/markdown.js'
 
 ### Naming Conventions
 
-| Element              | Convention       | Example                            |
-|----------------------|------------------|------------------------------------|
-| Functions/variables  | camelCase        | `registerTools`, `notionToken`     |
-| Interfaces           | PascalCase       | `PagesInput`, `PaginatedResponse`  |
-| Classes              | PascalCase       | `NotionMCPError`                   |
-| Constants            | UPPER_SNAKE_CASE | `TOOLS`, `RESOURCES`, `DOCS_DIR`   |
-| Files (helpers)      | kebab-case       | `init-server.ts`, `markdown.ts`    |
-| Test files           | Co-located       | `errors.test.ts` next to `errors.ts` |
+| Element             | Convention       | Example                              |
+| ------------------- | ---------------- | ------------------------------------ |
+| Functions/variables | camelCase        | `registerTools`, `notionToken`       |
+| Interfaces          | PascalCase       | `PagesInput`, `PaginatedResponse`    |
+| Classes             | PascalCase       | `NotionMCPError`                     |
+| Constants           | UPPER_SNAKE_CASE | `TOOLS`, `RESOURCES`, `DOCS_DIR`     |
+| Files (helpers)     | kebab-case       | `init-server.ts`, `markdown.ts`      |
+| Test files          | Co-located       | `errors.test.ts` next to `errors.ts` |
 
 ### Error Handling
 

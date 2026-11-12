@@ -334,7 +334,7 @@ jobs:
   # ============================================================================
   merge-docker:
     name: Merge Docker Manifests
-    needs: [release, build-docker]
+    needs: [ release, build-docker ]
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
@@ -400,7 +400,7 @@ jobs:
   # ============================================================================
   publish-mcp-registry:
     name: Publish to MCP Registry
-    needs: [release, publish-npm, merge-docker]
+    needs: [ release, publish-npm, merge-docker ]
     if: needs.release.outputs.released == 'true' && needs.release.outputs.is_prerelease != 'true'
     runs-on: ubuntu-latest
     steps:
@@ -440,7 +440,7 @@ jobs:
   # ============================================================================
   sync-marketplace:
     name: Sync to Marketplace
-    needs: [release, publish-mcp-registry]
+    needs: [ release, publish-mcp-registry ]
     if: needs.release.outputs.released == 'true' && needs.release.outputs.is_prerelease != 'true'
     runs-on: ubuntu-latest
     steps:

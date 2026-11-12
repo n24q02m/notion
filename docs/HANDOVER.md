@@ -16,18 +16,18 @@ The public contract is defined by the repository README, `server.json`, package 
 
 Eight composite Notion tools (39 actions) plus two infrastructure tools (`config`, `help`):
 
-| Tool | Actions |
-|---|---|
-| `pages` | `create`, `get`, `get_property`, `update`, `move`, `archive`, `restore`, `duplicate` |
-| `databases` | `create`, `get`, `query`, `create_page`, `update_page`, `delete_page`, `create_data_source`, `update_data_source`, `update_database`, `list_templates` |
-| `blocks` | `get`, `children`, `append`, `update`, `delete` |
-| `users` | `list`, `get`, `me`, `from_workspace` |
-| `workspace` | `info`, `search` |
-| `comments` | `list`, `get`, `create` |
-| `content_convert` | `markdown-to-blocks`, `blocks-to-markdown` (selected by the `direction` parameter, not by `action`) |
-| `file_uploads` | `create`, `send`, `complete`, `retrieve`, `list` |
-| `config` | `status`, `setup_status`, `setup_start`, `setup_reset`, `setup_complete`, `set`, `cache_clear` |
-| `help` | returns the full Markdown documentation for one tool via `tool_name` |
+| Tool              | Actions                                                                                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pages`           | `create`, `get`, `get_property`, `update`, `move`, `archive`, `restore`, `duplicate`                                                                   |
+| `databases`       | `create`, `get`, `query`, `create_page`, `update_page`, `delete_page`, `create_data_source`, `update_data_source`, `update_database`, `list_templates` |
+| `blocks`          | `get`, `children`, `append`, `update`, `delete`                                                                                                        |
+| `users`           | `list`, `get`, `me`, `from_workspace`                                                                                                                  |
+| `workspace`       | `info`, `search`                                                                                                                                       |
+| `comments`        | `list`, `get`, `create`                                                                                                                                |
+| `content_convert` | `markdown-to-blocks`, `blocks-to-markdown` (selected by the `direction` parameter, not by `action`)                                                    |
+| `file_uploads`    | `create`, `send`, `complete`, `retrieve`, `list`                                                                                                       |
+| `config`          | `status`, `setup_status`, `setup_start`, `setup_reset`, `setup_complete`, `set`, `cache_clear`                                                         |
+| `help`            | returns the full Markdown documentation for one tool via `tool_name`                                                                                   |
 
 `src/tools/definitions.ts` is the single published surface. `src/tools/registry.ts` wires it to the MCP server, `src/tools/invoke.ts` holds the dispatch table, and `src/cli.ts` derives one CLI subcommand per tool from the same definitions. Adding or changing a tool means changing `definitions.ts` plus its handler in `src/tools/composite/`; do not create a parallel flag list, a second tool inventory, or a second dispatch.
 
@@ -55,17 +55,17 @@ Smoke the surface without touching a Notion workspace: `notion content_convert -
 
 ## Configuration and credentials
 
-| Variable | Required | Default | Meaning |
-|---|---|---|---|
-| `NOTION_TOKEN` | stdio | -- | Notion integration token (`ntn_...` or legacy `secret_...`) |
-| `TRANSPORT_MODE` / `MCP_TRANSPORT` | no | `stdio` | set to `http` for the HTTP transport (or pass `--http`) |
-| `MCP_AUTH_MODE` | no (HTTP) | `multi` | `multi`, `token`, or `no-auth` |
-| `MCP_USERS_FILE` | no (HTTP `multi`) | `~/.hull/users.toml` | users file hull reads namespaces and tokens from |
-| `MCP_AUTH_TOKEN_HASH` | yes (HTTP `token`) | -- | `scrypt$` hash of the shared bearer token, minted with `token hash` |
-| `MCP_RPM` | no (HTTP `token`) | -- | optional per-minute request cap |
-| `PORT` | no (HTTP) | `0` (OS-assigned) | listen port |
-| `HOST` | no (HTTP) | `127.0.0.1` | bind address |
-| `NOTION_DATA_DIR` | no | home directory | base directory that holds the credential store |
+| Variable                           | Required           | Default              | Meaning                                                             |
+| ---------------------------------- | ------------------ | -------------------- | ------------------------------------------------------------------- |
+| `NOTION_TOKEN`                     | stdio              | --                   | Notion integration token (`ntn_...` or legacy `secret_...`)         |
+| `TRANSPORT_MODE` / `MCP_TRANSPORT` | no                 | `stdio`              | set to `http` for the HTTP transport (or pass `--http`)             |
+| `MCP_AUTH_MODE`                    | no (HTTP)          | `multi`              | `multi`, `token`, or `no-auth`                                      |
+| `MCP_USERS_FILE`                   | no (HTTP `multi`)  | `~/.hull/users.toml` | users file hull reads namespaces and tokens from                    |
+| `MCP_AUTH_TOKEN_HASH`              | yes (HTTP `token`) | --                   | `scrypt$` hash of the shared bearer token, minted with `token hash` |
+| `MCP_RPM`                          | no (HTTP `token`)  | --                   | optional per-minute request cap                                     |
+| `PORT`                             | no (HTTP)          | `0` (OS-assigned)    | listen port                                                         |
+| `HOST`                             | no (HTTP)          | `127.0.0.1`          | bind address                                                        |
+| `NOTION_DATA_DIR`                  | no                 | home directory       | base directory that holds the credential store                      |
 
 Credential state is hull's encrypted per-plugin store, keyed by namespace. The default namespace lives in `<base>/.notion/config.json`; HTTP `multi` callers resolve to `<base>/.notion/subs/<namespace>/config.json`. The machine key that decrypts the blob is `<base>/.notion/.secret`, written with mode 0600 on POSIX. A store an earlier release wrote under `<base>/.better-notion/` is copied forward once at startup (`src/data-dir-migration.ts`); there is no second live store.
 

@@ -29,7 +29,7 @@ repos:
         name: biome check
         entry: bun x biome check --write
         language: system
-        types_or: [javascript, ts, tsx, jsx, json, css]
+        types_or: [ javascript, ts, tsx, jsx, json, css ]
         pass_filenames: true
 
   # TypeScript: Type checker
@@ -39,7 +39,7 @@ repos:
         name: typescript type check
         entry: bun x tsc --noEmit
         language: system
-        types: [ts]
+        types: [ ts ]
         pass_filenames: false
 
   # Test: Run tests
@@ -49,7 +49,7 @@ repos:
         name: test (TypeScript)
         entry: bun run test
         language: system
-        types: [ts]
+        types: [ ts ]
         pass_filenames: false
 
   # ============================================================================
@@ -61,26 +61,26 @@ repos:
     hooks:
       - id: trailing-whitespace
         name: trim trailing whitespace
-        exclude_types: [image]
+        exclude_types: [ image ]
 
       - id: check-merge-conflict
         name: check for merge conflicts
 
       - id: check-json
         name: check JSON files
-        types: [json]
+        types: [ json ]
 
       - id: check-yaml
         name: check YAML files
-        types: [yaml]
+        types: [ yaml ]
 
       - id: check-toml
         name: check TOML files
-        types: [toml]
+        types: [ toml ]
 
       - id: end-of-file-fixer
         name: fix end of files
-        exclude_types: [image]
+        exclude_types: [ image ]
 
   # ============================================================================
   # Registry metadata: keep npm and MCP Registry descriptions in sync
@@ -102,4 +102,4 @@ repos:
         name: Enforce feat and fix commit prefixes
         entry: bash scripts/enforce-commit.sh
         language: system
-        stages: [commit-msg]
+        stages: [ commit-msg ]

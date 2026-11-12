@@ -1,4 +1,5 @@
 ---
+
 name: organize-database
 description: Transform unstructured Notion pages into a well-designed database with proper schema and migration
 argument-hint: "[page or workspace area to organize]"
@@ -12,14 +13,14 @@ Transform unstructured Notion pages into a well-designed, queryable database.
 
 Choose the right property type -- LLMs frequently pick the wrong one:
 
-| Data pattern | Correct type | Wrong choice (common mistake) |
-|---|---|---|
-| Fixed categories (status, priority) | `select` | `rich_text` (loses filtering) |
-| Multiple tags per item | `multi_select` | `select` (only allows one) |
-| References to other DBs | `relation` | `rich_text` (breaks linking) |
-| Computed from relations | `rollup` | `formula` (can't aggregate across DBs) |
-| True/false flags | `checkbox` | `select` with Yes/No (over-engineered) |
-| Long-form content | Page body (blocks) | `rich_text` property (2000 char limit) |
+| Data pattern                        | Correct type       | Wrong choice (common mistake)          |
+| ----------------------------------- | ------------------ | -------------------------------------- |
+| Fixed categories (status, priority) | `select`           | `rich_text` (loses filtering)          |
+| Multiple tags per item              | `multi_select`     | `select` (only allows one)             |
+| References to other DBs             | `relation`         | `rich_text` (breaks linking)           |
+| Computed from relations             | `rollup`           | `formula` (can't aggregate across DBs) |
+| True/false flags                    | `checkbox`         | `select` with Yes/No (over-engineered) |
+| Long-form content                   | Page body (blocks) | `rich_text` property (2000 char limit) |
 
 ## Property Format Reference
 
@@ -57,6 +58,7 @@ Key gotcha: `rich_text` is an ARRAY of text objects, never a plain string.
    - Identify common fields across pages (these become DB properties)
 
 2. **Design schema** -- create the database with identified properties:
+
    ```
    databases(action="create", parent_id="<parent_page_id>", title="...", properties={
      "Name": { "title": {} },
@@ -65,6 +67,7 @@ Key gotcha: `rich_text` is an ARRAY of text objects, never a plain string.
      ...
    })
    ```
+
    - Start with 5-7 properties max. Users can add more later.
    - Always include a `select` for status/category -- it enables Notion's board view.
 

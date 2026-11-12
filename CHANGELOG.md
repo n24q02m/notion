@@ -80,9 +80,7 @@
 - Document the notion server handover ([#1322](https://github.com/n24q02m/notion/pull/1322),
   [`2762679`](https://github.com/n24q02m/notion/commit/276267908ac61c567efb0988df6210b610056dc9))
 
-
 ## v2.42.0 (2026-10-27)
-
 
 ## v2.42.0-beta.1 (2026-10-27)
 
@@ -147,14 +145,12 @@
   ([#1302](https://github.com/n24q02m/notion/pull/1302),
   [`39b2627`](https://github.com/n24q02m/notion/commit/39b2627c3e9a70b78f6b7c0af09ab19a1f268c72))
 
-
 ## v2.41.6 (2026-09-13)
 
 ### Bug Fixes
 
 - Bump mcp-core to 1.24.1 ([#1288](https://github.com/n24q02m/better-notion-mcp/pull/1288),
   [`d9fb801`](https://github.com/n24q02m/better-notion-mcp/commit/d9fb801711c2de02abb773ecd9ce9fd0fd14035c))
-
 
 ## v2.41.5 (2026-09-12)
 
@@ -171,7 +167,6 @@
 - **release**: Single-main release lane (staging branch retired)
   ([`6b42d19`](https://github.com/n24q02m/better-notion-mcp/commit/6b42d1910499f962f43cc33d27bbc5213a434e9c))
 
-
 ## v2.41.4 (2026-09-12)
 
 ### Bug Fixes
@@ -179,7 +174,6 @@
 - **deps**: Update @n24q02m/mcp-core to v1.24.0
   ([#1286](https://github.com/n24q02m/better-notion-mcp/pull/1286),
   [`3bcbfe0`](https://github.com/n24q02m/better-notion-mcp/commit/3bcbfe0a556b3b3d4708c3afb3fa3aaa2a0ffce4))
-
 
 ## v2.41.3 (2026-09-12)
 
@@ -197,7 +191,6 @@
 - **rulesets**: Align IaC with repo-bootstrap template
   ([`a9f2f34`](https://github.com/n24q02m/better-notion-mcp/commit/a9f2f34abfe240d031e9fd9c363a617e7cfaca9a))
 
-
 ## v2.41.2 (2026-09-11)
 
 ### Bug Fixes
@@ -206,7 +199,6 @@
   ([#1284](https://github.com/n24q02m/better-notion-mcp/pull/1284),
   [`4cecf43`](https://github.com/n24q02m/better-notion-mcp/commit/4cecf4389015ef0ccfbf76603e39c0e2184f768a))
 
-
 ## v2.41.1 (2026-09-11)
 
 ### Bug Fixes
@@ -214,7 +206,6 @@
 - Pin better-semantic-release action to v1.6.1
   ([#1282](https://github.com/n24q02m/better-notion-mcp/pull/1282),
   [`35054b7`](https://github.com/n24q02m/better-notion-mcp/commit/35054b75018778d47bd7c34d01ae5fa0081fdcb8))
-
 
 ## v2.41.0 (2026-09-11)
 
@@ -306,7 +297,6 @@
   ([#1275](https://github.com/n24q02m/better-notion-mcp/pull/1275),
   [`fc5a18b`](https://github.com/n24q02m/better-notion-mcp/commit/fc5a18b38ae5f543974703027cb26efd49e069ba))
 
-
 ## Unreleased
 
 ### Bug Fixes
@@ -314,7 +304,6 @@
 - Bound page content reads with continuation cursors and tighten KV traversal checks for legitimate dotted keys.
 
 ## v2.40.1 (2026-08-31)
-
 
 ## v2.40.1-beta.1 (2026-08-31)
 
@@ -348,7 +337,6 @@
 - **deps**: Update @cloudflare/workers-types to ^5.20260823.1
   ([#1250](https://github.com/n24q02m/better-notion-mcp/pull/1250),
   [`237b936`](https://github.com/n24q02m/better-notion-mcp/commit/237b936f980b5edad36b35a8f0487bff9535c1e5))
-
 
 ## v2.40.0 (2026-08-29)
 
@@ -455,9 +443,7 @@
   ([#1232](https://github.com/n24q02m/better-notion-mcp/pull/1232),
   [`f4a2366`](https://github.com/n24q02m/better-notion-mcp/commit/f4a236652ed882ae2b5a93e47e47e69926b27d03))
 
-
 ## v2.39.0 (2026-08-14)
-
 
 ## v2.39.0-beta.2 (2026-08-14)
 
@@ -469,7 +455,6 @@
 - **deps**: Update patch dependencies
   ([#1203](https://github.com/n24q02m/better-notion-mcp/pull/1203),
   [`5d4612e`](https://github.com/n24q02m/better-notion-mcp/commit/5d4612e793b4126df28b6944b10c80dead0a116c))
-
 
 ## v2.39.0-beta.1 (2026-08-14)
 
@@ -559,7 +544,6 @@
 - Sync cross-promo section ([#1163](https://github.com/n24q02m/better-notion-mcp/pull/1163),
   [`59b4c89`](https://github.com/n24q02m/better-notion-mcp/commit/59b4c8977500f6b3995d350fced43260e194015e))
 
-
 ## v2.38.0 (2026-07-18)
 
 ### Bug Fixes
@@ -624,7 +608,6 @@
   ([#1135](https://github.com/n24q02m/better-notion-mcp/pull/1135),
   [`4790012`](https://github.com/n24q02m/better-notion-mcp/commit/47900123f7816493b0ed5481f5b3b50651400e26))
 
-
 ## v2.37.0 (2026-07-14)
 
 ### Bug Fixes
@@ -660,7 +643,6 @@
 - Add smithery.yaml for stdio deployment
   ([#1117](https://github.com/n24q02m/better-notion-mcp/pull/1117),
   [`5b616f2`](https://github.com/n24q02m/better-notion-mcp/commit/5b616f2a7e5e37bc7730fabc8e6656ac22cf27f6))
-
 
 ## v2.37.0-beta.3 (2026-07-12)
 
@@ -711,7 +693,6 @@
   ([#1108](https://github.com/n24q02m/better-notion-mcp/pull/1108),
   [`071d49e`](https://github.com/n24q02m/better-notion-mcp/commit/071d49ed478baae145006e7be641c63dc15d9add))
 
-
 ## v2.37.0-beta.2 (2026-07-10)
 
 ### Bug Fixes
@@ -723,7 +704,6 @@
 - Fail the release when the computed version already exists on npm
   ([#1097](https://github.com/n24q02m/better-notion-mcp/pull/1097),
   [`31a997e`](https://github.com/n24q02m/better-notion-mcp/commit/31a997ebf4c931a9135f36f0c3ea1da5bdd629f7))
-
 
 ## v2.37.0-beta.1 (2026-07-10)
 
@@ -754,9 +734,7 @@
 - Reviewer must obey .github/review-learnings.md
   ([`5fdefaf`](https://github.com/n24q02m/better-notion-mcp/commit/5fdefafa32a0f998a5e53dd57ce3311b14b812ca))
 
-
 ## v2.36.1 (2026-07-05)
-
 
 ## v2.36.1-beta.1 (2026-07-05)
 
@@ -806,14 +784,12 @@
   ([#1077](https://github.com/n24q02m/better-notion-mcp/pull/1077),
   [`f763f26`](https://github.com/n24q02m/better-notion-mcp/commit/f763f26f79905d07601cb1a9397b1cabc36187dc))
 
-
 ## v2.36.0 (2026-07-02)
 
 ### Bug Fixes
 
 - Bump mcp-core to 1.18.1 ([#1073](https://github.com/n24q02m/better-notion-mcp/pull/1073),
   [`52e3f16`](https://github.com/n24q02m/better-notion-mcp/commit/52e3f160616ec5e873c4f314f0b492337aa894d3))
-
 
 ## v2.36.0-beta.1 (2026-07-02)
 
@@ -823,9 +799,7 @@
   ([#1071](https://github.com/n24q02m/better-notion-mcp/pull/1071),
   [`2fbfd16`](https://github.com/n24q02m/better-notion-mcp/commit/2fbfd1692c7f0c31d835a09d3d0ecaaf3517cd8a))
 
-
 ## v2.35.0 (2026-07-01)
-
 
 ## v2.35.0-beta.9 (2026-07-01)
 
@@ -834,7 +808,6 @@
 - Wire durable KV-backed sessionKv for delegated OAuth on CF deploy
   ([#1069](https://github.com/n24q02m/better-notion-mcp/pull/1069),
   [`fd29c2a`](https://github.com/n24q02m/better-notion-mcp/commit/fd29c2adbdeb49a8993c84749f355cbc06fc1ec3))
-
 
 ## v2.35.0-beta.8 (2026-07-01)
 
@@ -856,7 +829,6 @@
 
 - **deps**: Lock file maintenance ([#1065](https://github.com/n24q02m/better-notion-mcp/pull/1065),
   [`25f3826`](https://github.com/n24q02m/better-notion-mcp/commit/25f3826efc60b84773a027905a5ae5b7db8e1d8b))
-
 
 ## v2.35.0-beta.7 (2026-06-30)
 
@@ -901,7 +873,6 @@
 - Route OAuth /token refresh to the sub's DO to avoid max_instances=1 deadlock
   ([#1056](https://github.com/n24q02m/better-notion-mcp/pull/1056),
   [`6c64194`](https://github.com/n24q02m/better-notion-mcp/commit/6c64194d00810d8d1fc28dfad6e643f9cdc3f539))
-
 
 ## v2.35.0-beta.6 (2026-06-29)
 
@@ -962,7 +933,6 @@
 - **auth**: Add error path test for KvNotionTokenStore.getAsync
   ([`23d159e`](https://github.com/n24q02m/better-notion-mcp/commit/23d159ef671e07759813339684c399ef2b24ddef))
 
-
 ## v2.35.0-beta.5 (2026-06-22)
 
 ### Bug Fixes
@@ -970,7 +940,6 @@
 - Bump mcp-core to 1.18.0b19 (relay model-search catalog + OAuth refresh-TTL)
   ([#1001](https://github.com/n24q02m/better-notion-mcp/pull/1001),
   [`442c626`](https://github.com/n24q02m/better-notion-mcp/commit/442c6265e64893833fe34a7d448f5a5bd7021d76))
-
 
 ## v2.35.0-beta.4 (2026-06-22)
 
@@ -987,7 +956,6 @@
 - **deps**: Update non-major dependencies to ^1.18.0-beta.17
   ([#998](https://github.com/n24q02m/better-notion-mcp/pull/998),
   [`8dd69d0`](https://github.com/n24q02m/better-notion-mcp/commit/8dd69d0eb85abdf922260ccab8569679483d2f6c))
-
 
 ## v2.35.0-beta.3 (2026-06-21)
 
@@ -1038,7 +1006,6 @@
   ([#990](https://github.com/n24q02m/better-notion-mcp/pull/990),
   [`9a42e03`](https://github.com/n24q02m/better-notion-mcp/commit/9a42e03ea02fedb217824be7283606e49789a5b4))
 
-
 ## v2.35.0-beta.2 (2026-06-18)
 
 ### Bug Fixes
@@ -1083,7 +1050,6 @@
 - Deploy notion to Cloudflare at notion.n24q02m.com
   ([#975](https://github.com/n24q02m/better-notion-mcp/pull/975),
   [`0856ebd`](https://github.com/n24q02m/better-notion-mcp/commit/0856ebde90e27883a9c52cdf19101527ade92aa1))
-
 
 ## v2.35.0-beta.1 (2026-06-15)
 
@@ -1194,7 +1160,6 @@
 - Sync cross-promo section ([#943](https://github.com/n24q02m/better-notion-mcp/pull/943),
   [`7c56493`](https://github.com/n24q02m/better-notion-mcp/commit/7c56493eb60af7d8c2e9d0306b649e96ddcabcc7))
 
-
 ## v2.34.8-beta.3 (2026-06-10)
 
 ### Bug Fixes
@@ -1293,7 +1258,6 @@
   ([#926](https://github.com/n24q02m/better-notion-mcp/pull/926),
   [`81a639f`](https://github.com/n24q02m/better-notion-mcp/commit/81a639fcca77f9c38c86a67744cafcc9dc8d71f4))
 
-
 ## v2.34.8-beta.2 (2026-06-10)
 
 ### Bug Fixes
@@ -1305,7 +1269,6 @@
 - Correct tool-count drift and stale tool references in docs
   ([#899](https://github.com/n24q02m/better-notion-mcp/pull/899),
   [`6c2d616`](https://github.com/n24q02m/better-notion-mcp/commit/6c2d616fb784e99de875133f8aa34f430486daba))
-
 
 ## v2.34.8-beta.1 (2026-06-10)
 
@@ -1324,9 +1287,7 @@
   ([#895](https://github.com/n24q02m/better-notion-mcp/pull/895),
   [`25ee784`](https://github.com/n24q02m/better-notion-mcp/commit/25ee784ec295e641dc590df0041ba8c5d9a81dfa))
 
-
 ## v2.34.7 (2026-06-09)
-
 
 ## v2.34.7-beta.1 (2026-06-09)
 
@@ -1346,7 +1307,6 @@
   ([#856](https://github.com/n24q02m/better-notion-mcp/pull/856),
   [`a3751f0`](https://github.com/n24q02m/better-notion-mcp/commit/a3751f0a2d0570b222a0d9782661bf04b5185ed0))
 
-
 ## v2.34.6 (2026-06-07)
 
 ### Bug Fixes
@@ -1354,9 +1314,7 @@
 - Bump @n24q02m/mcp-core to 1.17.3 ([#853](https://github.com/n24q02m/better-notion-mcp/pull/853),
   [`8bcd5ad`](https://github.com/n24q02m/better-notion-mcp/commit/8bcd5ad4b7002fecc2cd25185ce1ffbc066284c6))
 
-
 ## v2.34.5 (2026-06-07)
-
 
 ## v2.34.5-beta.1 (2026-06-07)
 
@@ -1398,14 +1356,12 @@
 - Update actions/checkout digest to df4cb1c
   ([`b363ab0`](https://github.com/n24q02m/better-notion-mcp/commit/b363ab0c7425dc9d7990f09e18fb72163649520f))
 
-
 ## v2.34.4 (2026-06-01)
 
 ### Bug Fixes
 
 - Pin mcp-core 1.17.2 (stable)
   ([`584ec47`](https://github.com/n24q02m/better-notion-mcp/commit/584ec47cdda5d87d1d59afdcb1c8f445a4331105))
-
 
 ## v2.34.4-beta.1 (2026-06-01)
 
@@ -1422,7 +1378,6 @@
   ([#774](https://github.com/n24q02m/better-notion-mcp/pull/774),
   [`a7c08d8`](https://github.com/n24q02m/better-notion-mcp/commit/a7c08d84a2e5ac26abf9217ce6d4c42f62e57204))
 
-
 ## v2.34.3 (2026-05-29)
 
 ### Bug Fixes
@@ -1430,14 +1385,12 @@
 - Pin mcp-core 1.17.1 (BearerMCPApp resource_metadata #260)
   ([`05abc3f`](https://github.com/n24q02m/better-notion-mcp/commit/05abc3f320b2555ce3aff7896613c7f21a78ec3f))
 
-
 ## v2.34.2 (2026-05-29)
 
 ### Bug Fixes
 
 - Pin mcp-core 1.17.0 (stable OAuth refresh_token)
   ([`a7f3215`](https://github.com/n24q02m/better-notion-mcp/commit/a7f32159564c4ebfaccba733bcb9041806454723))
-
 
 ## v2.34.2-beta.1 (2026-05-29)
 
@@ -1461,7 +1414,6 @@
   ([#741](https://github.com/n24q02m/better-notion-mcp/pull/741),
   [`d9acb1a`](https://github.com/n24q02m/better-notion-mcp/commit/d9acb1a06c83b4460531543af057e8f1e71f7b61))
 
-
 ## v2.34.1 (2026-05-28)
 
 ### Bug Fixes
@@ -1476,9 +1428,7 @@
   ([#727](https://github.com/n24q02m/better-notion-mcp/pull/727),
   [`9caccc8`](https://github.com/n24q02m/better-notion-mcp/commit/9caccc8fc14fc8b16fa50b234b9dacc702a79687))
 
-
 ## v2.34.0 (2026-05-26)
-
 
 ## v2.34.0-beta.1 (2026-05-26)
 
@@ -1494,7 +1444,6 @@
 
 - Cut new beta to expose MCP_AUTH_DISABLE wired in #725 squash
   ([`6c1a1e3`](https://github.com/n24q02m/better-notion-mcp/commit/6c1a1e3ce93a9187c201a8be5a8799ed84bb420c))
-
 
 ## v2.33.1-beta.1 (2026-05-24)
 
@@ -1567,9 +1516,7 @@
   ([#713](https://github.com/n24q02m/better-notion-mcp/pull/713),
   [`a44da32`](https://github.com/n24q02m/better-notion-mcp/commit/a44da32cb359e8b68f9ec0f568877c41e81eb317))
 
-
 ## v2.33.0 (2026-05-09)
-
 
 ## v2.33.0-beta.1 (2026-05-08)
 
@@ -1643,9 +1590,7 @@
 - Sync cross-promo section ([#688](https://github.com/n24q02m/better-notion-mcp/pull/688),
   [`40f153b`](https://github.com/n24q02m/better-notion-mcp/commit/40f153bee62570be1236590fec8cdd4dc5563c83))
 
-
 ## v2.32.0 (2026-05-06)
-
 
 ## v2.32.0-beta.1 (2026-05-06)
 
@@ -1699,14 +1644,12 @@
   ([#651](https://github.com/n24q02m/better-notion-mcp/pull/651),
   [`b37b715`](https://github.com/n24q02m/better-notion-mcp/commit/b37b71535bd41b66e79d5da8ecd30d13e52c5f43))
 
-
 ## v2.31.0 (2026-05-04)
 
 ### Bug Fixes
 
 - Bump mcp-core to 1.13.0 (STABLE) ([#644](https://github.com/n24q02m/better-notion-mcp/pull/644),
   [`931c1f3`](https://github.com/n24q02m/better-notion-mcp/commit/931c1f347aaa6b9c8f787f7a7b7f7d3fde753221))
-
 
 ## v2.31.0-beta.6 (2026-05-03)
 
@@ -1716,7 +1659,6 @@
   ([#641](https://github.com/n24q02m/better-notion-mcp/pull/641),
   [`1ec995b`](https://github.com/n24q02m/better-notion-mcp/commit/1ec995b7ef1d9bc86fb73415bc66374f76f017a4))
 
-
 ## v2.31.0-beta.5 (2026-05-03)
 
 ### Bug Fixes
@@ -1724,7 +1666,6 @@
 - Bump mcp-core to 1.13.0-beta.8 for delegated /login gate
   ([#640](https://github.com/n24q02m/better-notion-mcp/pull/640),
   [`b7a4274`](https://github.com/n24q02m/better-notion-mcp/commit/b7a4274c0564ed480d9ea9c85918c3aa541fdaf4))
-
 
 ## v2.31.0-beta.4 (2026-05-03)
 
@@ -1740,7 +1681,6 @@
 - Pass MCP_RELAY_PASSWORD env to HTTP container
   ([#637](https://github.com/n24q02m/better-notion-mcp/pull/637),
   [`0d1404d`](https://github.com/n24q02m/better-notion-mcp/commit/0d1404d91848a49f6ac75625918fcb5fc1540aa7))
-
 
 ## v2.31.0-beta.3 (2026-05-02)
 
@@ -1771,7 +1711,6 @@
   ([#629](https://github.com/n24q02m/better-notion-mcp/pull/629),
   [`eb99588`](https://github.com/n24q02m/better-notion-mcp/commit/eb99588b61ba40c14b325f1756caa656c0780747))
 
-
 ## v2.31.0-beta.2 (2026-04-30)
 
 ### Bug Fixes
@@ -1789,7 +1728,6 @@
 - **docs**: Add trust model section to README
   ([#623](https://github.com/n24q02m/better-notion-mcp/pull/623),
   [`a14602c`](https://github.com/n24q02m/better-notion-mcp/commit/a14602cfa2c3eb2f6067b9e41fc1e69136168304))
-
 
 ## v2.31.0-beta.1 (2026-04-30)
 
@@ -1809,7 +1747,6 @@
   ([#621](https://github.com/n24q02m/better-notion-mcp/pull/621),
   [`98c03ce`](https://github.com/n24q02m/better-notion-mcp/commit/98c03ce4758f1d3458a22ff57146b9bb8bba869f))
 
-
 ## v2.30.6 (2026-04-29)
 
 ### Bug Fixes
@@ -1818,9 +1755,7 @@
   ([#620](https://github.com/n24q02m/better-notion-mcp/pull/620),
   [`b1bf88a`](https://github.com/n24q02m/better-notion-mcp/commit/b1bf88a7939e9cd94746d50c9c71ff75ce505216))
 
-
 ## v2.30.5 (2026-04-29)
-
 
 ## v2.30.5-beta.1 (2026-04-29)
 
@@ -1829,7 +1764,6 @@
 - Revert eagerRelaySchema usage (D18 rollback)
   ([#617](https://github.com/n24q02m/better-notion-mcp/pull/617),
   [`857b80a`](https://github.com/n24q02m/better-notion-mcp/commit/857b80a44fd345b4603ecb173919d7c8d05de0db))
-
 
 ## v2.30.4 (2026-04-29)
 
@@ -1847,7 +1781,6 @@
   ([#614](https://github.com/n24q02m/better-notion-mcp/pull/614),
   [`1eef664`](https://github.com/n24q02m/better-notion-mcp/commit/1eef66411a332853a310cf4230bb4d4d0d132927))
 
-
 ## v2.30.3 (2026-04-29)
 
 ### Bug Fixes
@@ -1864,7 +1797,6 @@
   ([#609](https://github.com/n24q02m/better-notion-mcp/pull/609),
   [`9195dea`](https://github.com/n24q02m/better-notion-mcp/commit/9195dea4a9569aebe94cacb016ed9b6458316993))
 
-
 ## v2.30.2 (2026-04-28)
 
 ### Bug Fixes
@@ -1876,7 +1808,6 @@
 - **deps**: Bump @n24q02m/mcp-core to 1.10.0 — Transparent Bridge waves 1-3
   ([#608](https://github.com/n24q02m/better-notion-mcp/pull/608),
   [`984dbdc`](https://github.com/n24q02m/better-notion-mcp/commit/984dbdc9e0ee108d4c7bef7bdabaf89917c8190b))
-
 
 ## v2.30.1 (2026-04-28)
 
@@ -1893,7 +1824,6 @@
 
 - **deps**: Lock file maintenance ([#600](https://github.com/n24q02m/better-notion-mcp/pull/600),
   [`2aaec9c`](https://github.com/n24q02m/better-notion-mcp/commit/2aaec9c11eaaf4a9f37b87e216be69889c5eb4c4))
-
 
 ## v2.30.0 (2026-04-27)
 
@@ -1917,7 +1847,6 @@
   ([#595](https://github.com/n24q02m/better-notion-mcp/pull/595),
   [`4c88af1`](https://github.com/n24q02m/better-notion-mcp/commit/4c88af1a84ccea91645c294e9a32463aaddc6041))
 
-
 ## v2.29.2-beta.1 (2026-04-27)
 
 ### Bug Fixes
@@ -1928,14 +1857,12 @@
 - Sweep doppler/infisical refs to skret SSM
   ([`9dd9cd8`](https://github.com/n24q02m/better-notion-mcp/commit/9dd9cd886c302aaa9ea7df25e4942b5fe518878b))
 
-
 ## v2.29.1 (2026-04-24)
 
 ### Bug Fixes
 
 - Bump @n24q02m/mcp-core to 1.7.6 ([#591](https://github.com/n24q02m/better-notion-mcp/pull/591),
   [`ccc2c71`](https://github.com/n24q02m/better-notion-mcp/commit/ccc2c71ebbb7b2be5b42d7013032a02270fefaa0))
-
 
 ## v2.29.0 (2026-04-24)
 
@@ -1978,7 +1905,6 @@
 - Migrate stdio transport to 1-Daemon architecture (runSmartStdioProxy)
   ([`6093949`](https://github.com/n24q02m/better-notion-mcp/commit/60939495480ed8ac0b87b78a62581c7c232102e9))
 
-
 ## v2.28.10 (2026-04-22)
 
 ### Bug Fixes
@@ -1986,7 +1912,6 @@
 - Sync credential-state after local-relay token save
   ([#577](https://github.com/n24q02m/better-notion-mcp/pull/577),
   [`b9fb62b`](https://github.com/n24q02m/better-notion-mcp/commit/b9fb62b10e6e112582793eac27932a7417ae68a7))
-
 
 ## v2.28.9 (2026-04-22)
 
@@ -1996,7 +1921,6 @@
   ([#576](https://github.com/n24q02m/better-notion-mcp/pull/576),
   [`816e4ae`](https://github.com/n24q02m/better-notion-mcp/commit/816e4aeece9f8371ddf50117091ef8cde73c8ef9))
 
-
 ## v2.28.8 (2026-04-22)
 
 ### Bug Fixes
@@ -2005,7 +1929,6 @@
   ([#574](https://github.com/n24q02m/better-notion-mcp/pull/574),
   [`26703a3`](https://github.com/n24q02m/better-notion-mcp/commit/26703a3a518001ffbb8bcaf18d16d4d6c88a17a5))
 
-
 ## v2.28.7 (2026-04-22)
 
 ### Bug Fixes
@@ -2013,7 +1936,6 @@
 - Bump @n24q02m/mcp-core to 1.6.2 + return sub from onTokenReceived
   ([#573](https://github.com/n24q02m/better-notion-mcp/pull/573),
   [`e017691`](https://github.com/n24q02m/better-notion-mcp/commit/e0176915ee6840a5dbdf4b125d8bd694245d6a14))
-
 
 ## v2.28.6 (2026-04-22)
 
@@ -2041,7 +1963,6 @@
 - **deps**: Lock file maintenance ([#568](https://github.com/n24q02m/better-notion-mcp/pull/568),
   [`074916b`](https://github.com/n24q02m/better-notion-mcp/commit/074916bf812dde5fca25b4dbf981d1c597adc34c))
 
-
 ## v2.28.5 (2026-04-21)
 
 ### Bug Fixes
@@ -2054,7 +1975,6 @@
 
 - Bump step-security/harden-runner digest to 8d3c67d
   ([`8f11d19`](https://github.com/n24q02m/better-notion-mcp/commit/8f11d198182c01c70e195f8f1c85cf880f5b2180))
-
 
 ## v2.28.4 (2026-04-21)
 
@@ -2084,14 +2004,12 @@
 - **deps**: Update step-security/harden-runner digest to 6c3c2f2
   ([`04a5282`](https://github.com/n24q02m/better-notion-mcp/commit/04a528270ed18b49ebe1fd014b1646e0fe045efe))
 
-
 ## v2.28.3 (2026-04-20)
 
 ### Bug Fixes
 
 - Bump @n24q02m/mcp-core to ^1.4.2 ([#558](https://github.com/n24q02m/better-notion-mcp/pull/558),
   [`10ba266`](https://github.com/n24q02m/better-notion-mcp/commit/10ba2660d7048548e3138abbee043aa59d547338))
-
 
 ## v2.28.2 (2026-04-20)
 
@@ -2100,7 +2018,6 @@
 - Bump @n24q02m/mcp-core to ^1.4.1 ([#556](https://github.com/n24q02m/better-notion-mcp/pull/556),
   [`951cd14`](https://github.com/n24q02m/better-notion-mcp/commit/951cd141ecb637f7782016584282e3fca72f556c))
 
-
 ## v2.28.1 (2026-04-20)
 
 ### Bug Fixes
@@ -2108,7 +2025,6 @@
 - Restore http remote-oauth default mode (regression from #517)
   ([#554](https://github.com/n24q02m/better-notion-mcp/pull/554),
   [`55f1eaa`](https://github.com/n24q02m/better-notion-mcp/commit/55f1eaa82933c70f098598113779834bad4bbd0e))
-
 
 ## v2.28.0 (2026-04-19)
 
@@ -2161,7 +2077,6 @@
 - Add robust tests for startServer in main.ts
   ([#525](https://github.com/n24q02m/better-notion-mcp/pull/525),
   [`fc4140a`](https://github.com/n24q02m/better-notion-mcp/commit/fc4140a5c3f1660d8954c1f23c7b346a79d59aee))
-
 
 ## v2.28.0-beta.1 (2026-04-18)
 
@@ -2216,14 +2131,12 @@
   ([#521](https://github.com/n24q02m/better-notion-mcp/pull/521),
   [`a612635`](https://github.com/n24q02m/better-notion-mcp/commit/a6126352ac31c9ee722e3e88f5a8182398899067))
 
-
 ## v2.27.6 (2026-04-17)
 
 ### Bug Fixes
 
 - Bump @n24q02m/mcp-core to 1.2.0 (authlib CVE + auto-issue CD)
   ([`d9ba489`](https://github.com/n24q02m/better-notion-mcp/commit/d9ba489426e91aca4b8029a733419b7be34e62f4))
-
 
 ## v2.27.5 (2026-04-17)
 
@@ -2234,7 +2147,6 @@
 
 - Bump version to rebuild with mcp-core 1.1.1
   ([`aacc455`](https://github.com/n24q02m/better-notion-mcp/commit/aacc455bbe1cc8e799c1f68805305ddd1f73ce81))
-
 
 ## v2.27.4 (2026-04-17)
 
@@ -2296,14 +2208,12 @@
 - Ignore AI assistant traces
   ([`4207a2e`](https://github.com/n24q02m/better-notion-mcp/commit/4207a2ee60f0cec487ff35e5a089ac04faf27c29))
 
-
 ## v2.27.3 (2026-04-13)
 
 ### Bug Fixes
 
 - Install python3+make+g++ for better-sqlite3 source build
   ([`0f11f8e`](https://github.com/n24q02m/better-notion-mcp/commit/0f11f8e7f1c42420c3703d081a0a2ba041acce8b))
-
 
 ## v2.27.2 (2026-04-13)
 
@@ -2312,14 +2222,12 @@
 - Pin Bun image to alpine 7ed9f74 for better-sqlite3 compat
   ([`3c38c6e`](https://github.com/n24q02m/better-notion-mcp/commit/3c38c6e1d1cc27a361c10b36d174a9e636c6000f))
 
-
 ## v2.27.1 (2026-04-13)
 
 ### Bug Fixes
 
 - Pin better-sqlite3 to ^12.9.0 for Bun prebuild support
   ([`3c4a9cf`](https://github.com/n24q02m/better-notion-mcp/commit/3c4a9cf25816060728a03a5722bcce208e9f3394))
-
 
 ## v2.27.0 (2026-04-13)
 
@@ -2454,7 +2362,6 @@
   ([#442](https://github.com/n24q02m/better-notion-mcp/pull/442),
   [`70a5dc0`](https://github.com/n24q02m/better-notion-mcp/commit/70a5dc094530a6c290673d03bfcfbe1882f7c6c9))
 
-
 ## v2.26.0 (2026-04-07)
 
 ### Bug Fixes
@@ -2506,7 +2413,6 @@
   ([#404](https://github.com/n24q02m/better-notion-mcp/pull/404),
   [`7e3ad39`](https://github.com/n24q02m/better-notion-mcp/commit/7e3ad397aab2f73519da64141627b3336132cb37))
 
-
 ## v2.25.0 (2026-04-06)
 
 ### Bug Fixes
@@ -2518,7 +2424,6 @@
 
 - Non-blocking relay with state machine and lazy trigger
   ([`ca2d637`](https://github.com/n24q02m/better-notion-mcp/commit/ca2d6370fca5f57e77c9f221ebb5f4b0f8cf3f01))
-
 
 ## v2.24.0 (2026-04-04)
 
@@ -2536,14 +2441,12 @@
 - Add agent/manual setup guides, simplify README, cleanup root
   ([`7e97edc`](https://github.com/n24q02m/better-notion-mcp/commit/7e97edc10f0a82a37fc8a1d800e7959d5cb4bf58))
 
-
 ## v2.23.0 (2026-04-03)
 
 ### Features
 
 - Remove deprecated Gemini CLI extension support
   ([`d2d4c21`](https://github.com/n24q02m/better-notion-mcp/commit/d2d4c21b01b11d4d077eab83858304bf62f74d5b))
-
 
 ## v2.23.0-beta.1 (2026-04-03)
 
@@ -2620,7 +2523,6 @@
 - Fix external reported bugs (#360, #282, #196, #197)
   ([`f605e93`](https://github.com/n24q02m/better-notion-mcp/commit/f605e933fbce05c24d3270385f3761a9e54473f7))
 
-
 ## v2.22.1 (2026-03-31)
 
 ### Bug Fixes
@@ -2654,7 +2556,6 @@
 - Improve coverage to 96.31% statements
   ([#319](https://github.com/n24q02m/better-notion-mcp/pull/319),
   [`c8268df`](https://github.com/n24q02m/better-notion-mcp/commit/c8268df6412298a3614f0064544ee31c1aab6658))
-
 
 ## v2.22.0 (2026-03-28)
 
@@ -2740,7 +2641,6 @@
 - Relay-first startup — always show relay URL
   ([`f475031`](https://github.com/n24q02m/better-notion-mcp/commit/f475031fec6ea59059bbaac94b576f8585e51e28))
 
-
 ## v2.21.0 (2026-03-26)
 
 ### Chores
@@ -2758,7 +2658,6 @@
 
 - Standardize README structure
   ([`17d78a7`](https://github.com/n24q02m/better-notion-mcp/commit/17d78a7542ebe41727ecd86cd125d14708929930))
-
 
 ## v2.21.0-beta.1 (2026-03-25)
 
@@ -2843,7 +2742,6 @@
   ([#301](https://github.com/n24q02m/better-notion-mcp/pull/301),
   [`d87dbc1`](https://github.com/n24q02m/better-notion-mcp/commit/d87dbc1f04575c2fecd0c7e017417c564c69a334))
 
-
 ## v2.20.0 (2026-03-24)
 
 ### Bug Fixes
@@ -2863,14 +2761,12 @@
 - Resolve lint errors in full test files
   ([`09bac15`](https://github.com/n24q02m/better-notion-mcp/commit/09bac15ea3ff86fece8ba4868380a9e832987770))
 
-
 ## v2.20.0-beta.2 (2026-03-23)
 
 ### Features
 
 - Add full/real Notion API live tests with HTTP transport verification
   ([`fd52efa`](https://github.com/n24q02m/better-notion-mcp/commit/fd52efac71c9bf77dab608f516f7612f7b9d1ff6))
-
 
 ## v2.20.0-beta.1 (2026-03-23)
 
@@ -2943,7 +2839,6 @@
 - Add live MCP protocol tests
   ([`429b7af`](https://github.com/n24q02m/better-notion-mcp/commit/429b7af7c567eca7155e9db2e2a88f2f4b383f8c))
 
-
 ## v2.19.2 (2026-03-20)
 
 ### Bug Fixes
@@ -2982,14 +2877,12 @@
   ([#257](https://github.com/n24q02m/better-notion-mcp/pull/257),
   [`653ef13`](https://github.com/n24q02m/better-notion-mcp/commit/653ef1372bf143d52e1bb42078c81cddfa3bb450))
 
-
 ## v2.19.1 (2026-03-17)
 
 ### Bug Fixes
 
 - **security**: Set trust proxy to 2 instead of true
   ([`cec747b`](https://github.com/n24q02m/better-notion-mcp/commit/cec747b542006bf4d0dbf350d0ca6e7a7670328e))
-
 
 ## v2.19.0 (2026-03-17)
 
@@ -3086,9 +2979,7 @@
   ([#251](https://github.com/n24q02m/better-notion-mcp/pull/251),
   [`c7fba95`](https://github.com/n24q02m/better-notion-mcp/commit/c7fba95c2941647c78bb5841e6d7d740e0db087e))
 
-
 ## v2.18.0 (2026-03-12)
-
 
 ## v2.18.0-beta.2 (2026-03-12)
 
@@ -3096,7 +2987,6 @@
 
 - Correct workspace search filter format in test scripts
   ([`d659bad`](https://github.com/n24q02m/better-notion-mcp/commit/d659bad7d82a864366d89bae9f6fe1834ce8eb43))
-
 
 ## v2.18.0-beta.1 (2026-03-12)
 
@@ -3187,7 +3077,6 @@
   ([#209](https://github.com/n24q02m/better-notion-mcp/pull/209),
   [`771a880`](https://github.com/n24q02m/better-notion-mcp/commit/771a8808c9f7dc777e38af890a1062dd3c6e8eeb))
 
-
 ## v2.17.0 (2026-03-10)
 
 ### Bug Fixes
@@ -3261,7 +3150,6 @@
 - Increase coverage to 95%+ lines
   ([`6fe11d9`](https://github.com/n24q02m/better-notion-mcp/commit/6fe11d9a3da5167dd15292b1a9f20e03ffd6166e))
 
-
 ## v2.16.0 (2026-03-08)
 
 ### Bug Fixes
@@ -3291,7 +3179,6 @@
   ([#195](https://github.com/n24q02m/better-notion-mcp/pull/195),
   [`491f9fe`](https://github.com/n24q02m/better-notion-mcp/commit/491f9fe0c4336c8ee74b16f4330137e1df19a1d2))
 
-
 ## v2.15.3-beta.1 (2026-03-08)
 
 ### Bug Fixes
@@ -3304,14 +3191,12 @@
 - Remove Cloud Run deploy from CD pipeline
   ([`b2068ae`](https://github.com/n24q02m/better-notion-mcp/commit/b2068ae2fde66c9581d4ed531c0be724caeaf1c5))
 
-
 ## v2.15.2 (2026-03-08)
 
 ### Bug Fixes
 
 - **auth**: Stop logging raw error body from Notion token endpoint
   ([`17a9681`](https://github.com/n24q02m/better-notion-mcp/commit/17a96818620e65dde4c9ba92b62d32e1ddcb6bf0))
-
 
 ## v2.15.2-beta.1 (2026-03-08)
 
@@ -3325,7 +3210,6 @@
 - Format test file with biome
   ([`51f6073`](https://github.com/n24q02m/better-notion-mcp/commit/51f607386d3987378156f283f4686b471772d9e1))
 
-
 ## v2.15.1 (2026-03-08)
 
 ### Bug Fixes
@@ -3333,9 +3217,7 @@
 - **auth**: Replace grace period fallback with one-shot pending bind
   ([`1f274b7`](https://github.com/n24q02m/better-notion-mcp/commit/1f274b7418ebfd4caf17bca095fb2dae3d9be78d))
 
-
 ## v2.15.0 (2026-03-08)
-
 
 ## v2.15.0-beta.4 (2026-03-08)
 
@@ -3347,7 +3229,6 @@
 - **cd**: Use Cloud Run URL for healthcheck instead of custom domain
   ([`5fb8436`](https://github.com/n24q02m/better-notion-mcp/commit/5fb8436424581391d0e39e80aa86089a983b7ae1))
 
-
 ## v2.15.0-beta.3 (2026-03-08)
 
 ### Bug Fixes
@@ -3355,14 +3236,12 @@
 - Add JSON body parser for MCP POST endpoint
   ([`32e170a`](https://github.com/n24q02m/better-notion-mcp/commit/32e170a4cef9f14317cdb86e15b2ebfcb6260d82))
 
-
 ## v2.15.0-beta.2 (2026-03-07)
 
 ### Bug Fixes
 
 - **cd**: Update deploy-cloudrun action SHA
   ([`3dff1f7`](https://github.com/n24q02m/better-notion-mcp/commit/3dff1f73613cf99377599d98d7e871bfa0f0f39e))
-
 
 ## v2.15.0-beta.1 (2026-03-07)
 
@@ -3381,9 +3260,7 @@
 - Extract server factory and stdio transport (Phase 1)
   ([`887f1f4`](https://github.com/n24q02m/better-notion-mcp/commit/887f1f4b26231d3a2e5ff5112d2fdbd9bcbd3e15))
 
-
 ## v2.14.0 (2026-03-07)
-
 
 ## v2.14.0-beta.1 (2026-03-07)
 
@@ -3392,7 +3269,6 @@
 - Smart ID resolution and improved error recovery (Phase 0.5)
   ([`490bca4`](https://github.com/n24q02m/better-notion-mcp/commit/490bca49ce6f139e9a939c7b28cc828a1fbc75fc))
 
-
 ## v2.13.1 (2026-03-07)
 
 ### Bug Fixes
@@ -3400,9 +3276,7 @@
 - Correct callout emoji encoding and add recursive children fetch
   ([`d17abbe`](https://github.com/n24q02m/better-notion-mcp/commit/d17abbe29ddeb511b6d450136e785b41f5db8390))
 
-
 ## v2.13.0 (2026-03-07)
-
 
 ## v2.13.0-beta.1 (2026-03-07)
 
@@ -3505,7 +3379,6 @@
   ([#190](https://github.com/n24q02m/better-notion-mcp/pull/190),
   [`a51340f`](https://github.com/n24q02m/better-notion-mcp/commit/a51340fa11c038a8ced189ddf870f6c441bb7d16))
 
-
 ## v2.12.7 (2026-03-06)
 
 ### Bug Fixes
@@ -3513,14 +3386,12 @@
 - Add Docker LABEL and re-add OCI package for MCP Registry
   ([`4f91701`](https://github.com/n24q02m/better-notion-mcp/commit/4f917017b61dd45f67459af05c197427f5c4f04c))
 
-
 ## v2.12.6 (2026-03-06)
 
 ### Bug Fixes
 
 - Remove OCI package from server.json until Docker LABEL annotation added
   ([`8b931fd`](https://github.com/n24q02m/better-notion-mcp/commit/8b931fd0a3af329129be4e7796662037ebc6c787))
-
 
 ## v2.12.5 (2026-03-06)
 
@@ -3534,14 +3405,12 @@
 - Skip Qodo AI review for bot-created PRs
   ([`bde0e54`](https://github.com/n24q02m/better-notion-mcp/commit/bde0e54c6a173e690eada5157ff90f5b791298ce))
 
-
 ## v2.12.4 (2026-03-06)
 
 ### Bug Fixes
 
 - Handle OCI package version in MCP Registry publish
   ([`180ce28`](https://github.com/n24q02m/better-notion-mcp/commit/180ce28362ceb73bf7aeee14e21200137851cbbc))
-
 
 ## v2.12.3 (2026-03-06)
 
@@ -3550,14 +3419,12 @@
 - Update server.json version dynamically in MCP Registry publish job
   ([`6e7d0b2`](https://github.com/n24q02m/better-notion-mcp/commit/6e7d0b207f1001016bada4100b72135efa03dc0b))
 
-
 ## v2.12.2 (2026-03-06)
 
 ### Bug Fixes
 
 - Add mcpName field for MCP Registry ownership validation
   ([`ee2e5a7`](https://github.com/n24q02m/better-notion-mcp/commit/ee2e5a7b6d0d1ab9651cc69b7c47b4ffbaa61ca1))
-
 
 ## v2.12.1 (2026-03-06)
 
@@ -3579,7 +3446,6 @@
 
 - Update compatible-with badges - add Antigravity, Gemini CLI, Codex, OpenCode
   ([`24824d5`](https://github.com/n24q02m/better-notion-mcp/commit/24824d5b1c735e1d87c2710244450cf26dafbfb6))
-
 
 ## v2.12.0 (2026-03-06)
 
@@ -3608,7 +3474,6 @@
 
 - Add Phase 5 live MCP protocol test
   ([`7ce2e00`](https://github.com/n24q02m/better-notion-mcp/commit/7ce2e00ada4a3722552a8291fb045e815b689c5b))
-
 
 ## v2.11.0 (2026-03-03)
 
@@ -3707,14 +3572,12 @@
   ([#154](https://github.com/n24q02m/better-notion-mcp/pull/154),
   [`a9060fe`](https://github.com/n24q02m/better-notion-mcp/commit/a9060fea780f64af584144cdecb0424dad1130eb))
 
-
 ## v2.10.1 (2026-02-28)
 
 ### Bug Fixes
 
 - **docker**: Remove unsupported --production flag from bun install
   ([`4ce090e`](https://github.com/n24q02m/better-notion-mcp/commit/4ce090ec16ecb74be67f359f1b02f0f5339149d8))
-
 
 ## v2.10.0 (2026-02-28)
 
@@ -3750,7 +3613,6 @@
 
 - **ci**: Migrate to Qodo Merge AI Review (Gemini 3 Flash)
   ([`c20dd76`](https://github.com/n24q02m/better-notion-mcp/commit/c20dd76b848e6b94b34995f83edf6474581f3a9e))
-
 
 ## v2.9.0 (2026-02-26)
 
@@ -3802,7 +3664,6 @@
 - Add unit tests for users and workspace tools
   ([`8be28fa`](https://github.com/n24q02m/better-notion-mcp/commit/8be28fad8d3b014dcf70679a952794081779b334))
 
-
 ## v2.8.0 (2026-02-25)
 
 ### Bug Fixes
@@ -3817,7 +3678,6 @@
 
 - Add data encapsulation against indirect prompt injection (XPIA)
   ([`c229386`](https://github.com/n24q02m/better-notion-mcp/commit/c22938617c72182df83726dc530538d340222df8))
-
 
 ## v2.7.0 (2026-02-20)
 
@@ -3861,14 +3721,12 @@
   ([#114](https://github.com/n24q02m/better-notion-mcp/pull/114),
   [`d3b551a`](https://github.com/n24q02m/better-notion-mcp/commit/d3b551aa33775facf59eb538a2c24a45bddc541a))
 
-
 ## v2.6.3 (2026-02-18)
 
 ### Bug Fixes
 
 - Fix workspace filter enum, remove dead code, dynamic version
   ([`da14ca9`](https://github.com/n24q02m/better-notion-mcp/commit/da14ca91737ebe23598caedfbe8aeceb78aaa080))
-
 
 ## v2.6.2 (2026-02-18)
 
@@ -3894,7 +3752,6 @@
 - Update docker-compose with notion token env var
   ([`867726c`](https://github.com/n24q02m/better-notion-mcp/commit/867726ca12edf14aa979a95a694e32a8b5c1d5b3))
 
-
 ## v2.6.1 (2026-02-17)
 
 ### Bug Fixes
@@ -3902,9 +3759,7 @@
 - Schema-aware property conversion and better error details
   ([`cf81f35`](https://github.com/n24q02m/better-notion-mcp/commit/cf81f35badf078b2db13be53f553cf689ade98d7))
 
-
 ## v2.6.0 (2026-02-17)
-
 
 ## v2.6.0-beta.1 (2026-02-17)
 
@@ -3918,14 +3773,12 @@
 - **tools**: Add MCP tool annotations to all 8 tools
   ([`8c6514d`](https://github.com/n24q02m/better-notion-mcp/commit/8c6514d38293756955103577aced471fa91e074b))
 
-
 ## v2.5.6 (2026-02-14)
 
 ### Bug Fixes
 
 - **cd**: Add config_file for PSR + checkout for DockerHub description
   ([`b6dbc45`](https://github.com/n24q02m/better-notion-mcp/commit/b6dbc45446481adf5628998442b8c8b67f9ccbbf))
-
 
 ## v2.5.5 (2026-02-14)
 
@@ -3934,14 +3787,12 @@
 - **cd**: Remove build_command from PSR config (not available in PSR container)
   ([`450248a`](https://github.com/n24q02m/better-notion-mcp/commit/450248a1ec5e84987743572c69ed31cdcde9be69))
 
-
 ## v2.5.4 (2026-02-14)
 
 ### Chores
 
 - Migrate from release-please to python-semantic-release v10
   ([`0d17367`](https://github.com/n24q02m/better-notion-mcp/commit/0d173672aa859ce4a0a065d7129a8e00c6e76593))
-
 
 ## v2.5.4-beta.1 (2026-02-14)
 
@@ -3978,7 +3829,6 @@
 - Format release-please manifest files for Biome
   ([`516627c`](https://github.com/n24q02m/better-notion-mcp/commit/516627cb82f8a0e78ebdb93a37090ae22b718e88))
 
-
 ## v2.5.3 (2026-02-13)
 
 ### Bug Fixes
@@ -4002,7 +3852,6 @@
 - Add CODEOWNERS
   ([`8cd87ee`](https://github.com/n24q02m/better-notion-mcp/commit/8cd87eec07589ee643e34a1561dca6270ae14368))
 
-
 ## v2.5.2 (2026-02-12)
 
 ### Bug Fixes
@@ -4018,7 +3867,6 @@
 - **main**: Release 2.5.2 ([#51](https://github.com/n24q02m/better-notion-mcp/pull/51),
   [`1f323dd`](https://github.com/n24q02m/better-notion-mcp/commit/1f323dd2eee6a240da2eeb841e17097d26296eaa))
 
-
 ## v2.5.1 (2026-02-10)
 
 ### Bug Fixes
@@ -4030,7 +3878,6 @@
 
 - **main**: Release 2.5.1 ([#47](https://github.com/n24q02m/better-notion-mcp/pull/47),
   [`1ca1402`](https://github.com/n24q02m/better-notion-mcp/commit/1ca1402d588844202801955d3ab01c320436a12b))
-
 
 ## v2.5.0 (2026-02-09)
 
@@ -4055,7 +3902,6 @@
 
 - Promote dev to main (v2.4.1-beta) ([#44](https://github.com/n24q02m/better-notion-mcp/pull/44),
   [`a4b7d96`](https://github.com/n24q02m/better-notion-mcp/commit/a4b7d96e5fc74bb38dd192046b34427ba19ff7e1))
-
 
 ## v2.4.0 (2026-02-09)
 
@@ -4299,14 +4145,12 @@
   ([#17](https://github.com/n24q02m/better-notion-mcp/pull/17),
   [`c5abe6a`](https://github.com/n24q02m/better-notion-mcp/commit/c5abe6a420171501ec232c44589dd4aac1816456))
 
-
 ## v2.3.12 (2026-01-12)
 
 ### Chores
 
 - **release**: 2.3.12 [skip ci]
   ([`feb49f2`](https://github.com/n24q02m/better-notion-mcp/commit/feb49f2b1d452603b28c8f7a01feffb817492263))
-
 
 ## v2.3.7-beta.7 (2026-01-12)
 
@@ -4325,14 +4169,12 @@
 - Update README to reflect 8 composite tools, simplify comparison, and enhance clarity.
   ([`74f47d4`](https://github.com/n24q02m/better-notion-mcp/commit/74f47d463d555c34a67736ca7479d988dc508062))
 
-
 ## v2.3.7-beta.6 (2026-01-05)
 
 ### Chores
 
 - **release**: 2.3.7-beta.6 [skip ci]
   ([`4eefd55`](https://github.com/n24q02m/better-notion-mcp/commit/4eefd5511ca2709e4fe1fc3a4d2d7b786ca52f40))
-
 
 ## v2.3.11 (2026-01-05)
 
@@ -4345,7 +4187,6 @@
 
 - **release**: 2.3.11 [skip ci]
   ([`82e2c9d`](https://github.com/n24q02m/better-notion-mcp/commit/82e2c9dc954e44c08dd5b22da5ebd1c19aa974bf))
-
 
 ## v2.3.7-beta.5 (2026-01-05)
 
@@ -4365,7 +4206,6 @@
   creation, remove duplicates
   ([`0fd1486`](https://github.com/n24q02m/better-notion-mcp/commit/0fd1486ac677087dc9cccf0076781d08910ce453))
 
-
 ## v2.3.10 (2026-01-04)
 
 ### Bug Fixes
@@ -4377,7 +4217,6 @@
 
 - **release**: 2.3.10 [skip ci]
   ([`2fc0393`](https://github.com/n24q02m/better-notion-mcp/commit/2fc039396e8c533ad91e7a3cde9bbb940d95cb65))
-
 
 ## v2.3.9 (2026-01-04)
 
@@ -4391,7 +4230,6 @@
 - Trigger CI rebuild
   ([`6ab7461`](https://github.com/n24q02m/better-notion-mcp/commit/6ab74611596a6fe770593a5cd4e1837c5bd88ac0))
 
-
 ## v2.3.7-beta.4 (2026-01-04)
 
 ### Bug Fixes
@@ -4403,7 +4241,6 @@
 
 - **release**: 2.3.7-beta.4 [skip ci]
   ([`d7d2e03`](https://github.com/n24q02m/better-notion-mcp/commit/d7d2e03a4f18e0dca05140ff738293900fe83919))
-
 
 ## v2.3.7-beta.3 (2026-01-04)
 
@@ -4417,14 +4254,12 @@
 - **release**: 2.3.7-beta.3 [skip ci]
   ([`f8eec23`](https://github.com/n24q02m/better-notion-mcp/commit/f8eec23add1f7f0ed580a0da8a0ac768d5d9341b))
 
-
 ## v2.3.7-beta.2 (2026-01-04)
 
 ### Chores
 
 - **release**: 2.3.7-beta.2 [skip ci]
   ([`d132c12`](https://github.com/n24q02m/better-notion-mcp/commit/d132c125b77f40642c5d1e02b2ff2f61833793a7))
-
 
 ## v2.3.8 (2026-01-04)
 
@@ -4438,14 +4273,12 @@
 - **release**: 2.3.8 [skip ci]
   ([`e4f276c`](https://github.com/n24q02m/better-notion-mcp/commit/e4f276c115815ac8fcfe80d239154a263357349a))
 
-
 ## v2.3.7-beta.1 (2026-01-04)
 
 ### Chores
 
 - **release**: 2.3.7-beta.1 [skip ci]
   ([`9d58aee`](https://github.com/n24q02m/better-notion-mcp/commit/9d58aee9d6bd231eae5c9b9a35717fa602b528aa))
-
 
 ## v2.3.7 (2026-01-04)
 
@@ -4459,7 +4292,6 @@
 - **release**: 2.3.7 [skip ci]
   ([`4e275f4`](https://github.com/n24q02m/better-notion-mcp/commit/4e275f4497d7c287c26108bf062d1f2fa8c45587))
 
-
 ## v2.3.6 (2026-01-04)
 
 ### Chores
@@ -4467,14 +4299,12 @@
 - **release**: 2.3.6 [skip ci]
   ([`1323448`](https://github.com/n24q02m/better-notion-mcp/commit/13234489d87ca29bcdd1e13f983df7ffcb5f102f))
 
-
 ## v2.3.6-beta.1 (2026-01-04)
 
 ### Chores
 
 - **release**: 2.3.6-beta.1 [skip ci]
   ([`c9adeec`](https://github.com/n24q02m/better-notion-mcp/commit/c9adeec93e191b30218b0b6c2491fa6c18c92ff0))
-
 
 ## v2.3.5 (2026-01-04)
 
@@ -4491,14 +4321,12 @@
 - **release**: 2.3.5 [skip ci]
   ([`8ee4840`](https://github.com/n24q02m/better-notion-mcp/commit/8ee4840194faf141a0871862f4c9b68973b15b66))
 
-
 ## v2.3.4 (2026-01-04)
 
 ### Chores
 
 - **release**: 2.3.4 [skip ci]
   ([`1cf5c48`](https://github.com/n24q02m/better-notion-mcp/commit/1cf5c48147738e30dff55de29a5cd07020992dcf))
-
 
 ## v2.3.3 (2026-01-04)
 
@@ -4511,7 +4339,6 @@
 
 - **release**: 2.3.3 [skip ci]
   ([`6281871`](https://github.com/n24q02m/better-notion-mcp/commit/6281871ba42e50da03c844f0d3941a3cc4c6c091))
-
 
 ## v2.3.2 (2026-01-04)
 
@@ -4528,14 +4355,12 @@
 - **release**: 2.3.2 [skip ci]
   ([`eda0631`](https://github.com/n24q02m/better-notion-mcp/commit/eda063134097a4bba0a3af350324d0e8219f8c68))
 
-
 ## v2.3.1 (2026-01-04)
 
 ### Chores
 
 - **release**: 2.3.1 [skip ci]
   ([`9f64991`](https://github.com/n24q02m/better-notion-mcp/commit/9f64991d6cd63cf783a00a0f350cc8831c4a8505))
-
 
 ## v2.3.1-beta.1 (2026-01-04)
 
@@ -4553,7 +4378,6 @@
 
 - Fix biome format issues on main
   ([`5753087`](https://github.com/n24q02m/better-notion-mcp/commit/5753087c0bf59c2b89f1ac11b9b04723aa163d8b))
-
 
 ## v2.3.0 (2026-01-04)
 
@@ -4589,7 +4413,6 @@
 - **release**: Disable npm publish to create new stable version
   ([`375c244`](https://github.com/n24q02m/better-notion-mcp/commit/375c244f716600d7b9ad33bd056bc3f19dbea549))
 
-
 ## v2.2.0 (2026-01-04)
 
 ### Bug Fixes
@@ -4610,7 +4433,6 @@
 
 - **release**: 2.2.0 [skip ci]
   ([`171141b`](https://github.com/n24q02m/better-notion-mcp/commit/171141bd0cbcd886ef70b43df834d3fa6ef372a2))
-
 
 ## v2.1.0-beta.7 (2026-01-04)
 
@@ -4691,7 +4513,6 @@
 - **cd**: Add shared scripts for promote workflow
   ([`a36b4c9`](https://github.com/n24q02m/better-notion-mcp/commit/a36b4c9feac8f7a2450bae4d5151860eb7b122c1))
 
-
 ## v2.1.0-beta.5 (2025-12-31)
 
 ### Bug Fixes
@@ -4703,7 +4524,6 @@
 
 - **release**: 2.1.0-beta.5 [skip ci]
   ([`8b92e34`](https://github.com/n24q02m/better-notion-mcp/commit/8b92e349a75d4abd23671b9cf7dd721b52a10969))
-
 
 ## v2.1.0-beta.4 (2025-12-31)
 
@@ -4717,7 +4537,6 @@
 - **release**: 2.1.0-beta.4 [skip ci]
   ([`0135f42`](https://github.com/n24q02m/better-notion-mcp/commit/0135f42d9acd6aa5ab66fbb18d8b3a5956f8bda3))
 
-
 ## v2.1.0-beta.3 (2025-12-31)
 
 ### Chores
@@ -4730,7 +4549,6 @@
 - Use native ARM64 runner for multi-arch Docker build
   ([`49b440a`](https://github.com/n24q02m/better-notion-mcp/commit/49b440a8a76f88206e9c59aab12b83fb514e9a38))
 
-
 ## v2.1.0 (2025-12-31)
 
 ### Chores
@@ -4738,14 +4556,12 @@
 - **release**: 2.1.0 [skip ci]
   ([`c44ab92`](https://github.com/n24q02m/better-notion-mcp/commit/c44ab92360bcdf708de253bcefdc8f2d1c8e03c7))
 
-
 ## v2.1.0-beta.2 (2025-12-30)
 
 ### Chores
 
 - **release**: 2.1.0-beta.2 [skip ci]
   ([`b9153c5`](https://github.com/n24q02m/better-notion-mcp/commit/b9153c5cde926b7176878a0ab49ef064a7c2a428))
-
 
 ## v2.1.0-beta.1 (2025-12-30)
 
@@ -4764,7 +4580,6 @@
 - Add CI and CD workflows for automated deployment and testing
   ([`57ed3ac`](https://github.com/n24q02m/better-notion-mcp/commit/57ed3ac8a4dea8482249aee7c5b56fb232f09b02))
 
-
 ## v2.0.1 (2025-12-29)
 
 ### Bug Fixes
@@ -4776,7 +4591,6 @@
 
 - **release**: 2.0.1 [skip ci]
   ([`75869d4`](https://github.com/n24q02m/better-notion-mcp/commit/75869d41636bb62b997005e4e37bfe0b3e56d67c))
-
 
 ## v2.0.0 (2025-12-26)
 
@@ -4795,7 +4609,6 @@
 - Tool descriptions are now compressed by default. Use 'help' tool or MCP resources to access full
   documentation.
 
-
 ## v1.1.0 (2025-12-26)
 
 ### Chores
@@ -4807,7 +4620,6 @@
 
 - Streamline project setup by introducing a `mise run setup` task and updating documentation
   ([`4aa3166`](https://github.com/n24q02m/better-notion-mcp/commit/4aa31660bd2896330c86a6b81e8d21e38c65dc8b))
-
 
 ## v1.0.19 (2025-12-11)
 
@@ -4821,7 +4633,6 @@
 - **release**: 1.0.19 [skip ci]
   ([`7090e60`](https://github.com/n24q02m/better-notion-mcp/commit/7090e60708ac3674aa9a51d60d4ad58fabbed33e))
 
-
 ## v1.0.18 (2025-12-10)
 
 ### Bug Fixes
@@ -4833,7 +4644,6 @@
 
 - **release**: 1.0.18 [skip ci]
   ([`f41d386`](https://github.com/n24q02m/better-notion-mcp/commit/f41d3867526b1dc0ef644a27c713d3e076ec2fe9))
-
 
 ## v1.0.17 (2025-12-10)
 
@@ -4851,7 +4661,6 @@
 
 - Add platforms configuration for QEMU setup in release workflow
   ([`2f43b27`](https://github.com/n24q02m/better-notion-mcp/commit/2f43b27c003ea9ca7e1383ededab0a4d98ba65e6))
-
 
 ## v1.0.16 (2025-12-10)
 
@@ -4904,7 +4713,6 @@
 - Update imports to use 'type' for type-only imports and improve code consistency
   ([`a77443a`](https://github.com/n24q02m/better-notion-mcp/commit/a77443ac7735d3e6870f0c052aac887dda5bd5e5))
 
-
 ## v1.0.15 (2025-12-09)
 
 ### Bug Fixes
@@ -4923,7 +4731,6 @@
 - **release**: 1.0.15 [skip ci]
   ([`e7aafc1`](https://github.com/n24q02m/better-notion-mcp/commit/e7aafc15c7bd60f442be9bb362d63f52bbe7ce56))
 
-
 ## v1.0.14 (2025-12-06)
 
 ### Bug Fixes
@@ -4939,7 +4746,6 @@
 - **release**: 1.0.14 [skip ci]
   ([`4599aef`](https://github.com/n24q02m/better-notion-mcp/commit/4599aef73e7913e448dbd47fe0d2ae533335970b))
 
-
 ## v1.0.13 (2025-12-06)
 
 ### Bug Fixes
@@ -4951,7 +4757,6 @@
 
 - **release**: 1.0.13 [skip ci]
   ([`db66e97`](https://github.com/n24q02m/better-notion-mcp/commit/db66e972b9d8a6ae345043dff008fb8833f8982c))
-
 
 ## v1.0.12 (2025-12-06)
 
@@ -4965,7 +4770,6 @@
 - **release**: 1.0.12 [skip ci]
   ([`932866f`](https://github.com/n24q02m/better-notion-mcp/commit/932866fd90642216951c964597765fde9dc5dc10))
 
-
 ## v1.0.11 (2025-12-06)
 
 ### Bug Fixes
@@ -4978,14 +4782,12 @@
 - **release**: 1.0.11 [skip ci]
   ([`d4efbeb`](https://github.com/n24q02m/better-notion-mcp/commit/d4efbeb764982fd5f2d200e72fd3c1d38b8b172c))
 
-
 ## v1.0.10 (2025-12-06)
 
 ### Chores
 
 - **release**: 1.0.10 [skip ci]
   ([`3fd8ef0`](https://github.com/n24q02m/better-notion-mcp/commit/3fd8ef000c5c2c7a62c1e27c02de56d1daa38a6d))
-
 
 ## v1.0.0 (2025-12-06)
 
@@ -4998,7 +4800,6 @@
 
 - **release**: 1.0.0 [skip ci]
   ([`d292830`](https://github.com/n24q02m/better-notion-mcp/commit/d292830ae990215f8e09fda0b6d3837cc8ec54fe))
-
 
 ## v1.0.9 (2025-12-06)
 
