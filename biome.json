@@ -29,6 +29,7 @@
       "!**/*.log",
       "!**/.env",
       "!package.json",
+      "!CHANGELOG.md",
       "!.release-please-manifest*.json"
     ]
   },
