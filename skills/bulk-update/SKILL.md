@@ -1,4 +1,5 @@
 ---
+
 name: bulk-update
 description: Update properties or content across many pages in a Notion database with dry-run and error recovery
 argument-hint: "[database name] [what to change]"
@@ -35,6 +36,7 @@ Before making any changes, ALWAYS show the user what will change:
 3. Ask for explicit confirmation before proceeding
 
 Example dry-run output:
+
 ```
 Found 23 pages matching filter. Changes:
 
@@ -56,6 +58,7 @@ After user confirms:
    - `skipped`: pages already in target state
 
 2. **Update each page**:
+
    ```
    pages(action="update", page_id="<id>", properties={
      "Status": { "select": { "name": "Archived" } }
@@ -76,6 +79,7 @@ After user confirms:
 ## Property Value Format
 
 Remember the nested format (same as organize-database skill):
+
 ```jsonc
 // Properties must use typed nested objects
 { "Status": { "select": { "name": "Done" } } }

@@ -23,27 +23,27 @@ mcp-name: io.github.n24q02m/notion
 <details>
   <summary><strong>Sister projects from n24q02m</strong> (click to expand)</summary>
 
-| Project | Tagline | Tag |
-|---|---|---|
-| [agent-chat-plugin](https://github.com/n24q02m/agent-chat-plugin) | Peer AI agents chat in a shared folder — no human relay, no orchestrator, wor... | Tooling |
-| [better-code-review-graph](https://github.com/n24q02m/better-code-review-graph) | Knowledge graph for token-efficient code reviews -- semantic search and call-... | MCP |
-| [better-drive](https://github.com/n24q02m/better-drive) | 2-way Google Drive sync with .driveignore filter — rclone engine, Windows tray | Tooling |
-| [better-email-mcp](https://github.com/n24q02m/better-email-mcp) | IMAP/SMTP email for AI agents -- read, send, organize folders, and manage att... | MCP |
-| [better-godot-mcp](https://github.com/n24q02m/better-godot-mcp) | Composite MCP server for Godot Engine -- 17 composite tools for AI-assisted g... | MCP |
-| [notion](https://github.com/n24q02m/notion) | Markdown-first Notion for AI agents -- pages, databases, blocks, and comments... | MCP |
-| [better-semantic-release](https://github.com/n24q02m/better-semantic-release) | Drop-in python-semantic-release fork with built-in release-safety guards (orp... | Tooling |
-| [better-telegram-mcp](https://github.com/n24q02m/better-telegram-mcp) | Telegram for AI agents -- messages, chats, media, and contacts across both bo... | MCP |
-| [better-workspace-mcp](https://github.com/n24q02m/better-workspace-mcp) | Google Workspace MCP server (Docs/Drive/Calendar/Gmail/Sheets/Slides/Tasks/Ch... | MCP |
-| [claude-plugins](https://github.com/n24q02m/claude-plugins) | Claude Code plugin marketplace for the n24q02m MCP servers -- install web sea... | Marketplace |
-| [imagine-mcp](https://github.com/n24q02m/imagine-mcp) | Image and video understanding + generation for AI agents -- across Gemini, Op... | MCP |
-| [jules-task-archiver](https://github.com/n24q02m/jules-task-archiver) | Chrome Extension for bulk operations on Jules tasks via batchexecute API -- a... | Tooling |
-| [mcp-core](https://github.com/n24q02m/mcp-core) | Shared foundation for building MCP servers -- Streamable HTTP transport, OAut... | MCP |
-| [mnemo-mcp](https://github.com/n24q02m/mnemo-mcp) | Persistent AI memory with hybrid search and embedded sync. Open, free, unlimi... | MCP |
-| [qwen3-embed](https://github.com/n24q02m/qwen3-embed) | Lightweight Qwen3 text embedding and reranking via ONNX Runtime and GGUF | Library |
-| [skret](https://github.com/n24q02m/skret) | Secrets without the server. | CLI |
-| [tacet](https://github.com/n24q02m/tacet) | A self-distilling neuro-symbolic cascade that amortises LLM cost across knowl... | Tooling |
-| [web-core](https://github.com/n24q02m/web-core) | Shared web infrastructure package for search, scraping, HTTP security, and st... | Library |
-| [wet-mcp](https://github.com/n24q02m/wet-mcp) | Open-source MCP server for AI agents: web search, content extraction, and lib... | MCP |
+| Project                                                                         | Tagline                                                                          | Tag         |
+| ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ----------- |
+| [agent-chat-plugin](https://github.com/n24q02m/agent-chat-plugin)               | Peer AI agents chat in a shared folder — no human relay, no orchestrator, wor... | Tooling     |
+| [better-code-review-graph](https://github.com/n24q02m/better-code-review-graph) | Knowledge graph for token-efficient code reviews -- semantic search and call-... | MCP         |
+| [better-drive](https://github.com/n24q02m/better-drive)                         | 2-way Google Drive sync with .driveignore filter — rclone engine, Windows tray   | Tooling     |
+| [better-email-mcp](https://github.com/n24q02m/better-email-mcp)                 | IMAP/SMTP email for AI agents -- read, send, organize folders, and manage att... | MCP         |
+| [better-godot-mcp](https://github.com/n24q02m/better-godot-mcp)                 | Composite MCP server for Godot Engine -- 17 composite tools for AI-assisted g... | MCP         |
+| [notion](https://github.com/n24q02m/notion)                                     | Markdown-first Notion for AI agents -- pages, databases, blocks, and comments... | MCP         |
+| [better-semantic-release](https://github.com/n24q02m/better-semantic-release)   | Drop-in python-semantic-release fork with built-in release-safety guards (orp... | Tooling     |
+| [better-telegram-mcp](https://github.com/n24q02m/better-telegram-mcp)           | Telegram for AI agents -- messages, chats, media, and contacts across both bo... | MCP         |
+| [better-workspace-mcp](https://github.com/n24q02m/better-workspace-mcp)         | Google Workspace MCP server (Docs/Drive/Calendar/Gmail/Sheets/Slides/Tasks/Ch... | MCP         |
+| [claude-plugins](https://github.com/n24q02m/claude-plugins)                     | Claude Code plugin marketplace for the n24q02m MCP servers -- install web sea... | Marketplace |
+| [imagine-mcp](https://github.com/n24q02m/imagine-mcp)                           | Image and video understanding + generation for AI agents -- across Gemini, Op... | MCP         |
+| [jules-task-archiver](https://github.com/n24q02m/jules-task-archiver)           | Chrome Extension for bulk operations on Jules tasks via batchexecute API -- a... | Tooling     |
+| [mcp-core](https://github.com/n24q02m/mcp-core)                                 | Shared foundation for building MCP servers -- Streamable HTTP transport, OAut... | MCP         |
+| [mnemo-mcp](https://github.com/n24q02m/mnemo-mcp)                               | Persistent AI memory with hybrid search and embedded sync. Open, free, unlimi... | MCP         |
+| [qwen3-embed](https://github.com/n24q02m/qwen3-embed)                           | Lightweight Qwen3 text embedding and reranking via ONNX Runtime and GGUF         | Library     |
+| [skret](https://github.com/n24q02m/skret)                                       | Secrets without the server.                                                      | CLI         |
+| [tacet](https://github.com/n24q02m/tacet)                                       | A self-distilling neuro-symbolic cascade that amortises LLM cost across knowl... | Tooling     |
+| [web-core](https://github.com/n24q02m/web-core)                                 | Shared web infrastructure package for search, scraping, HTTP security, and st... | Library     |
+| [wet-mcp](https://github.com/n24q02m/wet-mcp)                                   | Open-source MCP server for AI agents: web search, content extraction, and lib... | MCP         |
 
 </details>
 <!-- END: AUTO-GENERATED-CROSS-PROMO -->
@@ -64,8 +64,6 @@ mcp-name: io.github.n24q02m/notion
 - [Build from Source](#build-from-source)
 - [Trust Model](#trust-model)
 - [License](#license)
-
-
 
 <a href="https://glama.ai/mcp/servers/n24q02m/better-notion-mcp">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/n24q02m/better-notion-mcp/badge" alt="Better Notion MCP server" />
@@ -111,12 +109,12 @@ docker run --rm -i -e NOTION_TOKEN=ntn_your_token_here n24q02m/notion:latest
 
 ### Install matrix
 
-| Client | Install |
-|:-------|:--------|
-| Claude Code | `/plugin marketplace add n24q02m/claude-plugins` + `/plugin install notion@n24q02m-plugins` (stdio; prompts for `NOTION_TOKEN`), or an `mcpServers` entry in `.mcp.json` / client settings |
-| Codex CLI | `[mcp_servers.notion]` block in `~/.codex/config.toml` (stdio `command`/`args` or HTTP `type`/`url`) |
-| OpenCode | `mcpServers` block in `opencode.json` |
-| Cursor / Windsurf / Gemini CLI / any MCP client | `mcpServers` JSON in the client's config — same shape as the example above |
+| Client                                          | Install                                                                                                                                                                                    |
+| :---------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Claude Code                                     | `/plugin marketplace add n24q02m/claude-plugins` + `/plugin install notion@n24q02m-plugins` (stdio; prompts for `NOTION_TOKEN`), or an `mcpServers` entry in `.mcp.json` / client settings |
+| Codex CLI                                       | `[mcp_servers.notion]` block in `~/.codex/config.toml` (stdio `command`/`args` or HTTP `type`/`url`)                                                                                       |
+| OpenCode                                        | `mcpServers` block in `opencode.json`                                                                                                                                                      |
+| Cursor / Windsurf / Gemini CLI / any MCP client | `mcpServers` JSON in the client's config — same shape as the example above                                                                                                                 |
 
 Full per-client walkthroughs: [docs.n24q02m.com/servers/notion/setup/](https://docs.n24q02m.com/servers/notion/setup/).
 See the [Documentation](#documentation) section for per-client setup (Claude Code, Codex, Gemini CLI, Cursor, Windsurf) and HTTP mode.
@@ -133,10 +131,10 @@ NOTION_TOKEN=ntn_your_token_here npx --yes @n24q02m/notion@latest
 npx --yes @n24q02m/notion@latest --http
 ```
 
-| Argument / env | Effect |
-|:---------------|:-------|
-| _(none)_ | stdio transport (default); requires `NOTION_TOKEN` |
-| `--http` | HTTP transport; auth chosen by `MCP_AUTH_MODE` (`multi` default, `token`, or `no-auth`) |
+| Argument / env | Effect                                                                                  |
+| :------------- | :-------------------------------------------------------------------------------------- |
+| _(none)_       | stdio transport (default); requires `NOTION_TOKEN`                                      |
+| `--http`       | HTTP transport; auth chosen by `MCP_AUTH_MODE` (`multi` default, `token`, or `no-auth`) |
 
 ### Tool commands
 
@@ -154,18 +152,18 @@ errors exit 2. `content_convert`, `help`, and `config` need no token; every othe
 tool resolves the token exactly as the server does (`NOTION_TOKEN`, else the
 token stored by `notion auth`).
 
-| Tool | Command | Example |
-|:-----|:--------|:--------|
-| `pages` | `notion pages <action> [flags]` | `notion pages get --page-id <page-id> --json` |
-| `databases` | `notion databases <action> [flags]` | `notion databases query --database-id <db-id> --limit 5` |
-| `blocks` | `notion blocks <action> --block-id <id>` | `notion blocks append --block-id <block-id> --content '## Update'` |
-| `users` | `notion users <action>` | `notion users me` |
-| `workspace` | `notion workspace <action> [flags]` | `notion workspace search --query roadmap` |
-| `comments` | `notion comments <action> [flags]` | `notion comments list --page-id <page-id>` |
+| Tool              | Command                                                   | Example                                                                     |
+| :---------------- | :-------------------------------------------------------- | :-------------------------------------------------------------------------- |
+| `pages`           | `notion pages <action> [flags]`                           | `notion pages get --page-id <page-id> --json`                               |
+| `databases`       | `notion databases <action> [flags]`                       | `notion databases query --database-id <db-id> --limit 5`                    |
+| `blocks`          | `notion blocks <action> --block-id <id>`                  | `notion blocks append --block-id <block-id> --content '## Update'`          |
+| `users`           | `notion users <action>`                                   | `notion users me`                                                           |
+| `workspace`       | `notion workspace <action> [flags]`                       | `notion workspace search --query roadmap`                                   |
+| `comments`        | `notion comments <action> [flags]`                        | `notion comments list --page-id <page-id>`                                  |
 | `content_convert` | `notion content_convert --direction <d> --content <text>` | `notion content_convert --direction markdown-to-blocks --content '# Title'` |
-| `file_uploads` | `notion file_uploads <action> [flags]` | `notion file_uploads list --limit 10` |
-| `help` | `notion help <tool>` | `notion help databases` |
-| `config` | `notion config-tool <action>` | `notion config-tool status` |
+| `file_uploads`    | `notion file_uploads <action> [flags]`                    | `notion file_uploads list --limit 10`                                       |
+| `help`            | `notion help <tool>`                                      | `notion help databases`                                                     |
+| `config`          | `notion config-tool <action>`                             | `notion config-tool status`                                                 |
 
 ```bash
 # Read a page as JSON without an MCP client
@@ -247,45 +245,45 @@ Full docs at **[docs.n24q02m.com/servers/notion/](https://docs.n24q02m.com/serve
 
 Eight composite Notion tools (39 actions) plus two infrastructure tools (`config`, `help`):
 
-| Tool | Actions | Description |
-|:-----|:--------|:------------|
-| `pages` | `create`, `get`, `get_property`, `update`, `move`, `archive`, `restore`, `duplicate` | Create, read, update, and organize pages |
-| `databases` | `create`, `get`, `query`, `create_page`, `update_page`, `delete_page`, `create_data_source`, `update_data_source`, `update_database`, `list_templates` | Database CRUD and page management within databases |
-| `blocks` | `get`, `children`, `append`, `update`, `delete` | Read and manipulate block content |
-| `users` | `list`, `get`, `me`, `from_workspace` | List and retrieve user information |
-| `workspace` | `info`, `search` | Workspace metadata and cross-workspace search |
-| `comments` | `list`, `get`, `create` | Page comments and discussion replies |
-| `content_convert` | `markdown-to-blocks`, `blocks-to-markdown` | Convert between Markdown and Notion blocks (uses a `direction` parameter) |
-| `file_uploads` | `create`, `send`, `complete`, `retrieve`, `list` | Upload files to Notion (single or multi-part) |
-| `config` | `status`, `setup_status`, `setup_start`, `setup_reset`, `setup_complete`, `set`, `cache_clear` | Inspect and manage credential state and configuration lifecycle |
-| `help` | - | Get full documentation for any composite tool (`tool_name` parameter) |
+| Tool              | Actions                                                                                                                                                | Description                                                               |
+| :---------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------ |
+| `pages`           | `create`, `get`, `get_property`, `update`, `move`, `archive`, `restore`, `duplicate`                                                                   | Create, read, update, and organize pages                                  |
+| `databases`       | `create`, `get`, `query`, `create_page`, `update_page`, `delete_page`, `create_data_source`, `update_data_source`, `update_database`, `list_templates` | Database CRUD and page management within databases                        |
+| `blocks`          | `get`, `children`, `append`, `update`, `delete`                                                                                                        | Read and manipulate block content                                         |
+| `users`           | `list`, `get`, `me`, `from_workspace`                                                                                                                  | List and retrieve user information                                        |
+| `workspace`       | `info`, `search`                                                                                                                                       | Workspace metadata and cross-workspace search                             |
+| `comments`        | `list`, `get`, `create`                                                                                                                                | Page comments and discussion replies                                      |
+| `content_convert` | `markdown-to-blocks`, `blocks-to-markdown`                                                                                                             | Convert between Markdown and Notion blocks (uses a `direction` parameter) |
+| `file_uploads`    | `create`, `send`, `complete`, `retrieve`, `list`                                                                                                       | Upload files to Notion (single or multi-part)                             |
+| `config`          | `status`, `setup_status`, `setup_start`, `setup_reset`, `setup_complete`, `set`, `cache_clear`                                                         | Inspect and manage credential state and configuration lifecycle           |
+| `help`            | -                                                                                                                                                      | Get full documentation for any composite tool (`tool_name` parameter)     |
 
 ### MCP Resources
 
-| URI | Description |
-|:----|:------------|
-| `notion://docs/pages` | Page operations reference |
-| `notion://docs/databases` | Database operations reference |
-| `notion://docs/blocks` | Block operations reference |
-| `notion://docs/users` | User operations reference |
-| `notion://docs/workspace` | Workspace operations reference |
-| `notion://docs/comments` | Comment operations reference |
-| `notion://docs/content_convert` | Content conversion reference |
-| `notion://docs/file_uploads` | File upload reference |
+| URI                             | Description                    |
+| :------------------------------ | :----------------------------- |
+| `notion://docs/pages`           | Page operations reference      |
+| `notion://docs/databases`       | Database operations reference  |
+| `notion://docs/blocks`          | Block operations reference     |
+| `notion://docs/users`           | User operations reference      |
+| `notion://docs/workspace`       | Workspace operations reference |
+| `notion://docs/comments`        | Comment operations reference   |
+| `notion://docs/content_convert` | Content conversion reference   |
+| `notion://docs/file_uploads`    | File upload reference          |
 
 ## Configuration
 
-| Variable | Required | Default | Description |
-|:---------|:---------|:--------|:------------|
-| `NOTION_TOKEN` | Yes (stdio) | - | Notion integration token |
-| `TRANSPORT_MODE` / `MCP_TRANSPORT` | No | `stdio` | Set either to `http` for remote mode (or pass `--http`) |
-| `MCP_AUTH_MODE` | No (http) | `multi` | `multi` (per-user tokens from `MCP_USERS_FILE`), `token` (one shared token, needs `MCP_AUTH_TOKEN_HASH`), or `no-auth` (trusted/local use only) |
-| `MCP_USERS_FILE` | No (http, multi) | `~/.hull/users.toml` | Users file for `multi` mode |
-| `NOTION_DATA_DIR` | No | `$HOME` | Base directory for the credential store. Tokens live in `<dir>/.notion/` (`config.json`, or `subs/<namespace>/config.json` in multi-user HTTP); a store an earlier release wrote under `<dir>/.better-notion/` is copied forward on startup. A relative value is resolved under `$HOME` and must stay inside it; use an absolute path (e.g. `/data`) to point at a mounted volume |
-| `MCP_AUTH_TOKEN_HASH` | Yes (token mode) | - | `scrypt$` hash of the shared token (mint with `token hash`) |
-| `MCP_RPM` | No (token mode) | - | Optional per-minute request cap in token mode |
-| `PORT` | No | `0` (OS-assigned) | Server port; set explicitly (e.g. `8080`) to bind a fixed port |
-| `HOST` | No | `127.0.0.1` | Bind address (http mode) |
+| Variable                           | Required         | Default              | Description                                                                                                                                                                                                                                                                                                                                                                       |
+| :--------------------------------- | :--------------- | :------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NOTION_TOKEN`                     | Yes (stdio)      | -                    | Notion integration token                                                                                                                                                                                                                                                                                                                                                          |
+| `TRANSPORT_MODE` / `MCP_TRANSPORT` | No               | `stdio`              | Set either to `http` for remote mode (or pass `--http`)                                                                                                                                                                                                                                                                                                                           |
+| `MCP_AUTH_MODE`                    | No (http)        | `multi`              | `multi` (per-user tokens from `MCP_USERS_FILE`), `token` (one shared token, needs `MCP_AUTH_TOKEN_HASH`), or `no-auth` (trusted/local use only)                                                                                                                                                                                                                                   |
+| `MCP_USERS_FILE`                   | No (http, multi) | `~/.hull/users.toml` | Users file for `multi` mode                                                                                                                                                                                                                                                                                                                                                       |
+| `NOTION_DATA_DIR`                  | No               | `$HOME`              | Base directory for the credential store. Tokens live in `<dir>/.notion/` (`config.json`, or `subs/<namespace>/config.json` in multi-user HTTP); a store an earlier release wrote under `<dir>/.better-notion/` is copied forward on startup. A relative value is resolved under `$HOME` and must stay inside it; use an absolute path (e.g. `/data`) to point at a mounted volume |
+| `MCP_AUTH_TOKEN_HASH`              | Yes (token mode) | -                    | `scrypt$` hash of the shared token (mint with `token hash`)                                                                                                                                                                                                                                                                                                                       |
+| `MCP_RPM`                          | No (token mode)  | -                    | Optional per-minute request cap in token mode                                                                                                                                                                                                                                                                                                                                     |
+| `PORT`                             | No               | `0` (OS-assigned)    | Server port; set explicitly (e.g. `8080`) to bind a fixed port                                                                                                                                                                                                                                                                                                                    |
+| `HOST`                             | No               | `127.0.0.1`          | Bind address (http mode)                                                                                                                                                                                                                                                                                                                                                          |
 
 ### Self-Hosting (Remote Mode)
 
@@ -322,15 +320,15 @@ Release images are published multi-arch (amd64 + arm64) to Docker Hub (`n24q02m/
 
 How notion stacks up against direct competitors in each pillar:
 
-| Capability | notion | makenotion/notion-mcp-server | suekou/mcp-notion-server | awkoy/notion-mcp-server |
-|---|---|---|---|---|
-| Markdown in / out | Yes (round-trip on pages + blocks) | No (raw Notion JSON) | partial (experimental, append + opt-in convert) | Yes (round-trip + GFM) |
-| Composite tool design | Yes (8 composite tools, 39 actions) | No (22 endpoint-mapped tools) | partial (simplified + raw JSON tools) | Yes (2 dispatch tools, 35+ ops) |
-| File uploads to Notion | Yes (`file_uploads`, single + multi-part) | No | No | Yes (`upload_file`, single + multi-part) |
-| Comments | Yes (`comments`: list/get/create) | Yes | Yes | Yes |
-| Remote HTTP + bearer-token auth | Yes (per-user namespaces or shared token) | partial (HTTP + bearer token) | No (stdio token only) | No (stdio token only) |
-| Self-hostable | Yes (Docker, own bearer token) | Yes | Yes | Yes |
-| License | Apache-2.0 | ? | MIT | MIT |
+| Capability                      | notion                                    | makenotion/notion-mcp-server  | suekou/mcp-notion-server                        | awkoy/notion-mcp-server                  |
+| ------------------------------- | ----------------------------------------- | ----------------------------- | ----------------------------------------------- | ---------------------------------------- |
+| Markdown in / out               | Yes (round-trip on pages + blocks)        | No (raw Notion JSON)          | partial (experimental, append + opt-in convert) | Yes (round-trip + GFM)                   |
+| Composite tool design           | Yes (8 composite tools, 39 actions)       | No (22 endpoint-mapped tools) | partial (simplified + raw JSON tools)           | Yes (2 dispatch tools, 35+ ops)          |
+| File uploads to Notion          | Yes (`file_uploads`, single + multi-part) | No                            | No                                              | Yes (`upload_file`, single + multi-part) |
+| Comments                        | Yes (`comments`: list/get/create)         | Yes                           | Yes                                             | Yes                                      |
+| Remote HTTP + bearer-token auth | Yes (per-user namespaces or shared token) | partial (HTTP + bearer token) | No (stdio token only)                           | No (stdio token only)                    |
+| Self-hostable                   | Yes (Docker, own bearer token)            | Yes                           | Yes                                             | Yes                                      |
+| License                         | Apache-2.0                                | ?                             | MIT                                             | MIT                                      |
 
 ## Security
 
@@ -352,11 +350,11 @@ bun run dev
 
 Credentials are never sent to n24q02m: there is no hosted endpoint.
 
-| Mode | Storage | Protection | Who can read your data? |
-|---|---|---|---|
-| HTTP self-host (`multi`) | `~/.notion/subs/<ns>/config.json` on the server host | File mode 0600 under the server's data dir | The server operator and anyone with access to that host |
-| HTTP self-host (`token`) | `~/.notion/config.json` on the server host | File mode 0600 under the server's data dir | The server operator and anyone with access to that host |
-| stdio (local) | `~/.notion/config.json` | File mode 0600; machine key in `~/.notion/.secret` | Only your OS user |
+| Mode                     | Storage                                              | Protection                                         | Who can read your data?                                 |
+| ------------------------ | ---------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------- |
+| HTTP self-host (`multi`) | `~/.notion/subs/<ns>/config.json` on the server host | File mode 0600 under the server's data dir         | The server operator and anyone with access to that host |
+| HTTP self-host (`token`) | `~/.notion/config.json` on the server host           | File mode 0600 under the server's data dir         | The server operator and anyone with access to that host |
+| stdio (local)            | `~/.notion/config.json`                              | File mode 0600; machine key in `~/.notion/.secret` | Only your OS user                                       |
 
 ## License
 

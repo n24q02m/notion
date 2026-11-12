@@ -1,14 +1,17 @@
 # Pages Tool - Full Documentation
 
 ## Overview
+
 Page lifecycle: create, get, get_property, update, move, archive, restore, duplicate.
 
 ## Important
+
 - **parent_id required** for create (cannot create workspace-level pages)
 - Returns **markdown content** for get action
 - **get_property** supports paginated properties (relation, rollup, rich_text, people)
 
 ## Reading Images & Files in Pages
+
 Pages may contain **image blocks** and **file blocks**. These are returned as markdown with signed URLs:
 
 - **Images**: `![caption](https://prod-files-secure.s3.amazonaws.com/...)` — signed S3 URL, expires in 1 hour
@@ -23,52 +26,63 @@ Pages may contain **image blocks** and **file blocks**. These are returned as ma
 ## Actions
 
 ### create
+
 ```json
-{"action": "create", "title": "Meeting Notes", "parent_id": "xxx", "content": "# Agenda\n- Item 1"}
+{ "action": "create", "title": "Meeting Notes", "parent_id": "xxx", "content": "# Agenda\n- Item 1" }
 ```
 
 ### get
+
 ```json
-{"action": "get", "page_id": "xxx", "content_limit": 20}
+{ "action": "get", "page_id": "xxx", "content_limit": 20 }
 ```
 Returns all properties including: title, rich_text, select, multi_select, number, checkbox, url, email, phone_number, date, relation, rollup, people, files, formula, created_time, last_edited_time, created_by, last_edited_by, status, unique_id.
 
 The markdown body is bounded to `max_chars` (1–100000, default 20000). A truncated body ends with `[Truncated: showing <limit> of <total> characters (<omitted> omitted). Pass a larger max_chars (up to 100000) or page blocks with content_limit/content_cursor.]`, and the response reports `content_char_count`, `content_max_chars`, `content_truncated`, and `content_chars_omitted`. Use `content_limit` (1–100 blocks) to bound the block read itself; when more blocks remain, `content_truncated` is `true` and `next_cursor` can be passed as `content_cursor` in the next request. Omitting `content_limit` reads every block, still bounded by `max_chars`.
 
 ### get_property
+
 Retrieve a single page property item with auto-pagination for large properties.
+
 ```json
-{"action": "get_property", "page_id": "xxx", "property_id": "prop_id"}
+{ "action": "get_property", "page_id": "xxx", "property_id": "prop_id" }
 ```
 Use this for paginated properties like relation, rollup, rich_text, or people that may exceed inline limits.
 
 ### update
+
 ```json
-{"action": "update", "page_id": "xxx", "append_content": "\n## New Section"}
+{ "action": "update", "page_id": "xxx", "append_content": "\n## New Section" }
 ```
 
 ### move
+
 Move a page to a new parent page.
+
 ```json
-{"action": "move", "page_id": "xxx", "parent_id": "new_parent_id"}
+{ "action": "move", "page_id": "xxx", "parent_id": "new_parent_id" }
 ```
 
 ### archive
+
 ```json
-{"action": "archive", "page_ids": ["xxx", "yyy"]}
+{ "action": "archive", "page_ids": ["xxx", "yyy"] }
 ```
 
 ### restore
+
 ```json
-{"action": "restore", "page_id": "xxx"}
+{ "action": "restore", "page_id": "xxx" }
 ```
 
 ### duplicate
+
 ```json
-{"action": "duplicate", "page_id": "xxx"}
+{ "action": "duplicate", "page_id": "xxx" }
 ```
 
 ## Parameters
+
 - `page_id` - Page ID (required for most actions)
 - `page_ids` - Multiple page IDs for batch operations
 - `title` - Page title
