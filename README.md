@@ -1,6 +1,6 @@
 # notion
 
-mcp-name: io.github.n24q02m/better-notion-mcp
+mcp-name: io.github.n24q02m/notion
 
 **Markdown-first Notion for AI agents -- pages, databases, blocks, and comments in one call.**
 
@@ -97,9 +97,11 @@ Run with `npx` (Node.js >= 24) and a Notion integration token from <https://www.
 ```
 
 The package is `@n24q02m/notion` (formerly `@n24q02m/better-notion-mcp`;
-old package receives one final release then freezes). The MCP Registry id stays
-`io.github.n24q02m/better-notion-mcp`, and the legacy `better-notion-mcp`
-command is kept as an alias of `notion`.
+old package receives one final release then freezes). The MCP Registry id is
+`io.github.n24q02m/notion`, and the legacy `better-notion-mcp` command is kept
+as an alias of `notion`. The registry still lists the pre-rename
+`io.github.n24q02m/better-notion-mcp` entry; that entry stays frozen and is
+never republished.
 
 Or run the published Docker image (stdio):
 
