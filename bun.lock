@@ -7,7 +7,7 @@
       "dependencies": {
         "@modelcontextprotocol/sdk": "^1.32.2",
         "@n24q02m/hull": "^0.7.0",
-        "@notionhq/client": "^5.31.0",
+        "@notionhq/client": "^5.31.1",
         "zod": "^4.6.7",
       },
       "devDependencies": {
