@@ -4,7 +4,7 @@
 
 `notion` is a Markdown-first Notion MCP server: pages, databases, blocks, comments, users, workspace search, Markdown/block conversion, and file uploads for AI agents. The published package is `@n24q02m/notion`; the `notion` binary also answers to its legacy name `better-notion-mcp`, and its MCP Registry id is `io.github.n24q02m/notion`.
 
-**Version: 2.42.0** -- the `version` field of `package.json` at the commit that added this handover. `semantic-release.toml` bumps `package.json`, `.claude-plugin/plugin.json`, and `server.json` together on every release, so treat this line as a snapshot and re-read `package.json` before using it as current.
+**Version: 2.43.0** -- the `version` field of `package.json` at the commit that added this handover. `semantic-release.toml` bumps `package.json`, `.claude-plugin/plugin.json`, and `server.json` together on every release, so treat this line as a snapshot and re-read `package.json` before using it as current.
 
 The server is built on hull (`@n24q02m/hull`) for the encrypted per-plugin credential store, the Streamable HTTP transport, bearer auth, and the shared operator CLI; the tool handlers sit on the MCP TypeScript SDK and `@notionhq/client`. There is no browser credential form, OAuth server, daemon bridge, or hosted endpoint.
 
