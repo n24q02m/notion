@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v2.44.0-beta.1 (2026-11-14)
+
+### Features
+
+- Ship npm-shrinkwrap.json pinned to bun.lock, bump tap and bucket on stable, allow hull 0.7
+  ([#1339](https://github.com/n24q02m/notion/pull/1339),
+  [`c79bd82`](https://github.com/n24q02m/notion/commit/c79bd821ab58ab2572f5a5739f9e4dde1ba24f91))
+
+
 ## v2.43.1-beta.1 (2026-11-14)
 
 ### Bug Fixes
