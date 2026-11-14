@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v2.44.0-beta.3 (2026-11-14)
+
+### Bug Fixes
+
+- Let renovate merge only after every check is green
+  ([#1341](https://github.com/n24q02m/notion/pull/1341),
+  [`ed21e48`](https://github.com/n24q02m/notion/commit/ed21e48f448dda150da39f95fcca76645ceaf3f8))
+
+- Require CI checks on main and limit the Renovate bypass to pull requests
+  ([#1344](https://github.com/n24q02m/notion/pull/1344),
+  [`e4ca221`](https://github.com/n24q02m/notion/commit/e4ca2210714d2e909a2e898263240d1beb79921e))
+
+
 ## v2.44.0-beta.2 (2026-11-14)
 
 ### Bug Fixes
