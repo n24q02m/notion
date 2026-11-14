@@ -2,6 +2,60 @@
 
 <!-- version list -->
 
+## v2.43.1-beta.1 (2026-11-14)
+
+### Bug Fixes
+
+- Cover notion auth, HTTP startup and the read-only acceptance script and gate coverage at 95%
+  ([#1336](https://github.com/n24q02m/notion/pull/1336),
+  [`b75be99`](https://github.com/n24q02m/notion/commit/b75be9902c8931134f1d00afd24b83dd229ceeca))
+
+- Keep the generated changelog out of the formatter
+  ([#1331](https://github.com/n24q02m/notion/pull/1331),
+  [`068cfe6`](https://github.com/n24q02m/notion/commit/068cfe637ffb08539499e245ea0b7c7ef369b4fe))
+
+- Keep the renovate lock file maintenance title lowercase
+  ([#1335](https://github.com/n24q02m/notion/pull/1335),
+  [`df30afe`](https://github.com/n24q02m/notion/commit/df30afe6714f2d13d6431be08497f2e42230a6ac))
+
+- Migrate the biome config and formatting for the new formatter
+  ([#1327](https://github.com/n24q02m/notion/pull/1327),
+  [`c756680`](https://github.com/n24q02m/notion/commit/c75668087d80449c606d1a54c6e55ceff468abc5))
+
+- Move to hull 0.6.1 ([#1334](https://github.com/n24q02m/notion/pull/1334),
+  [`5fd1d7f`](https://github.com/n24q02m/notion/commit/5fd1d7f47121ca07759b28acf3eb619a2363f448))
+
+- Re-read the data source schema after update_data_source and refuse help for config
+  ([#1338](https://github.com/n24q02m/notion/pull/1338),
+  [`2965073`](https://github.com/n24q02m/notion/commit/29650731e5ce26002874070d0011fa7aa0608254))
+
+- Update handover version to 2.43.0 ([#1337](https://github.com/n24q02m/notion/pull/1337),
+  [`9150608`](https://github.com/n24q02m/notion/commit/9150608ae666cd63e7906353ef6d9452907c8a9d))
+
+- **deps**: Lock file maintenance ([#1333](https://github.com/n24q02m/notion/pull/1333),
+  [`eb515ab`](https://github.com/n24q02m/notion/commit/eb515ab72c0eda715ad7789fe2673c57cb2062d1))
+
+- **deps**: Lock file maintenance ([#1327](https://github.com/n24q02m/notion/pull/1327),
+  [`c756680`](https://github.com/n24q02m/notion/commit/c75668087d80449c606d1a54c6e55ceff468abc5))
+
+- **deps**: Update amannn/action-semantic-pull-request action to v6.1.2
+  ([#1328](https://github.com/n24q02m/notion/pull/1328),
+  [`18872fa`](https://github.com/n24q02m/notion/commit/18872fa9a8e7f892fc58024e962f54edba261903))
+
+- **deps**: Update minor dependencies ([#1329](https://github.com/n24q02m/notion/pull/1329),
+  [`2fa9812`](https://github.com/n24q02m/notion/commit/2fa9812749f40c8a16543e075b5cf4c9cc67233c))
+
+- **deps**: Update non-major dev dependencies ([#1330](https://github.com/n24q02m/notion/pull/1330),
+  [`5b69ba9`](https://github.com/n24q02m/notion/commit/5b69ba9049ae8c734c82f38983329fbffecbb442))
+
+- **deps**: Update oven/bun:1-alpine Docker digest to 4cf82f5
+  ([#1309](https://github.com/n24q02m/notion/pull/1309),
+  [`5cd250f`](https://github.com/n24q02m/notion/commit/5cd250f1215d630cdf494681dd53b4bb86369877))
+
+- **deps**: Update patch dependencies ([#1332](https://github.com/n24q02m/notion/pull/1332),
+  [`a1d5709`](https://github.com/n24q02m/notion/commit/a1d5709da746befc1a29889327f240c12fb76123))
+
+
 ## v2.43.0 (2026-11-12)
 
 ### Bug Fixes
