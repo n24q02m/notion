@@ -6,7 +6,8 @@ export default defineConfig({
     coverage: {
       reporter: ['text', 'lcov'],
       reportsDirectory: './coverage',
-      exclude: ['node_modules/', 'build/', 'bin/']
+      exclude: ['node_modules/', 'build/', 'bin/'],
+      thresholds: { lines: 95, functions: 95, branches: 90, statements: 95 }
     }
   }
 })

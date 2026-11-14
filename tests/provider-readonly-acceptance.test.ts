@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { join } from 'node:path'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   type AcceptanceClient,
   assertReadOnlyToolCall,
@@ -224,5 +225,179 @@ describe('read-only Notion provider acceptance', () => {
     await expect(runHttpReadOnlyAcceptance(new URL('https://notion.example/mcp'), secretToken)).rejects.toThrow(
       'Read-only acceptance transport close failed'
     )
+  })
+})
+
+function searchClient(searchResult: unknown): AcceptanceClient {
+  return {
+    async callTool(request) {
+      if (request.name === 'workspace' && request.arguments?.action === 'search') return searchResult
+      return textResult({})
+    }
+  }
+}
+
+function okSearch(total: number, results: unknown[]) {
+  return textResult({ action: 'search', query: 'provider-acceptance', total, results })
+}
+
+describe('read-only Notion provider acceptance: fail-closed result checks', () => {
+  it.each([
+    ['a result with no content blocks', { content: [] }, 'workspace.info returned a malformed MCP result'],
+    ['a non-object result', 'oops', 'workspace.info returned a malformed MCP result']
+  ])('rejects %s', async (_label, result, message) => {
+    await expect(runReadOnlyAcceptance({ callTool: async () => result })).rejects.toThrow(message)
+  })
+
+  it('redacts a thrown tool call', async () => {
+    const client: AcceptanceClient = {
+      async callTool() {
+        throw new Error(`leaked ${secretToken}`)
+      }
+    }
+    await expect(runReadOnlyAcceptance(client)).rejects.toThrow(/^workspace\.info call failed$/)
+  })
+
+  it.each([
+    [
+      'two content blocks',
+      {
+        content: [
+          { type: 'text', text: '{}' },
+          { type: 'text', text: '{}' }
+        ]
+      },
+      'workspace.search returned a malformed result'
+    ],
+    [
+      'a non-text block',
+      { content: [{ type: 'image', data: 'AA==', mimeType: 'image/png' }] },
+      'workspace.search returned a malformed result'
+    ],
+    ['a payload without total', textResult({ results: [] }), 'workspace.search returned a malformed result'],
+    [
+      'a payload with extra keys',
+      textResult({ total: 0, results: [], cursor: 'x' }),
+      'workspace.search returned a malformed result'
+    ],
+    [
+      'a total that disagrees with the results',
+      okSearch(2, [searchItem('one', 'One')]),
+      'workspace.search returned inconsistent result metadata'
+    ]
+  ])('rejects a search result with %s', async (_label, result, message) => {
+    await expect(runReadOnlyAcceptance(searchClient(result))).rejects.toThrow(message)
+  })
+})
+
+describe('read-only Notion provider acceptance over HTTP', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('refuses a non-HTTP endpoint before opening a transport', async () => {
+    await expect(runHttpReadOnlyAcceptance(new URL('ftp://notion.example/mcp'), secretToken)).rejects.toThrow(
+      'Notion MCP endpoint must use HTTP or HTTPS'
+    )
+    expect(sdkMocks.transportArgs).not.toHaveBeenCalled()
+  })
+
+  it.each([[''], ['   ']])('refuses an empty bearer token (%j)', async (token) => {
+    await expect(runHttpReadOnlyAcceptance(new URL('https://notion.example/mcp'), token)).rejects.toThrow(
+      'Notion MCP bearer token is required'
+    )
+    expect(sdkMocks.transportArgs).not.toHaveBeenCalled()
+  })
+
+  it('returns the summary and closes the transport after the read-only calls', async () => {
+    sdkMocks.callTool
+      .mockResolvedValueOnce(textResult({}))
+      .mockResolvedValueOnce(textResult({}))
+      .mockResolvedValueOnce(okSearch(1, [searchItem(sensitiveId, 'Private result')]))
+
+    const summary = await runHttpReadOnlyAcceptance(new URL('http://127.0.0.1:8080/mcp'), secretToken)
+
+    expect(summary.status).toBe('VERIFIED')
+    expect(summary.operations.at(-1)).toEqual({ operation: 'workspace.search', contentBlocks: 1, resultCount: 1 })
+    expect(sdkMocks.close).toHaveBeenCalledOnce()
+  })
+
+  it('passes a sanitized acceptance failure through unchanged', async () => {
+    sdkMocks.callTool.mockResolvedValueOnce({ isError: true, content: [{ type: 'text', text: secretToken }] })
+
+    await expect(runHttpReadOnlyAcceptance(new URL('https://notion.example/mcp'), secretToken)).rejects.toThrow(
+      'workspace.info returned an MCP error'
+    )
+    expect(sdkMocks.close).toHaveBeenCalledOnce()
+  })
+})
+
+describe('provider-readonly-acceptance run as a script', () => {
+  const scriptPath = join(import.meta.dirname, '..', 'scripts', 'provider-readonly-acceptance.ts')
+  const originalArgv = process.argv
+  const originalEnv = process.env
+  let logSpy: ReturnType<typeof vi.spyOn>
+  let errorSpy: ReturnType<typeof vi.spyOn>
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    process.argv = [process.argv[0], scriptPath]
+    process.env = { ...originalEnv }
+    delete process.env.NOTION_MCP_URL
+    delete process.env.NOTION_MCP_BEARER_TOKEN
+    process.exitCode = undefined
+    logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    process.argv = originalArgv
+    process.env = originalEnv
+    process.exitCode = undefined
+    logSpy.mockRestore()
+    errorSpy.mockRestore()
+  })
+
+  async function runScript() {
+    vi.resetModules()
+    await import('../scripts/provider-readonly-acceptance.js')
+  }
+
+  it('fails with READ_ONLY_INPUT_MISSING when the endpoint or token is unset', async () => {
+    process.env.NOTION_MCP_URL = 'https://notion.example/mcp'
+
+    await runScript()
+
+    expect(errorSpy).toHaveBeenCalledWith(JSON.stringify({ status: 'FAILED', code: 'READ_ONLY_INPUT_MISSING' }))
+    expect(process.exitCode).toBe(1)
+    expect(sdkMocks.transportArgs).not.toHaveBeenCalled()
+  })
+
+  it('prints the summary as JSON on success', async () => {
+    process.env.NOTION_MCP_URL = 'https://notion.example/mcp'
+    process.env.NOTION_MCP_BEARER_TOKEN = secretToken
+    sdkMocks.callTool
+      .mockResolvedValueOnce(textResult({}))
+      .mockResolvedValueOnce(textResult({}))
+      .mockResolvedValueOnce(okSearch(0, []))
+
+    await runScript()
+
+    const printed = JSON.parse(logSpy.mock.calls[0][0] as string)
+    expect(printed.status).toBe('VERIFIED')
+    expect(process.exitCode).toBeUndefined()
+    expect(JSON.stringify(logSpy.mock.calls)).not.toContain(secretToken)
+  })
+
+  it('fails with READ_ONLY_ACCEPTANCE_FAILED and no detail when a call fails', async () => {
+    process.env.NOTION_MCP_URL = 'https://notion.example/mcp'
+    process.env.NOTION_MCP_BEARER_TOKEN = secretToken
+    sdkMocks.connect.mockRejectedValueOnce(new Error(`leaked ${secretToken}`))
+
+    await runScript()
+
+    expect(errorSpy).toHaveBeenCalledWith(JSON.stringify({ status: 'FAILED', code: 'READ_ONLY_ACCEPTANCE_FAILED' }))
+    expect(process.exitCode).toBe(1)
+    expect(JSON.stringify(errorSpy.mock.calls)).not.toContain(secretToken)
   })
 })

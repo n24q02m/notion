@@ -2,13 +2,19 @@ import * as fs from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { bootstrap, getTransportMode, isMain, mode, relayCommand, startServer } from './main.js'
+import { authCommand, bootstrap, getTransportMode, isMain, mode, relayCommand, startServer } from './main.js'
 
 const startHttpMock = vi.fn()
 const stdioConnectMock = vi.fn().mockResolvedValue(undefined)
 const stdioServerCtor = vi.fn()
 const stdioTransportCtor = vi.fn()
 const registerToolsMock = vi.fn()
+const questionMock = vi.fn()
+const readlineCloseMock = vi.fn()
+
+vi.mock('node:readline/promises', () => ({
+  createInterface: () => ({ question: questionMock, close: readlineCloseMock })
+}))
 
 vi.mock('./transports/http.js', () => ({
   startHttp: startHttpMock
@@ -169,6 +175,17 @@ describe('main.ts', () => {
 
       process.argv[1] = winEntryPath
       expect(isMain(mainUrl)).toBe(true)
+    })
+
+    it('compares resolved paths exactly on non-Windows platforms', () => {
+      Object.defineProperty(process, 'platform', { value: 'linux', configurable: true })
+      process.argv[1] = '/project/src/main.ts'
+
+      vi.mocked(fs.realpathSync).mockReturnValueOnce('/project/src/main.ts').mockReturnValueOnce('/project/src/main.ts')
+      expect(isMain(import.meta.url)).toBe(true)
+
+      vi.mocked(fs.realpathSync).mockReturnValueOnce('/project/src/main.ts').mockReturnValueOnce('/project/src/MAIN.ts')
+      expect(isMain(import.meta.url)).toBe(false)
     })
 
     it('verifies Windows path normalization mismatch', () => {
@@ -513,6 +530,36 @@ describe('main.ts', () => {
 
       onceSpy.mockRestore()
     })
+
+    it('exits 1 with the error when the data dir cannot be prepared', async () => {
+      process.argv = [process.argv[0], mainPath, '--version']
+      const { prepareDataDir } = await import('./data-dir.js')
+      vi.mocked(prepareDataDir).mockRejectedValueOnce(new Error('store unreadable'))
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      vi.resetModules()
+      await import(`${pathToFileURL(mainPath).href}?test=${Date.now()}`)
+      await vi.waitFor(() => expect(exitSpy).toHaveBeenCalled())
+
+      expect(errorSpy).toHaveBeenCalledWith('[notion] store unreadable')
+      expect(exitSpy).toHaveBeenCalledWith(1)
+      errorSpy.mockRestore()
+    })
+
+    it('reports a non-Error startup failure as text', async () => {
+      process.argv = [process.argv[0], mainPath, '--version']
+      const { prepareDataDir } = await import('./data-dir.js')
+      vi.mocked(prepareDataDir).mockRejectedValueOnce('store locked')
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      vi.resetModules()
+      await import(`${pathToFileURL(mainPath).href}?test=${Date.now()}`)
+      await vi.waitFor(() => expect(exitSpy).toHaveBeenCalled())
+
+      expect(errorSpy).toHaveBeenCalledWith('[notion] store locked')
+      expect(exitSpy).toHaveBeenCalledWith(1)
+      errorSpy.mockRestore()
+    })
   })
 })
 
@@ -524,5 +571,115 @@ describe('relayCommand', () => {
     expect(errorSpy).toHaveBeenCalledWith('relay was removed; run `notion auth` (see README)')
 
     errorSpy.mockRestore()
+  })
+})
+
+describe('authCommand', () => {
+  const originalEnv = process.env
+  let errorSpy: ReturnType<typeof vi.spyOn>
+  let logSpy: ReturnType<typeof vi.spyOn>
+
+  beforeEach(async () => {
+    vi.clearAllMocks()
+    process.env = { ...originalEnv }
+    delete process.env.NOTION_TOKEN
+    errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const { createNotionClient } = await import('./notion-client.js')
+    vi.mocked(createNotionClient).mockReturnValue({ users: { me: vi.fn().mockResolvedValue({}) } } as never)
+  })
+
+  afterEach(() => {
+    process.env = originalEnv
+    errorSpy.mockRestore()
+    logSpy.mockRestore()
+  })
+
+  it('verifies the token with users.me and saves it under the default namespace', async () => {
+    process.env.NOTION_TOKEN = '  ntn_abc123  '
+    const { createNotionClient } = await import('./notion-client.js')
+    const { saveNamespaceToken } = await import('./credential-state.js')
+
+    expect(await authCommand([])).toBe(0)
+
+    expect(createNotionClient).toHaveBeenCalledWith('ntn_abc123')
+    expect(saveNamespaceToken).toHaveBeenCalledWith('default', 'ntn_abc123')
+    expect(logSpy).toHaveBeenCalledWith('Saved Notion token for namespace "default".')
+    expect(questionMock).not.toHaveBeenCalled()
+  })
+
+  it('saves under the namespace given with --user', async () => {
+    process.env.NOTION_TOKEN = 'secret_abc123'
+    const { assertNamespace, saveNamespaceToken } = await import('./credential-state.js')
+
+    expect(await authCommand(['--user', 'alice'])).toBe(0)
+
+    expect(assertNamespace).toHaveBeenCalledWith('alice')
+    expect(saveNamespaceToken).toHaveBeenCalledWith('alice', 'secret_abc123')
+  })
+
+  it('prompts for the token when NOTION_TOKEN is unset and closes the prompt', async () => {
+    questionMock.mockResolvedValueOnce(' ntn_prompted1 ')
+    const { saveNamespaceToken } = await import('./credential-state.js')
+
+    expect(await authCommand([])).toBe(0)
+
+    expect(questionMock).toHaveBeenCalledWith(expect.stringContaining('Notion integration token'))
+    expect(readlineCloseMock).toHaveBeenCalledOnce()
+    expect(saveNamespaceToken).toHaveBeenCalledWith('default', 'ntn_prompted1')
+  })
+
+  it.each([[['--user']], [['--user', '--other']]])('exits 2 when --user has no value (%j)', async (argv) => {
+    const { saveNamespaceToken } = await import('./credential-state.js')
+
+    expect(await authCommand(argv)).toBe(2)
+
+    expect(errorSpy).toHaveBeenCalledWith('--user requires a namespace value, e.g. --user alice')
+    expect(saveNamespaceToken).not.toHaveBeenCalled()
+  })
+
+  it('exits 2 when the namespace is invalid', async () => {
+    const { assertNamespace } = await import('./credential-state.js')
+    vi.mocked(assertNamespace).mockImplementationOnce(() => {
+      throw new Error('invalid namespace')
+    })
+
+    expect(await authCommand(['--user', '../x'])).toBe(2)
+    expect(errorSpy).toHaveBeenCalledWith('invalid namespace')
+  })
+
+  it('reports a non-Error namespace failure as text', async () => {
+    const { assertNamespace } = await import('./credential-state.js')
+    vi.mocked(assertNamespace).mockImplementationOnce(() => {
+      throw 'bad namespace'
+    })
+
+    expect(await authCommand(['--user', 'x'])).toBe(2)
+    expect(errorSpy).toHaveBeenCalledWith('bad namespace')
+  })
+
+  it('exits 2 for a value that is not a Notion integration token, without calling Notion', async () => {
+    process.env.NOTION_TOKEN = 'not-a-token'
+    const { createNotionClient } = await import('./notion-client.js')
+
+    expect(await authCommand([])).toBe(2)
+
+    expect(errorSpy).toHaveBeenCalledWith('Token must be a Notion integration token starting with "ntn_" or "secret_".')
+    expect(createNotionClient).not.toHaveBeenCalled()
+  })
+
+  it('exits 1 and saves nothing when Notion rejects the token', async () => {
+    process.env.NOTION_TOKEN = 'ntn_rejected1'
+    const { createNotionClient } = await import('./notion-client.js')
+    const { saveNamespaceToken } = await import('./credential-state.js')
+    vi.mocked(createNotionClient).mockReturnValueOnce({
+      users: { me: vi.fn().mockRejectedValue(new Error('unauthorized')) }
+    } as never)
+
+    expect(await authCommand([])).toBe(1)
+
+    expect(errorSpy).toHaveBeenCalledWith('Notion rejected this token (users.me failed). Nothing was saved.')
+    expect(saveNamespaceToken).not.toHaveBeenCalled()
+    expect(JSON.stringify(errorSpy.mock.calls)).not.toContain('ntn_rejected1')
   })
 })
