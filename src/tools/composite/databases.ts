@@ -761,6 +761,12 @@ async function updateDataSource(notion: Client, input: DatabasesInput): Promise<
     data_source_id: input.data_source_id,
     ...updates
   })
+  // The cached schema predates this update; the next get or query must re-read it.
+  // Cache keys are the dashed IDs Notion returns, the caller may pass either form.
+  const updatedId = normalizeId(input.data_source_id)
+  for (const key of schemaCache.keys()) {
+    if (normalizeId(key) === updatedId) schemaCache.delete(key)
+  }
 
   return {
     action: 'update_data_source',

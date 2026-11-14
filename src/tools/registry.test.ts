@@ -556,6 +556,20 @@ describe('registerTools', () => {
       expect(result.content[0].text).toContain('Valid tools:')
     })
 
+    it('should refuse help for config, which has no documentation, and not list it as valid', async () => {
+      const handler = server.getHandler(3)
+
+      const result = await handler({
+        params: { name: 'help', arguments: { tool_name: 'config' } }
+      })
+
+      expect(result.isError).toBe(true)
+      expect(result.content[0].text).toContain('Invalid tool name: config')
+      expect(result.content[0].text).toContain(
+        'Valid tools: pages, databases, blocks, users, workspace, comments, content_convert, file_uploads'
+      )
+    })
+
     it('should return error for help tool when tool_name is "help"', async () => {
       const handler = server.getHandler(3)
 

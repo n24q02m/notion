@@ -834,6 +834,43 @@ describe('databases', () => {
       expect(call.properties).toEqual({ Priority: { select: {} } })
     })
 
+    it('should drop the cached schema so the next get shows the updated properties', async () => {
+      mockNotion.databases.retrieve.mockResolvedValue(makeDbRetrieveResponse())
+      mockNotion.dataSources.retrieve.mockResolvedValueOnce(makeDataSourceResponse()).mockResolvedValueOnce(
+        makeDataSourceResponse({
+          properties: { ...makeDataSourceResponse().properties, Notes: { type: 'rich_text', id: 'prop-3' } }
+        })
+      )
+      mockNotion.dataSources.update.mockResolvedValueOnce({})
+
+      const before = (await databases(notion, { action: 'get', database_id: 'db-1' })) as GetDatabaseResponse
+      expect(Object.keys(before.schema)).not.toContain('Notes')
+
+      await databases(notion, {
+        action: 'update_data_source',
+        data_source_id: 'ds-1',
+        properties: { Notes: { rich_text: {} } }
+      })
+
+      const after = (await databases(notion, { action: 'get', database_id: 'db-1' })) as GetDatabaseResponse
+      expect(mockNotion.dataSources.retrieve).toHaveBeenCalledTimes(2)
+      expect(after.schema.Notes).toEqual({ type: 'rich_text', id: 'prop-3' })
+    })
+
+    it('should drop the cached schema when the update names the data source without dashes', async () => {
+      schemaCache.set('a3802967-3621-4b04-b6af-bfef1b7687b3', { properties: {}, expiresAt: Date.now() + 60_000 })
+      schemaCache.set('ds-other', { properties: {}, expiresAt: Date.now() + 60_000 })
+      mockNotion.dataSources.update.mockResolvedValueOnce({})
+
+      await databases(notion, {
+        action: 'update_data_source',
+        data_source_id: 'a380296736214b04b6afbfef1b7687b3',
+        title: 'Renamed'
+      })
+
+      expect([...schemaCache.keys()]).toEqual(['ds-other'])
+    })
+
     it('should throw when data_source_id is missing', async () => {
       await expect(databases(notion, { action: 'update_data_source', title: 'X' })).rejects.toThrow(
         'data_source_id required'
