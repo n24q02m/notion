@@ -433,7 +433,11 @@ export const TOOLS = [
 
 // Pre-compute valid tool names for the help endpoint to avoid allocations on every call
 // BOLT OPTIMIZATION: Use Set for O(1) lookups instead of dynamic array creation
-export const VALID_HELP_TOOL_NAMES = new Set(TOOLS.map((t) => t.name).filter((name) => name !== 'help'))
+// Taken from the help tool's own `tool_name` enum: only those tools ship a docs file (config has none).
+const HELP_TOOL = TOOLS.find((t) => t.name === 'help') as {
+  inputSchema: { properties: { tool_name: { enum: string[] } } }
+}
+export const VALID_HELP_TOOL_NAMES = new Set(HELP_TOOL.inputSchema.properties.tool_name.enum)
 export const VALID_HELP_TOOLS_STRING = Array.from(VALID_HELP_TOOL_NAMES).join(', ')
 
 // Pre-compute all tool names for error messages
