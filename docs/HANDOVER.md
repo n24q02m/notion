@@ -4,7 +4,7 @@
 
 `notion` is a Markdown-first Notion MCP server: pages, databases, blocks, comments, users, workspace search, Markdown/block conversion, and file uploads for AI agents. The published package is `@n24q02m/notion`; the `notion` binary also answers to its legacy name `better-notion-mcp`, and its MCP Registry id is `io.github.n24q02m/notion`.
 
-**Version: 2.43.0** -- the `version` field of `package.json` at the commit that added this handover. `semantic-release.toml` bumps `package.json`, `.claude-plugin/plugin.json`, and `server.json` together on every release, so treat this line as a snapshot and re-read `package.json` before using it as current.
+**Version:** the `version` field of `package.json` is the only source. `semantic-release.toml` bumps `package.json`, `.claude-plugin/plugin.json`, and `server.json` together on every release, and the published version is `npm view @n24q02m/notion version`. This file does not repeat the number, so a release never leaves it stale.
 
 The server is built on hull (`@n24q02m/hull`) for the encrypted per-plugin credential store, the Streamable HTTP transport, bearer auth, and the shared operator CLI; the tool handlers sit on the MCP TypeScript SDK and `@notionhq/client`. There is no browser credential form, OAuth server, daemon bridge, or hosted endpoint.
 
@@ -105,7 +105,7 @@ Rollback is forward: revert or fix the source commit and dispatch the pipeline a
 - `no-auth` is loopback-only by design and is not a remote deployment mode.
 - Two names keep their pre-rename spelling on purpose: hull's storage key for this server is `better-notion-mcp` (`SERVER_NAME` in `src/credential-state.ts`, while `STORE_PLUGIN = 'notion'` sets the on-disk directory), and the pre-rename store directory `better-notion` stays a read-only migration source. Renaming either would orphan saved credentials, so treat the product name and the storage surfaces as independent.
 - Token validation happens at `notion auth`; a token later revoked in Notion surfaces as an authentication error at call time, not at startup.
-- The version line at the top of this file is a release snapshot, not a live value.
+- This file records where the version lives, not the number; read `package.json` or npm for the current value.
 
 ## Week-one operator checklist
 
