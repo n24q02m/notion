@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v2.44.0-beta.2 (2026-11-14)
+
+### Bug Fixes
+
+- Point the handover version line at its source instead of a stale number
+  ([#1340](https://github.com/n24q02m/notion/pull/1340),
+  [`5e4c910`](https://github.com/n24q02m/notion/commit/5e4c91083ef39e04faa086bb8e0c714d70c36ddf))
+
+
 ## v2.44.0-beta.1 (2026-11-14)
 
 ### Features
