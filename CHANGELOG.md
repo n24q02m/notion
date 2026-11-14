@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v2.44.0-beta.4 (2026-11-14)
+
+### Bug Fixes
+
+- **deps**: Update @notionhq/client to ^5.31.1
+  ([#1342](https://github.com/n24q02m/notion/pull/1342),
+  [`1f1524f`](https://github.com/n24q02m/notion/commit/1f1524f22f1589cad6066039553d8ffb15d5f9b7))
+
+
 ## v2.44.0-beta.3 (2026-11-14)
 
 ### Bug Fixes
