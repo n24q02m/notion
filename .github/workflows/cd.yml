@@ -213,6 +213,14 @@ jobs:
       - run: bun install --frozen-lockfile
 
       - run: bun run build
+      # npm ignores bun.lock: pin the published dependency tree to it, so an
+      # `npm install -g` gets the tree CI tested instead of re-resolving ranges.
+      - name: Pin the published tree to bun.lock (npm-shrinkwrap.json)
+        run: |
+          set -euo pipefail
+          node scripts/shrinkwrap-from-bun.mjs
+          npm pack --dry-run --json --ignore-scripts | jq -e '.[0].files | map(.path) | index("npm-shrinkwrap.json")' >/dev/null \
+            || { echo "::error::npm-shrinkwrap.json missing from the npm tarball"; exit 1; }
 
       - run: npm publish --provenance --no-git-checks --tag ${{ needs.release.outputs.is_prerelease == 'true' && 'beta' || 'latest' }}
 
@@ -394,6 +402,74 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ env.DOCKERHUB_IMAGE }}
           short-description: ${{ github.event.repository.description }}
+
+  # =================== Bump Homebrew tap and Scoop bucket ===================
+  # bump.yml in n24q02m/homebrew-tap and n24q02m/scoop-bucket owns the formula and
+  # manifest rewrite (artifact URL, sha256, hash-pinned locks) and merges its own PR.
+  # Stable releases dispatch it once the registry serves the version; betas only
+  # check that the token can reach both workflows, since bump.yml takes stable only.
+  bump-taps:
+    name: Bump Homebrew tap and Scoop bucket
+    needs: [ release, publish-npm ]
+    if: needs.release.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      VERSION: ${{ needs.release.outputs.version }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - name: Wait for npm to serve the release with its shrinkwrap
+        run: |
+          set -uo pipefail
+          for _ in $(seq 1 40); do
+            if [ "$(npm view "@n24q02m/notion@$VERSION" version 2>/dev/null)" = "$VERSION" ]; then
+              sw=$(npm view "@n24q02m/notion@$VERSION" _hasShrinkwrap 2>/dev/null)
+              [ "$sw" = "true" ] || { echo "::error::@n24q02m/notion@$VERSION has no npm-shrinkwrap.json (_hasShrinkwrap=$sw)"; exit 1; }
+              echo "npm serves @n24q02m/notion@$VERSION with npm-shrinkwrap.json"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::npm does not serve @n24q02m/notion@$VERSION after 10 minutes"
+          exit 1
+
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.CI_APP_ID }}
+          private-key: ${{ secrets.CI_APP_KEY }}
+          owner: n24q02m
+          repositories: homebrew-tap,scoop-bucket
+          permission-actions: write
+
+      - name: Check bump.yml is reachable (beta)
+        if: needs.release.outputs.is_prerelease == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          for repo in homebrew-tap scoop-bucket; do
+            state=$(gh api "repos/n24q02m/$repo/actions/workflows/bump.yml" --jq .state)
+            [ "$state" = "active" ] || { echo "::error::n24q02m/$repo bump.yml is $state"; exit 1; }
+            echo "n24q02m/$repo bump.yml: $state (dispatch runs on stable only)"
+          done
+
+      - name: Dispatch bump.yml (stable)
+        if: needs.release.outputs.is_prerelease != 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          for repo in homebrew-tap scoop-bucket; do
+            gh workflow run bump.yml -R "n24q02m/$repo" -f package=notion -f version="$VERSION"
+            echo "dispatched n24q02m/$repo bump.yml package=notion version=$VERSION"
+          done
 
   # ============================================================================
   # Publish to MCP Registry

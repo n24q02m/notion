@@ -41,3 +41,6 @@ package-lock.json
 # Python bytecode (hooks tests)
 __pycache__/
 *.pyc
+
+# Generated at publish time from bun.lock (scripts/shrinkwrap-from-bun.mjs)
+npm-shrinkwrap.json
