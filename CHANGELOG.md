@@ -2,6 +2,46 @@
 
 <!-- version list -->
 
+## v2.44.0-beta.5 (2026-11-16)
+
+### Bug Fixes
+
+- Bring CI workflows in line with the fleet CI policy lint
+  ([#1348](https://github.com/n24q02m/notion/pull/1348),
+  [`675b906`](https://github.com/n24q02m/notion/commit/675b906d7c07e05341c7d4d2303bd4e7f69f91df))
+
+- Dispatch the tap and bucket cd.yml that replaced bump.yml
+  ([#1347](https://github.com/n24q02m/notion/pull/1347),
+  [`2dd7603`](https://github.com/n24q02m/notion/commit/2dd760379b0adfe895796b680cba2f643329b0cc))
+
+- Pin hull 0.8.0-beta.1 so the beta ships the SQLite read-lock and lease-count fixes
+  ([#1351](https://github.com/n24q02m/notion/pull/1351),
+  [`5968f90`](https://github.com/n24q02m/notion/commit/5968f90229628f5ad9f6093d2d31165b863b696a))
+
+- Run lint and tests on workflow_dispatch in ci
+  ([#1345](https://github.com/n24q02m/notion/pull/1345),
+  [`e57bc17`](https://github.com/n24q02m/notion/commit/e57bc178339f3625e71af47d899fedba6d719ff9))
+
+- Start the marketplace plugin sync with workflow_dispatch
+  ([#1346](https://github.com/n24q02m/notion/pull/1346),
+  [`e78200a`](https://github.com/n24q02m/notion/commit/e78200ac1f42a3bdf34d9d78e32dfa953539f789))
+
+- Upload coverage to codecov over oidc and fail the job when it is refused
+  ([#1349](https://github.com/n24q02m/notion/pull/1349),
+  [`da98abd`](https://github.com/n24q02m/notion/commit/da98abd4e62b964bf1134ad48e2736c3c734ed24))
+
+- **deps**: Lock file maintenance ([#1352](https://github.com/n24q02m/notion/pull/1352),
+  [`b7159de`](https://github.com/n24q02m/notion/commit/b7159de50eeb98b2972e80b5066a828de0e6fae5))
+
+- **deps**: Lock file maintenance ([#1343](https://github.com/n24q02m/notion/pull/1343),
+  [`c2192f4`](https://github.com/n24q02m/notion/commit/c2192f4293c79f8780a62b39c3e4c6761516f9d7))
+
+### Features
+
+- Sync cross-promo section ([#1350](https://github.com/n24q02m/notion/pull/1350),
+  [`a2ba7e9`](https://github.com/n24q02m/notion/commit/a2ba7e9dba921859d051b61884400bb5d0fddbf8))
+
+
 ## v2.44.0-beta.4 (2026-11-14)
 
 ### Bug Fixes
