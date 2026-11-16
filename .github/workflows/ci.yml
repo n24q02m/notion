@@ -1,11 +1,22 @@
 name: CI
 
 on:
+  # Public repo (spec 2026-10-30): ci.yml may also start by itself, because Actions minutes
+  # are free on a public repo. cd.yml stays dispatch-only on every repo. ci_policy_lint.py
+  # allows these triggers in ci.yml of a public repo only. `sha` is read by the
+  # main-integrity job only.
   pull_request:
     branches: [ main ]
     types: [ opened, synchronize, reopened, ready_for_review, edited ]
   push:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Commit for the main-integrity job to verify (default: the tip of the dispatched ref)"
+        required: false
+        type: string
+        default: ""
 permissions:
   contents: read
   pull-requests: write
@@ -55,6 +66,7 @@ jobs:
     if: >-
       (github.event_name == 'pull_request' && github.event.action != 'edited')
       || github.event_name == 'push'
+      || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
@@ -110,6 +122,7 @@ jobs:
     if: >-
       (github.event_name == 'pull_request' && github.event.action != 'edited')
       || github.event_name == 'push'
+      || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     steps:
