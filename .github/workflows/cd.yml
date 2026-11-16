@@ -29,6 +29,7 @@ env:
   # this ghcr.io/n24q02m/notion with no literal to keep in sync.
   GHCR_IMAGE: ghcr.io/${{ github.repository }}
 
+# ci-policy: allow concurrency reason: serialize releases, never cancel one mid-publish
 concurrency:
   group: release
   cancel-in-progress: false
@@ -40,6 +41,7 @@ jobs:
   readme-sync:
     name: Verify README registry metadata
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
@@ -64,6 +66,7 @@ jobs:
     name: Semantic Release
     needs: readme-sync
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     outputs:
       released: ${{ steps.release.outputs.released }}
       tag: ${{ steps.release.outputs.tag }}
@@ -193,6 +196,7 @@ jobs:
     needs: release
     if: needs.release.outputs.released == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
@@ -241,6 +245,7 @@ jobs:
       inputs.legacy_final_note
       && needs.release.outputs.released == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
       id-token: write
@@ -296,6 +301,7 @@ jobs:
             runner: ubuntu-24.04-arm
             artifact: linux-arm64
     runs-on: ${{ matrix.runner }}
+    timeout-minutes: 10
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
@@ -336,6 +342,7 @@ jobs:
         with:
           name: digest-${{ matrix.artifact }}
           path: ${{ runner.temp }}/digests/*
+          retention-days: 5
 
   # ============================================================================
   # Merge Docker Manifests
@@ -344,6 +351,7 @@ jobs:
     name: Merge Docker Manifests
     needs: [ release, build-docker ]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
@@ -413,6 +421,7 @@ jobs:
     needs: [ release, publish-npm ]
     if: needs.release.outputs.released == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
     env:
@@ -479,6 +488,7 @@ jobs:
     needs: [ release, publish-npm, merge-docker ]
     if: needs.release.outputs.released == 'true' && needs.release.outputs.is_prerelease != 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
@@ -519,6 +529,7 @@ jobs:
     needs: [ release, publish-mcp-registry ]
     if: needs.release.outputs.released == 'true' && needs.release.outputs.is_prerelease != 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4

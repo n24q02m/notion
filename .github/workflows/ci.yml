@@ -21,6 +21,13 @@ permissions:
   contents: read
   pull-requests: write
 
+# `edited` (kept so pr-title re-checks a retitled PR) gets its own group: in the
+# shared group a title or body edit would cancel the in-flight test run of the
+# same PR, while the `edited` run itself skips every job except pr-title.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}-${{ github.event.action == 'edited' && 'edited' || 'code' }}
+  cancel-in-progress: true
+
 jobs:
   # ============================================================================
   # PR Title Lint (Conventional Commits subset)
@@ -37,6 +44,7 @@ jobs:
     name: Validate PR title (Conventional Commits subset)
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       pull-requests: read
     steps:
@@ -72,6 +80,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
 
     steps:
       - name: Harden Runner
@@ -124,6 +133,7 @@ jobs:
       || github.event_name == 'push'
       || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - name: Harden Runner
@@ -146,6 +156,7 @@ jobs:
     name: Dependency Review
     if: github.event_name == 'pull_request' && github.event.action != 'edited'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - name: Harden Runner
