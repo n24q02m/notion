@@ -9,11 +9,6 @@
       "bypass_mode": "always"
     },
     {
-      "actor_id": 2740,
-      "actor_type": "Integration",
-      "bypass_mode": "pull_request"
-    },
-    {
       "actor_id": 3200052,
       "actor_type": "Integration",
       "bypass_mode": "always"
@@ -47,9 +42,6 @@
         "require_extra_approval_for_unattributed_changes": true,
         "allowed_merge_methods": ["squash"]
       }
-    },
-    {
-      "type": "update"
     },
     {
       "type": "code_scanning",
