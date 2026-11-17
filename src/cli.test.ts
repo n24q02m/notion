@@ -620,3 +620,55 @@ describe('formatToolResult', () => {
     expect(formatToolResult('pages', { action: 'get', id: 'x' }, false)).toBe('pages get\nid: x')
   })
 })
+
+describe('flag parsing edge cases', () => {
+  it('reads a value given inline with =', () => {
+    expect(parseToolArgs(['get', '--page-id=abc'], findCommand('pages')).args).toEqual({
+      action: 'get',
+      page_id: 'abc'
+    })
+  })
+
+  it('rejects a value flag at the end of argv', () => {
+    expect(() => parseToolArgs(['get', '--page-id'], findCommand('pages'))).toThrow("flag '--page-id' needs a value")
+  })
+
+  it('rejects JSON of the wrong shape for array and object flags', () => {
+    const spec = findCommand('databases')
+    expect(() => parseToolArgs(['query', '--sorts', '{"a":1}'], spec)).toThrow("flag '--sorts' expects a JSON array")
+    for (const raw of ['[1]', 'null', '5']) {
+      expect(() => parseToolArgs(['query', '--filters', raw], spec), raw).toThrow(
+        "flag '--filters' expects a JSON object"
+      )
+    }
+  })
+})
+
+describe('tool command edge cases', () => {
+  it('exits 2 for a tool command name that is not registered', async () => {
+    const console = spyConsole()
+
+    expect(await runToolCommand('nope', [])).toBe(2)
+    expect(console.error).toHaveBeenCalledWith("notion: unknown tool command 'nope'")
+    console.log.mockRestore()
+    console.error.mockRestore()
+  })
+
+  it('prints a rejection that is not an Error as text', async () => {
+    const console = spyConsole()
+    vi.mocked(databases).mockRejectedValueOnce('socket closed')
+
+    const code = await runToolCommand('databases', ['query', '--database-id', 'db-1'])
+
+    expect(code).toBe(1)
+    expect(console.error).toHaveBeenCalledWith('notion databases: socket closed')
+    console.log.mockRestore()
+    console.error.mockRestore()
+  })
+
+  it('renders non-object results, results without an action, and blank lines', () => {
+    expect(formatToolResult('t', ['a'], false)).toBe('t:\n  [\n    "a"\n  ]')
+    expect(formatToolResult('t', undefined, false)).toBe('t:\n  undefined')
+    expect(formatToolResult('t', { text: 'a\n\nb' }, false)).toBe('t\ntext:\n  a\n\n  b')
+  })
+})

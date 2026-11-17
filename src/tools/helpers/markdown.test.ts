@@ -1964,3 +1964,185 @@ describe('round-trip conversion', () => {
     expect(output).toContain('> Quote')
   })
 })
+
+// ============================================================
+// Edge inputs: unsafe URLs, unterminated syntax, sparse blocks
+// ============================================================
+
+function contents(richText: RichText[]): string {
+  return richText.map((rt) => rt.text.content).join('')
+}
+
+describe('markdownToBlocks edge inputs', () => {
+  it('keeps an image with an unsafe URL as a paragraph without a link', () => {
+    const blocks = markdownToBlocks('![x](javascript:alert)')
+    expect(blocks).toHaveLength(1)
+    expect(blocks[0].type).toBe('paragraph')
+    expect(blocks[0].paragraph.rich_text.every((rt: RichText) => !rt.text.link)).toBe(true)
+  })
+
+  it('keeps a bookmark with an unsafe URL as a paragraph without a link', () => {
+    const blocks = markdownToBlocks('[bookmark](javascript:alert)')
+    expect(blocks).toHaveLength(1)
+    expect(blocks[0].type).toBe('paragraph')
+    expect(contents(blocks[0].paragraph.rich_text)).toBe('bookmark')
+    expect(blocks[0].paragraph.rich_text[0].text.link).toBeNull()
+  })
+
+  it('parses a pipe line with no closing pipe as a zero-width table', () => {
+    const blocks = markdownToBlocks('|abc')
+    expect(blocks).toHaveLength(1)
+    expect(blocks[0].type).toBe('table')
+    expect(blocks[0].table.table_width).toBe(0)
+    expect(blocks[0].table.has_column_header).toBe(false)
+    expect(blocks[0].table.children).toHaveLength(1)
+  })
+
+  it('pads a data row that is shorter than the header with empty cells', () => {
+    const blocks = markdownToBlocks('| a | b |\n| --- | --- |\n| x |')
+    const rows = blocks[0].table.children
+    expect(rows).toHaveLength(2)
+    expect(contents(rows[1].table_row.cells[0])).toBe('x')
+    expect(contents(rows[1].table_row.cells[1])).toBe('')
+  })
+
+  it('parses a one-line toggle with no content as an empty toggle', () => {
+    const blocks = markdownToBlocks('<details><summary>T</summary></details>')
+    expect(blocks).toHaveLength(1)
+    expect(blocks[0].type).toBe('toggle')
+    expect(contents(blocks[0].toggle.rich_text)).toBe('T')
+    expect(blocks[0].toggle.children).toEqual([])
+  })
+
+  it('keeps content that starts on the summary line and continues below it', () => {
+    const blocks = markdownToBlocks('<details><summary>T</summary>first\nsecond\n</details>\nafter')
+    expect(blocks.map((b) => b.type)).toEqual(['toggle', 'paragraph'])
+    expect(blocks[0].toggle.children.map((b: NotionBlock) => getRichTextContent(b))).toEqual(['first', 'second'])
+    expect(getRichTextContent(blocks[1])).toBe('after')
+  })
+
+  it('parses a bare <details> on the last line as an untitled empty toggle', () => {
+    const blocks = markdownToBlocks('<details>')
+    expect(blocks).toHaveLength(1)
+    expect(blocks[0].type).toBe('toggle')
+    expect(contents(blocks[0].toggle.rich_text)).toBe('')
+    expect(blocks[0].toggle.children).toEqual([])
+  })
+
+  it('leaves the title empty when the line after <details> has no summary', () => {
+    const blocks = markdownToBlocks('<details>\nno summary here\n</details>')
+    expect(blocks).toHaveLength(1)
+    expect(contents(blocks[0].toggle.rich_text)).toBe('')
+    expect(blocks[0].toggle.children.map((b: NotionBlock) => getRichTextContent(b))).toEqual(['no summary here'])
+  })
+
+  it('parses :::columns closed right away as a column list with no columns', () => {
+    const blocks = markdownToBlocks(':::columns\n:::end')
+    expect(blocks).toHaveLength(1)
+    expect(blocks[0].column_list.children).toEqual([])
+  })
+
+  it('flushes every column when :::end is missing', () => {
+    const blocks = markdownToBlocks(':::columns\n:::column\nA\n:::column\nB')
+    const columns = blocks[0].column_list.children
+    expect(columns).toHaveLength(2)
+    expect(getRichTextContent(columns[0].column.children[0])).toBe('A')
+    expect(getRichTextContent(columns[1].column.children[0])).toBe('B')
+  })
+
+  it('flushes a single unterminated column', () => {
+    const blocks = markdownToBlocks(':::columns\n:::column\nA')
+    const columns = blocks[0].column_list.children
+    expect(columns).toHaveLength(1)
+    expect(getRichTextContent(columns[0].column.children[0])).toBe('A')
+  })
+})
+
+describe('parseRichText unterminated syntax', () => {
+  it.each([
+    ['@[open'],
+    ['@[title] tail'],
+    ['@[title](no-close'],
+    ['[open'],
+    ['[title] tail'],
+    ['[title](no-close'],
+    ['a~b'],
+    ['a@b']
+  ])('keeps %s as literal text', (text) => {
+    const richText = parseRichText(text)
+    expect(contents(richText)).toBe(text)
+    expect(richText.every((rt) => rt.type === 'text' && !rt.text.link)).toBe(true)
+  })
+})
+
+describe('blocksToMarkdown sparse blocks', () => {
+  const block = (type: string, data: Record<string, unknown>): NotionBlock => ({ object: 'block', type, [type]: data })
+
+  it('renders a callout without an icon as a NOTE', () => {
+    expect(blocksToMarkdown([block('callout', { rich_text: [plainRichText('c')] })])).toBe('> [!NOTE] c')
+  })
+
+  it('renders nothing for a table without rows', () => {
+    expect(blocksToMarkdown([block('table', {})])).toBe('')
+  })
+
+  it('renders empty rows, with a separator after an empty header row', () => {
+    const table = block('table', { has_column_header: true, children: [{ table_row: { cells: [] } }, {}] })
+    expect(blocksToMarkdown([table])).toBe('|  |\n|  |\n|  |')
+  })
+
+  it('renders a column list without columns and a column without content', () => {
+    expect(blocksToMarkdown([block('column_list', {})])).toBe(':::columns\n:::end')
+    expect(blocksToMarkdown([block('column_list', { children: [{}] })])).toBe(':::columns\n:::column\n:::end')
+  })
+
+  it('renders the children of level 2 and level 3 headings', () => {
+    const child = block('paragraph', { rich_text: [plainRichText('c')] })
+    expect(blocksToMarkdown([block('heading_2', { rich_text: [plainRichText('H')], children: [child] })])).toBe(
+      '## H\nc'
+    )
+    expect(blocksToMarkdown([block('heading_3', { rich_text: [plainRichText('H')], children: [child] })])).toBe(
+      '### H\nc'
+    )
+  })
+
+  it('renders an image and a file with no URL and no caption', () => {
+    expect(blocksToMarkdown([block('image', {})])).toBe('![]()')
+    expect(blocksToMarkdown([block('file', {})])).toBe('[file]()')
+  })
+
+  it('renders an empty string for a paragraph with no rich text array', () => {
+    expect(blocksToMarkdown([block('paragraph', {})])).toBe('')
+  })
+
+  it('skips null and text-less entries and renders sparse text and mentions', () => {
+    const richText = [
+      null,
+      { type: 'text' },
+      { type: 'text', text: { content: '' } },
+      { type: 'text', text: { content: 'plain' } },
+      { type: 'mention', mention: { page: { id: 'p1' } }, text: { content: 'From text' } },
+      { type: 'mention', mention: { database: { id: 'd1' } } },
+      { type: 'mention', mention: { user: { id: 'u1' } }, plain_text: '@Ann' }
+    ] as unknown as RichText[]
+    expect(blocksToMarkdown([block('paragraph', { rich_text: richText })])).toBe(
+      'plain@[From text](p1)@[Untitled](d1)@Ann'
+    )
+  })
+
+  it('applies every annotation and the link in a fixed order', () => {
+    const rt: RichText = {
+      type: 'text',
+      text: { content: 't', link: { url: 'https://example.com' } },
+      annotations: { bold: true, italic: true, strikethrough: true, underline: false, code: true, color: 'default' }
+    }
+    expect(blocksToMarkdown([block('paragraph', { rich_text: [rt] })])).toBe('[~~`***t***`~~](https://example.com)')
+  })
+})
+
+describe('extractPlainText sparse input', () => {
+  it('returns an empty string for a missing array and for entries with no text', () => {
+    expect(extractPlainText(undefined as unknown as RichText[])).toBe('')
+    expect(extractPlainText([{ type: 'mention', mention: {} } as unknown as RichText])).toBe('')
+  })
+})
