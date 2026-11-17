@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v2.44.0 (2026-11-17)
+
+### Bug Fixes
+
+- Pin hull to 0.8.0 stable ([#1353](https://github.com/n24q02m/notion/pull/1353),
+  [`944ff09`](https://github.com/n24q02m/notion/commit/944ff0953b78daffc2c47c303846f2b9ef649cde))
+
+
 ## v2.44.0-beta.5 (2026-11-16)
 
 ### Bug Fixes
