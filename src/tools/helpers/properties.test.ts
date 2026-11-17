@@ -794,3 +794,33 @@ describe('extractPageProperties', () => {
     expect(extractPageProperties(props)).toEqual({ Window: '2026-01-01 to 2026-01-31' })
   })
 })
+
+describe('extractPageProperties sparse values', () => {
+  it('omits every property whose typed value is null', () => {
+    const types = [
+      'rich_text',
+      'select',
+      'multi_select',
+      'date',
+      'relation',
+      'rollup',
+      'people',
+      'files',
+      'formula',
+      'created_by',
+      'last_edited_by',
+      'status',
+      'unique_id'
+    ]
+    const props = Object.fromEntries(types.map((type) => [type, { type, [type]: null }]))
+    expect(extractPageProperties(props)).toEqual({})
+  })
+
+  it('reads a text fragment without plain_text as an empty string', () => {
+    const props = {
+      Name: { type: 'title', title: [{ plain_text: 'A' }, {}] },
+      Notes: { type: 'rich_text', rich_text: [{}, { plain_text: 'B' }] }
+    }
+    expect(extractPageProperties(props)).toEqual({ Name: 'A', Notes: 'B' })
+  })
+})

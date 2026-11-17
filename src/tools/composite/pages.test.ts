@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { blocksToMarkdown } from '../helpers/markdown.js'
+import { blocksToMarkdown, markdownToBlocks } from '../helpers/markdown.js'
 import {
   type ArchivePageResult,
   type CreatePageResult,
@@ -1067,6 +1067,149 @@ describe('pages', () => {
   describe('unknown action', () => {
     it('throws on unknown action', async () => {
       await expect(pages(mockNotion as any, { action: 'explode' as any })).rejects.toThrow('Unknown action: explode')
+    })
+  })
+})
+
+describe('pages edge paths', () => {
+  beforeEach(() => {
+    mockNotion = createMockNotion()
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  const page = { id: 'p-1', url: 'https://notion.so/p-1', created_time: 't0', last_edited_time: 't1', properties: {} }
+
+  it('get: a cursor without a limit reads one 100-block page and reports no more content', async () => {
+    mockNotion.pages.retrieve.mockResolvedValue(page)
+    mockNotion.blocks.children.list.mockResolvedValue({
+      results: [{ id: 'b-1', type: 'paragraph', has_children: false }],
+      next_cursor: null,
+      has_more: false
+    })
+
+    const result = (await pages(mockNotion as any, {
+      action: 'get',
+      page_id: 'p-1',
+      content_cursor: 'cur-1'
+    })) as GetPageResult
+
+    expect(mockNotion.blocks.children.list).toHaveBeenCalledWith({
+      block_id: 'p-1',
+      start_cursor: 'cur-1',
+      page_size: 100
+    })
+    expect(result.content_truncated).toBe(false)
+    expect(result.next_cursor).toBeNull()
+  })
+
+  it('create: keeps a database title the caller already supplied as Name', async () => {
+    mockNotion.pages.create.mockResolvedValue({ id: 'new-1', url: 'https://notion.so/new-1' })
+    const name = { title: [{ text: { content: 'Given' } }] }
+
+    await pages(mockNotion as any, { action: 'create', title: 'Ignored', parent_id: 'db1', properties: { Name: name } })
+
+    expect(mockNotion.pages.create).toHaveBeenCalledWith({
+      parent: { type: 'database_id', database_id: 'db1' },
+      properties: { Name: name }
+    })
+  })
+
+  it('create: skips the append when the content converts to no blocks', async () => {
+    mockNotion.pages.create.mockResolvedValue({ id: 'new-2', url: 'https://notion.so/new-2' })
+    vi.mocked(markdownToBlocks).mockReturnValueOnce([])
+
+    await pages(mockNotion as any, { action: 'create', title: 'T', parent_id: 'parent-1', content: '\n\n' })
+
+    expect(mockNotion.blocks.children.append).not.toHaveBeenCalled()
+  })
+
+  it('get_property: treats a title item without plain_text as empty text', async () => {
+    mockNotion.pages.properties.retrieve.mockResolvedValue({
+      object: 'list',
+      results: [
+        { type: 'title', title: {} },
+        { type: 'title', title: { plain_text: 'B' } }
+      ],
+      next_cursor: null,
+      has_more: false
+    })
+
+    const result = (await pages(mockNotion as any, {
+      action: 'get_property',
+      page_id: 'p-1',
+      property_id: 'title'
+    })) as GetPagePropertyResult
+
+    expect(result.value).toBe('B')
+  })
+
+  it('get_property: drops relation items that carry no id', async () => {
+    mockNotion.pages.properties.retrieve.mockResolvedValue({
+      object: 'list',
+      results: [{ type: 'relation', relation: { id: 'r-1' } }, { type: 'relation' }],
+      next_cursor: null,
+      has_more: false
+    })
+
+    const result = (await pages(mockNotion as any, {
+      action: 'get_property',
+      page_id: 'p-1',
+      property_id: 'rel'
+    })) as GetPagePropertyResult
+
+    expect(result.value).toEqual(['r-1'])
+  })
+
+  it('get_property: returns the whole item when it has no value under its type', async () => {
+    const item = { object: 'property_item', type: 'number' }
+    mockNotion.pages.properties.retrieve.mockResolvedValue(item)
+
+    const result = (await pages(mockNotion as any, {
+      action: 'get_property',
+      page_id: 'p-1',
+      property_id: 'num'
+    })) as GetPagePropertyResult
+
+    expect(result.type).toBe('number')
+    expect(result.value).toEqual(item)
+  })
+
+  it('update: replace on an empty page deletes nothing and appends the new content', async () => {
+    mockNotion.blocks.children.list.mockResolvedValue({ results: [], next_cursor: null, has_more: false })
+
+    await pages(mockNotion as any, { action: 'update', page_id: 'p-1', content: 'New', replace: true })
+
+    expect(mockNotion.blocks.delete).not.toHaveBeenCalled()
+    expect(mockNotion.blocks.children.append).toHaveBeenCalledTimes(1)
+  })
+
+  it('update: skips the append when content or append_content converts to no blocks', async () => {
+    vi.mocked(markdownToBlocks).mockReturnValueOnce([])
+    await pages(mockNotion as any, { action: 'update', page_id: 'p-1', content: '\n' })
+
+    vi.mocked(markdownToBlocks).mockReturnValueOnce([])
+    await pages(mockNotion as any, { action: 'update', page_id: 'p-1', append_content: '\n' })
+
+    expect(mockNotion.blocks.children.append).not.toHaveBeenCalled()
+  })
+
+  it('duplicate: passes a parent of another type through and strips null fields from block data', async () => {
+    const parent = { type: 'workspace', workspace: true }
+    mockNotion.pages.retrieve.mockResolvedValue({ id: 'orig', parent, properties: {}, icon: null, cover: null })
+    mockNotion.blocks.children.list.mockResolvedValue({
+      results: [{ id: 'b-1', type: 'paragraph', paragraph: { rich_text: [], icon: null, color: 'default' } }],
+      next_cursor: null,
+      has_more: false
+    })
+    mockNotion.pages.create.mockResolvedValue({ id: 'dup', url: 'https://notion.so/dup' })
+    mockNotion.blocks.children.append.mockResolvedValue({ results: [] })
+
+    await pages(mockNotion as any, { action: 'duplicate', page_id: 'orig' })
+
+    expect(mockNotion.pages.create).toHaveBeenCalledWith(expect.objectContaining({ parent }))
+    expect(mockNotion.blocks.children.append).toHaveBeenCalledWith({
+      block_id: 'dup',
+      children: [{ type: 'paragraph', paragraph: { rich_text: [], color: 'default' } }]
     })
   })
 })
