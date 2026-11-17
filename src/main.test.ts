@@ -2,7 +2,7 @@ import * as fs from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { authCommand, bootstrap, getTransportMode, isMain, mode, relayCommand, startServer } from './main.js'
+import { authCommand, bootstrap, getTransportMode, isMain, mode, startServer } from './main.js'
 
 const startHttpMock = vi.fn()
 const stdioConnectMock = vi.fn().mockResolvedValue(undefined)
@@ -493,6 +493,41 @@ describe('main.ts', () => {
       logSpy.mockRestore()
     })
 
+    it('lists the operator commands in --help without relay', async () => {
+      process.argv = [process.argv[0], mainPath, '--help']
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+
+      vi.resetModules()
+      await import(`${pathToFileURL(mainPath).href}?test=${Date.now()}`)
+      await vi.waitFor(() => expect(exitSpy).toHaveBeenCalled())
+
+      const text = logSpy.mock.calls.map((call) => String(call[0])).join('\n')
+      expect(exitSpy).toHaveBeenCalledWith(0)
+      expect(text).toContain('operator commands:')
+      expect(text).toContain('auth, config, doctor, logout, status, token')
+      expect(text).not.toMatch(/\brelay\b/)
+      expect(stdioConnectMock).not.toHaveBeenCalled()
+      logSpy.mockRestore()
+    })
+
+    it('treats relay as an unknown subcommand (exit 2) that the error does not advertise', async () => {
+      process.argv = [process.argv[0], mainPath, 'relay']
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      vi.resetModules()
+      await import(`${pathToFileURL(mainPath).href}?test=${Date.now()}`)
+      await vi.waitFor(() => expect(exitSpy).toHaveBeenCalled())
+
+      const text = errorSpy.mock.calls.map((call) => String(call[0])).join('\n')
+      expect(exitSpy).toHaveBeenCalledWith(2)
+      expect(text).toContain("notion: unknown subcommand 'relay' (expected one of: ")
+      const expected = text.slice(text.indexOf('expected one of: '))
+      expect(expected).toContain('auth')
+      expect(expected).not.toMatch(/\brelay\b/)
+      expect(stdioConnectMock).not.toHaveBeenCalled()
+      errorSpy.mockRestore()
+    })
+
     it('does not exit right after the stdio transport connects (stays alive until shutdown)', async () => {
       // Regression guard: Server.connect() resolves once the transport
       // starts listening, not once the session ends. If `serve()` returned
@@ -560,17 +595,6 @@ describe('main.ts', () => {
       expect(exitSpy).toHaveBeenCalledWith(1)
       errorSpy.mockRestore()
     })
-  })
-})
-
-describe('relayCommand', () => {
-  it('refuses with exit 2 and points to notion auth', () => {
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-    expect(relayCommand()).toBe(2)
-    expect(errorSpy).toHaveBeenCalledWith('relay was removed; run `notion auth` (see README)')
-
-    errorSpy.mockRestore()
   })
 })
 

@@ -369,7 +369,7 @@ describe('help output', () => {
   it('lists tool commands and operator commands as separate groups', () => {
     const console = spyConsole()
 
-    printCliHelp(['auth', 'relay'])
+    printCliHelp(['auth'])
 
     const text = vi
       .mocked(console.log)
@@ -381,7 +381,8 @@ describe('help output', () => {
     expect(operatorIndex).toBeGreaterThan(toolIndex)
     expect(text).toContain('pages')
     expect(text).toContain('content_convert (alias: content-convert)')
-    expect(text).toContain('auth, config, doctor, logout, relay, status, token')
+    expect(text).toContain('auth, config, doctor, logout, status, token')
+    expect(text).not.toMatch(/\brelay\b/)
     console.log.mockRestore()
     console.error.mockRestore()
   })
