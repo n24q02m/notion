@@ -28,11 +28,11 @@ import { invokeTool } from './tools/invoke.js'
 
 const SERVER_NAME = 'notion'
 
-/** Operator commands `buildCli` provides plus the two this server supplies. */
+/** Operator commands `buildCli` provides as hull built-ins. */
 export const BUILTIN_OPERATOR_COMMANDS = ['config', 'doctor', 'logout', 'status', 'token']
 
 /** The operator commands `src/main.ts` adds on top of hull's built-ins. */
-export const SERVER_OPERATOR_COMMANDS = ['auth', 'relay']
+export const SERVER_OPERATOR_COMMANDS = ['auth']
 
 /**
  * Tool name -> CLI subcommand, for the names a tool cannot spell as itself.
@@ -315,7 +315,7 @@ export interface CliWiring {
   /** Starts the MCP server (bare invocation and transport flags). */
   serve: ServeFn
   version: string
-  /** Server-specific operator commands (`auth`, `relay`). */
+  /** Server-specific operator commands (`auth`). */
   operator?: Record<string, CliHandler>
 }
 
