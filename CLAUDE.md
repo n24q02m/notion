@@ -116,7 +116,7 @@ Tier policy:
 
 - **T0** (precommit + CI on PR / main push) - runs without upstream identity. Skret keys not required.
 - **T2 non-interaction** (`make e2e-config CONFIG=<id>` locally) - token from skret AWS SSM `/better-notion-mcp/prod` (`ap-southeast-1`). No user gate.
-- **T2 interaction** - not applicable to notion: the only credential is an integration token, so no provider sign-in or user gate. The `mcp-core` matrix still names the removed relay form for this config; that file is outside this repo and needs its own update.
+- **T2 interaction** - not applicable to notion: the only credential is an integration token, so no provider sign-in or user gate.
 
 Multi-user HTTP mode (deployment property; not a separate config) requires `MCP_AUTH_MODE=multi` and a users file (`MCP_USERS_FILE`, default `~/.hull/users.toml`).
 
