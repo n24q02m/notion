@@ -47,7 +47,7 @@ mise run fix                # bun run check:fix
 
 ## Cau hinh
 
-- Node.js >= 24, bun, ESM (`"type": "module"`)
+- Node.js (version range: `engines` in `package.json`), bun, ESM (`"type": "module"`)
 - TypeScript: strict, target es2021, module es2022, moduleResolution Bundler
 - Biome: 2 spaces, line width 120, single quotes, semicolons as needed, trailing commas none
 - **LUON dung `.js` extension** trong import paths (ESM requirement)
@@ -102,22 +102,14 @@ TS servers store credentials via hull storage under `~/.notion/` (`STORE_PLUGIN 
 
 ## E2E
 
-Driven by `mcp-core/scripts/e2e/` (matrix-locked, 15 configs). Run a single config from this repo via `make e2e` (proxy) or directly:
+The end-to-end checks live in this repo; no external driver or matrix runs them.
 
-```
-cd ../mcp-core && uv run --project scripts/e2e python -m e2e.driver <config-id>
-```
-
-Configs for this repo: `notion-paste-token`.
+- **Shipped CLI, no credentials** (`src/cli.e2e.test.ts`): builds `bin/cli.mjs` with the same script as `bun run build` and runs it as a subprocess with no Notion token and a temporary `NOTION_DATA_DIR` (`--help`, `help`, `content_convert`, `config-tool status`). It is part of `bun run test`, so the pre-commit hook and CI run it.
+- **Read-only acceptance against a running HTTP server** (`scripts/provider-readonly-acceptance.ts`): `NOTION_MCP_URL=<endpoint> NOTION_MCP_BEARER_TOKEN=<token> bun scripts/provider-readonly-acceptance.ts` calls `workspace info`, `users me` and `workspace search` over streamable HTTP and prints a JSON summary with `"status":"VERIFIED"`. Missing input or a failed call prints `"status":"FAILED"` and exits 1. The script's logic is unit-tested in `tests/provider-readonly-acceptance.test.ts`.
+- **Live suites** (`tests/live/`): stdio protocol and full Notion API tests with their own config, `tests/live/vitest.live.config.ts`, excluded from the default run. The full Notion suite needs a real `NOTION_TOKEN`.
 
 Note: there is no n24q02m-hosted HTTP endpoint; validate HTTP mode against an operator-owned self-hosted deployment.
 
-Tier policy:
+The only credential is a Notion integration token, so no check needs a provider sign-in or a user gate.
 
-- **T0** (precommit + CI on PR / main push) - runs without upstream identity. Skret keys not required.
-- **T2 non-interaction** (`make e2e-config CONFIG=<id>` locally) - token from skret AWS SSM `/better-notion-mcp/prod` (`ap-southeast-1`). No user gate.
-- **T2 interaction** - not applicable to notion: the only credential is an integration token, so no provider sign-in or user gate.
-
-Multi-user HTTP mode (deployment property; not a separate config) requires `MCP_AUTH_MODE=multi` and a users file (`MCP_USERS_FILE`, default `~/.hull/users.toml`).
-
-References: `mcp-core/scripts/e2e/matrix.yaml`, `~/.claude/skills/mcp-dev/references/e2e-full-matrix.md` (harness-readiness gate), `~/.claude/skills/mcp-dev/references/secrets-skret.md` (per-server credential layout), `~/.claude/skills/mcp-dev/references/multi-user-pattern.md` (per-user namespace isolation).
+Multi-user HTTP mode requires `MCP_AUTH_MODE=multi` and a users file (`MCP_USERS_FILE`, default `~/.hull/users.toml`).

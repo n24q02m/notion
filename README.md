@@ -330,8 +330,7 @@ How notion stacks up against direct competitors in each pillar:
 ## Security
 
 - **Bearer token auth** -- per-user tokens (`multi`) or one scrypt-hashed shared token (`token`)
-- **Rate limiting** -- 120 req/min/IP on HTTP transport
-- **Session owner binding** -- IP check + TTL for pending token binds
+- **Rate limiting** -- optional requests-per-minute cap on HTTP transport: `MCP_RPM` for the shared token (`token`) or `limits.rpm` per user in the users file (`multi`); requests over the cap get HTTP 429. No cap unless one is set
 - **Null safety** -- Handles Notion API quirks (comments.list 404, undefined rich_text)
 
 ## Build from Source

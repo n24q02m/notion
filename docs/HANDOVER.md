@@ -41,7 +41,7 @@ Every registered tool therefore has a subcommand; the list is derived from `TOOL
 
 ## Build and verify
 
-- Node.js >= 24.22.2 (see `engines`); Bun for the toolchain.
+- Node.js: the version range in `package.json` `engines`; Bun for the toolchain.
 - Install: `bun install --frozen-lockfile`
 - Check (Biome + type check): `bun run check`
 - Tests: `bun run test` (vitest); with coverage: `bun run test -- --coverage`
