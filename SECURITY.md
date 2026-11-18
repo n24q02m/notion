@@ -27,14 +27,11 @@ You will receive acknowledgment within 48 hours.
 - Regular dependency updates via Renovate
 - npm audit checks in CI
 - Docker images from official sources, non-root user
-- OAuth 2.1 with PKCE S256 and session owner binding
-- Stateless HMAC-based Dynamic Client Registration
-- Rate limiting on MCP (120/min) and auth (20/min) endpoints
+- Bearer token auth on the HTTP transport: per-user tokens (`multi`) or one scrypt-hashed shared token (`token`)
+- Optional requests-per-minute cap on the HTTP transport (`MCP_RPM` in `token` mode, `limits.rpm` per user in `multi` mode); requests over the cap get HTTP 429
 - X-Powered-By header disabled
 - Error sanitization (whitelist-only fields, no token leakage)
 - Indirect prompt injection defense (untrusted content markers)
 - Path traversal prevention in help/docs endpoints
-- Redirect URI protocol validation (blocks javascript:, data:, etc.)
-- IP-scoped pending bind with 30s TTL for token binding
 - Environment variables for sensitive data
 - Least privilege principle
