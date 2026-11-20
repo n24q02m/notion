@@ -1,0 +1,9 @@
+[install]
+# Hold new releases for 7 days, the hold renovate.json puts on every update, so the
+# `bun install` that Renovate's artifact step runs here locks the versions Renovate
+# proposes instead of releases younger than the hold. bun reads this file only from
+# the directory it runs in, never from a parent.
+minimumReleaseAge = 604800
+# Released by this stack and consumed right after release; renovate.json exempts
+# these from its hold too, so both sides resolve the same version.
+minimumReleaseAgeExcludes = ["@n24q02m/hull"]
