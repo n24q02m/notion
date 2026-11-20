@@ -111,6 +111,11 @@
       "matchCategories": ["golang"],
       "postUpdateOptions": ["gomodTidy"],
       "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "@n24q02m/hull is released by this stack and consumed right after release. bunfig.toml exempts it from bun's minimumReleaseAge; this rule, last so no later rule re-applies a hold, keeps Renovate from holding it either, so the version Renovate proposes is the one bun locks.",
+      "matchPackageNames": ["@n24q02m/hull"],
+      "minimumReleaseAge": null
     }
   ],
   "semanticCommits": "enabled",
