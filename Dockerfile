@@ -15,7 +15,7 @@ COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
 # Use Node.js for building (tsc + esbuild)
-FROM node:24.22.2-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8 AS builder
+FROM node:24.22.3-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5 AS builder
 
 WORKDIR /app
 
@@ -29,7 +29,7 @@ COPY . .
 RUN npx tsc -build && node scripts/build-cli.js
 
 # Base runtime stage (shared by both targets)
-FROM node:24.22.2-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8 AS base
+FROM node:24.22.3-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5 AS base
 
 LABEL org.opencontainers.image.source="https://github.com/n24q02m/notion"
 # MCP Registry id must match server.json `name` and package.json `mcpName`;
