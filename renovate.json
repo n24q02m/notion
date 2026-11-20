@@ -94,6 +94,12 @@
       "minimumReleaseAge": "7 days"
     },
     {
+      "description": "A digest update carries no release timestamp, so under the default timestamp-required its stability-days status would stay pending forever; the hold still applies where the registry gives a timestamp",
+      "matchUpdateTypes": ["digest", "pinDigest"],
+      "minimumReleaseAge": "7 days",
+      "minimumReleaseAgeBehaviour": "timestamp-optional"
+    },
+    {
       "description": "Release runs on the better-semantic-release fork — never let an update swap it back to upstream python-semantic-release",
       "matchManagers": ["github-actions"],
       "matchPackageNames": ["python-semantic-release/python-semantic-release"],
