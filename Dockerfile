@@ -51,6 +51,11 @@ RUN ln -s /usr/local/lib/node_modules/@n24q02m/notion/bin/cli.mjs /usr/local/bin
 
 ENV NODE_ENV=production
 
+# Mount point for the credential store (NOTION_DATA_DIR=/data). A named volume
+# takes the ownership of this directory on first mount, so the non-root user can
+# write to it.
+RUN mkdir -p /data && chown node:node /data
+
 USER node
 
 # stdio target: direct MCP SDK StdioServerTransport (no daemon hop).

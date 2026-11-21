@@ -12,6 +12,7 @@ services:
       - MCP_TRANSPORT=http
       - PORT=8080
       - HOST=0.0.0.0
+      - NOTION_DATA_DIR=/data
       - MCP_AUTH_MODE=${MCP_AUTH_MODE:-multi}
       - MCP_AUTH_TOKEN_HASH=${MCP_AUTH_TOKEN_HASH:-}
       - MCP_USERS_FILE=${MCP_USERS_FILE:-}
