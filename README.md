@@ -100,7 +100,7 @@ never republished.
 Or run the published Docker image (stdio):
 
 ```bash
-docker run --rm -i -e NOTION_TOKEN=ntn_your_token_here n24q02m/notion:latest
+docker run --rm -i -e MCP_TRANSPORT=stdio -e NOTION_TOKEN=ntn_your_token_here n24q02m/notion:latest
 ```
 
 ### Install matrix

@@ -41,7 +41,7 @@
     "prepublishOnly": "bun run build",
     "docker:build": "docker build -t n24q02m/notion:latest .",
     "docker:push": "docker push n24q02m/notion:latest",
-    "docker:run": "docker run --rm -i -e NOTION_TOKEN n24q02m/notion:latest"
+    "docker:run": "docker run --rm -i -e MCP_TRANSPORT=stdio -e NOTION_TOKEN n24q02m/notion:latest"
   },
   "bin": {
     "notion": "bin/cli.mjs",
