@@ -2,6 +2,73 @@
 
 <!-- version list -->
 
+## v2.45.0-beta.1 (2026-11-21)
+
+### Bug Fixes
+
+- Align security, handover and contributor docs with the code
+  ([#1360](https://github.com/n24q02m/notion/pull/1360),
+  [`54f3a6d`](https://github.com/n24q02m/notion/commit/54f3a6dc5eaeea11476d94f3de7922ea6a1ba9df))
+
+- Drop the leftover relay subcommand from the CLI
+  ([#1357](https://github.com/n24q02m/notion/pull/1357),
+  [`cbbf981`](https://github.com/n24q02m/notion/commit/cbbf9812c2d5219cb6fb902415d39529bceba1e9))
+
+- Drop the Renovate bypass and the update rule from the main ruleset
+  ([#1355](https://github.com/n24q02m/notion/pull/1355),
+  [`ced6b32`](https://github.com/n24q02m/notion/commit/ced6b329e9fb9ac4150c847d8889fe537d366558))
+
+- Drop the stale mcp-core relay note from the e2e tier policy
+  ([#1359](https://github.com/n24q02m/notion/pull/1359),
+  [`ae4d3ea`](https://github.com/n24q02m/notion/commit/ae4d3ea2a145400b4151025af28031051f28fd7c))
+
+- Hold bun installs to the Renovate release age
+  ([#1366](https://github.com/n24q02m/notion/pull/1366),
+  [`85cebae`](https://github.com/n24q02m/notion/commit/85cebae6e55d5776c42b4d90dad9d240c289fbbe))
+
+- Let Renovate digest updates clear the release-age hold
+  ([#1365](https://github.com/n24q02m/notion/pull/1365),
+  [`eb8cae7`](https://github.com/n24q02m/notion/commit/eb8cae7c615333da066dc45ccb5df7aa2c95f91e))
+
+- Let the container write its credential store under /data
+  ([#1370](https://github.com/n24q02m/notion/pull/1370),
+  [`148c8cd`](https://github.com/n24q02m/notion/commit/148c8cd6568697218c08923618ceaa9a5b6f767e))
+
+- Raise the branch coverage threshold to 95 ([#1358](https://github.com/n24q02m/notion/pull/1358),
+  [`bd8b386`](https://github.com/n24q02m/notion/commit/bd8b38699462e351591ac1312848003624ce3f87))
+
+- Read the token stored by notion auth at stdio startup
+  ([#1369](https://github.com/n24q02m/notion/pull/1369),
+  [`9cc895f`](https://github.com/n24q02m/notion/commit/9cc895f230c112946a0506931f4cef531e36c8f1))
+
+- Wait for the package registry to serve the release before publishing to the MCP Registry
+  ([#1354](https://github.com/n24q02m/notion/pull/1354),
+  [`a012985`](https://github.com/n24q02m/notion/commit/a0129857100ad2dc800a3335568b08c6397cc88b))
+
+- **deps**: Lock file maintenance ([#1367](https://github.com/n24q02m/notion/pull/1367),
+  [`da4a4bb`](https://github.com/n24q02m/notion/commit/da4a4bbb857add99057ac706baa5b709cc95233e))
+
+- **deps**: Lock file maintenance ([#1364](https://github.com/n24q02m/notion/pull/1364),
+  [`8b28cb5`](https://github.com/n24q02m/notion/commit/8b28cb53a6b81188f6c2314a4ddb92f8c3158633))
+
+- **deps**: Lock file maintenance ([#1363](https://github.com/n24q02m/notion/pull/1363),
+  [`726346b`](https://github.com/n24q02m/notion/commit/726346b14fa3f27df579116e80b4b3118b1fbbaa))
+
+- **deps**: Lock file maintenance ([#1361](https://github.com/n24q02m/notion/pull/1361),
+  [`2b240ee`](https://github.com/n24q02m/notion/commit/2b240ee238000ff09991c961c5391339d4681405))
+
+- **deps**: Update Node.js to >=24.22.3 ([#1356](https://github.com/n24q02m/notion/pull/1356),
+  [`2eaa489`](https://github.com/n24q02m/notion/commit/2eaa489cc5eeb1a8529f76800a4b7741def839d0))
+
+- **deps**: Update patch dependencies ([#1362](https://github.com/n24q02m/notion/pull/1362),
+  [`29662b0`](https://github.com/n24q02m/notion/commit/29662b06b501f1597ab5162037a37a5dc5bbd019))
+
+### Features
+
+- Sync cross-promo section ([#1368](https://github.com/n24q02m/notion/pull/1368),
+  [`4eb04fb`](https://github.com/n24q02m/notion/commit/4eb04fbef9c58ea992ec18851488e5448e97f424))
+
+
 ## v2.44.0 (2026-11-17)
 
 ### Bug Fixes
