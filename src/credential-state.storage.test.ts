@@ -10,10 +10,18 @@ import { join } from 'node:path'
 import { setHomeDirForTesting } from '@n24q02m/hull/storage'
 import { type AuthContext, localAuthContext, runWithAuthContext } from '@n24q02m/hull/token-auth'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { getSubjectToken, STORE_PLUGIN, saveNamespaceToken } from './credential-state.js'
+import {
+  getState,
+  getSubjectToken,
+  resetState,
+  resolveCredentialState,
+  STORE_PLUGIN,
+  saveNamespaceToken
+} from './credential-state.js'
 
 const FIXTURE_MASTER = 'credential-state-storage-fixture-master'
 const FIXTURE_ALICE_TOKEN = 'fixture-notion-integration-value-alice'
+const FIXTURE_DEFAULT_TOKEN = 'fixture-notion-integration-value-default'
 
 function callerAs(namespace: string): AuthContext {
   return { uid: namespace, namespace, mode: 'multi', allowedRoots: [], rpm: null, disabled: false, attributes: {} }
@@ -62,5 +70,17 @@ describe('multi-user credential storage (real PerPluginStore)', () => {
 
     const defaultToken = await runWithAuthContext(localAuthContext(), () => getSubjectToken())
     expect(defaultToken).toBeNull()
+  })
+
+  it('resolves at startup the default token that notion auth saved', async () => {
+    await saveNamespaceToken('default', FIXTURE_DEFAULT_TOKEN)
+    expect(existsSync(join(home, `.${STORE_PLUGIN}`, 'config.json'))).toBe(true)
+
+    await expect(resolveCredentialState()).resolves.toBe('configured')
+    const defaultToken = await runWithAuthContext(localAuthContext(), () => getSubjectToken())
+    expect(defaultToken).toBe(FIXTURE_DEFAULT_TOKEN)
+
+    await runWithAuthContext(localAuthContext(), () => resetState())
+    expect(getState()).toBe('awaiting_setup')
   })
 })
