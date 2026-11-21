@@ -14,7 +14,7 @@
  * src/data-dir-migration.ts copies it forward on startup.
  */
 
-import { deleteConfig, PerPluginStore, readConfig, resolveConfig, writeConfig } from '@n24q02m/hull/storage'
+import { deleteConfig, PerPluginStore, readConfig, writeConfig } from '@n24q02m/hull/storage'
 import { currentUser } from '@n24q02m/hull/token-auth'
 
 // Storage key for hull's config helpers. Deliberately NOT renamed: hull derives
@@ -29,7 +29,6 @@ export const STORE_PLUGIN = 'notion'
 // store under ~/.better-notion/ is re-encrypted into STORE_PLUGIN's store at startup.
 export const LEGACY_STORE_PLUGIN = 'better-notion'
 const CREDENTIAL_KEY = 'NOTION_TOKEN'
-const REQUIRED_FIELDS = [CREDENTIAL_KEY]
 export const DEFAULT_NAMESPACE = 'default'
 const NAMESPACE_RE = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/
 
@@ -97,6 +96,10 @@ export async function getSubjectToken(): Promise<string | null> {
 /**
  * Resolve the default-namespace token at startup: env first, then the saved
  * config file. Non-default namespaces are resolved per request.
+ *
+ * The saved token is read from the same store `notion auth` writes to
+ * (STORE_PLUGIN). hull's resolveConfig cannot be used here: it derives the store
+ * from SERVER_NAME, which still points at the pre-rename `better-notion` slug.
  */
 export async function resolveCredentialState(): Promise<CredentialState> {
   const envToken = process.env.NOTION_TOKEN
@@ -107,9 +110,9 @@ export async function resolveCredentialState(): Promise<CredentialState> {
   }
 
   try {
-    const result = await resolveConfig(SERVER_NAME, REQUIRED_FIELDS)
-    if (result.config?.[CREDENTIAL_KEY]) {
-      _defaultToken = result.config[CREDENTIAL_KEY]
+    const savedToken = await loadNamespaceToken(DEFAULT_NAMESPACE)
+    if (savedToken) {
+      _defaultToken = savedToken
       _state = 'configured'
       return _state
     }

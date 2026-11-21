@@ -11,7 +11,6 @@ const h = vi.hoisted(() => ({
   readConfig: vi.fn(),
   writeConfig: vi.fn(),
   deleteConfig: vi.fn(),
-  resolveConfig: vi.fn(),
   storeLoad: vi.fn(),
   storeSave: vi.fn(),
   storeClear: vi.fn(),
@@ -22,7 +21,6 @@ vi.mock('@n24q02m/hull/storage', () => ({
   readConfig: h.readConfig,
   writeConfig: h.writeConfig,
   deleteConfig: h.deleteConfig,
-  resolveConfig: h.resolveConfig,
   PerPluginStore: class {
     load = h.storeLoad
     save = h.storeSave
@@ -55,7 +53,6 @@ describe('credential-state', () => {
     vi.resetAllMocks()
     asCaller('default')
     h.readConfig.mockResolvedValue(null)
-    h.resolveConfig.mockResolvedValue({ config: null, source: null } as never)
     h.deleteConfig.mockResolvedValue(undefined)
     h.writeConfig.mockResolvedValue(undefined)
     h.storeLoad.mockResolvedValue(null)
@@ -64,6 +61,7 @@ describe('credential-state', () => {
     delete process.env.NOTION_TOKEN
 
     await resolveCredentialState()
+    h.readConfig.mockClear()
   })
 
   describe('resolveCredentialState', () => {
@@ -80,15 +78,15 @@ describe('credential-state', () => {
     })
 
     it('becomes configured from the saved config file', async () => {
-      h.resolveConfig.mockResolvedValue({ config: { NOTION_TOKEN: 'fixture-file-value' }, source: 'config' } as never)
+      h.readConfig.mockResolvedValue({ NOTION_TOKEN: 'fixture-file-value' })
 
       await expect(resolveCredentialState()).resolves.toBe('configured')
-      expect(h.resolveConfig).toHaveBeenCalledWith(SERVER_NAME, ['NOTION_TOKEN'])
+      expect(h.readConfig).toHaveBeenCalledWith(SERVER_NAME, STORE_PLUGIN)
       await expect(getSubjectToken()).resolves.toBe('fixture-file-value')
     })
 
     it('stays awaiting_setup when the config read throws', async () => {
-      h.resolveConfig.mockRejectedValue(new Error('fixture read failure'))
+      h.readConfig.mockRejectedValueOnce(new Error('fixture read failure'))
 
       await expect(resolveCredentialState()).resolves.toBe('awaiting_setup')
       await expect(getSubjectToken()).resolves.toBeNull()
