@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { readdirSync, readFileSync } from 'node:fs'
+import { resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
@@ -31,6 +31,13 @@ function compiledFiles(configPath: string): string[] {
   return files.map((file) => resolve(ROOT, file))
 }
 
+// Every TypeScript file under tests/, which `bun run type-check` has to cover.
+function testSources(): string[] {
+  return readdirSync(resolve(ROOT, 'tests'), { recursive: true, encoding: 'utf8' })
+    .filter((file) => file.endsWith('.ts'))
+    .map((file) => resolve(ROOT, 'tests', file))
+}
+
 describe('build config', () => {
   it.each([
     ['tsc --build tsconfig.build.json && node scripts/build-cli.js', 'tsconfig.build.json'],
@@ -54,6 +61,18 @@ describe('build config', () => {
   it('still compiles the package entry point', { timeout: 30_000 }, () => {
     const entry = resolve(ROOT, PACKAGE.main.replace(/^build\//, '').replace(/\.js$/, '.ts'))
     expect(compiledFiles(buildConfigPath())).toContain(entry)
+  })
+
+  it('type-checks every file under tests/', { timeout: 30_000 }, () => {
+    const sources = testSources()
+    expect(sources.length).toBeGreaterThan(0)
+    const checked = new Set(compiledFiles(resolve(ROOT, 'tsconfig.json')))
+    expect(sources.filter((file) => !checked.has(file))).toEqual([])
+  })
+
+  it('compiles nothing under tests/ into build/', { timeout: 30_000 }, () => {
+    const tests = resolve(ROOT, 'tests') + sep
+    expect(compiledFiles(buildConfigPath()).filter((file) => file.startsWith(tests))).toEqual([])
   })
 
   it('builds the Docker image with the same build script', () => {
