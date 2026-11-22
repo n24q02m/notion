@@ -22,7 +22,7 @@ Xem `AGENTS.md` va `README.md` de hieu architecture.
 
 ```bash
 bun install                 # Cai dependencies
-bun run build               # tsc --build && esbuild CLI bundle
+bun run build               # tsc --build tsconfig.build.json (bo qua *.test.ts) + esbuild CLI bundle
 bun run check               # Biome check + tsc --noEmit (CI command)
 bun run check:fix           # Auto-fix Biome + type check
 bun run test                # vitest (KHONG BAO GIO dung bare "bun test")
