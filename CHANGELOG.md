@@ -2,6 +2,26 @@
 
 <!-- version list -->
 
+## v2.45.1-beta.2 (2026-11-22)
+
+### Bug Fixes
+
+- Read the type-check config from the script and bound build/ to src and scripts
+  ([#1372](https://github.com/n24q02m/notion/pull/1372),
+  [`30759ab`](https://github.com/n24q02m/notion/commit/30759abefe5e8a4a2919b6b69fa0a2540b20096a))
+
+- Refuse test files in the legacy final-note npm publish too
+  ([#1373](https://github.com/n24q02m/notion/pull/1373),
+  [`eb09e51`](https://github.com/n24q02m/notion/commit/eb09e51a0c92b1507d20d6d32957b0be1b1d1364))
+
+- Refuse to publish an npm package that ships test files
+  ([#1373](https://github.com/n24q02m/notion/pull/1373),
+  [`eb09e51`](https://github.com/n24q02m/notion/commit/eb09e51a0c92b1507d20d6d32957b0be1b1d1364))
+
+- Type-check the tests directory ([#1372](https://github.com/n24q02m/notion/pull/1372),
+  [`30759ab`](https://github.com/n24q02m/notion/commit/30759abefe5e8a4a2919b6b69fa0a2540b20096a))
+
+
 ## v2.45.1-beta.1 (2026-11-22)
 
 ### Bug Fixes
