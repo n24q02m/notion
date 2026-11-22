@@ -6,7 +6,7 @@ MCP Server for Notion API. TypeScript, Node.js >= 24, bun, ESM.
 
 ```bash
 bun install                 # Install dependencies
-bun run build               # tsc --build && esbuild CLI bundle
+bun run build               # tsc --build tsconfig.build.json (skips *.test.ts) + esbuild CLI bundle
 bun run check               # Biome check + tsc --noEmit (CI command)
 bun run check:fix           # Auto-fix Biome + type check
 bun run test                # vitest --passWithNoTests (NEVER use bare "bun test")
