@@ -13,9 +13,9 @@ const PACKAGE = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8')) 
 
 // The config `bun run build` hands to `tsc --build`, or tsconfig.json when it
 // names none. Its output lands in build/, which package.json ships to npm.
-function buildConfigPath(): string {
-  const match = /\btsc\s+(?:-b|-build|--build)(?:\s+(\S+\.json))?/.exec(PACKAGE.scripts.build)
-  expect(match, `no tsc --build in the build script: ${PACKAGE.scripts.build}`).not.toBeNull()
+function buildConfigPath(script = PACKAGE.scripts.build): string {
+  const match = /\btsc\s+(?:--build|-build|-b)\b(?:\s+--?[\w-]+)*(?:\s+(\S+\.json))?/.exec(script)
+  expect(match, `no tsc --build in the build script: ${script}`).not.toBeNull()
   return resolve(ROOT, match?.[1] ?? 'tsconfig.json')
 }
 
@@ -32,6 +32,16 @@ function compiledFiles(configPath: string): string[] {
 }
 
 describe('build config', () => {
+  it.each([
+    ['tsc --build tsconfig.build.json && node scripts/build-cli.js', 'tsconfig.build.json'],
+    ['tsc -build tsconfig.build.json', 'tsconfig.build.json'],
+    ['tsc -b ./tsconfig.build.json', 'tsconfig.build.json'],
+    ['tsc --build --verbose tsconfig.build.json', 'tsconfig.build.json'],
+    ['tsc --build && node scripts/build-cli.js', 'tsconfig.json']
+  ])('reads the build config from `%s`', (script, config) => {
+    expect(buildConfigPath(script)).toBe(resolve(ROOT, config))
+  })
+
   it('ships build/ to npm', () => {
     expect(PACKAGE.files).toContain('build/')
   })
