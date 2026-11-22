@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { readdirSync, readFileSync } from 'node:fs'
+import { resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
@@ -8,7 +8,7 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const PACKAGE = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8')) as {
   main: string
   files: string[]
-  scripts: { build: string }
+  scripts: { build: string; 'type-check': string }
 }
 
 // The config `bun run build` hands to `tsc --build`, or tsconfig.json when it
@@ -17,6 +17,13 @@ function buildConfigPath(script = PACKAGE.scripts.build): string {
   const match = /\btsc\s+(?:--build|-build|-b)\b(?:\s+--?[\w-]+)*(?:\s+(\S+\.json))?/.exec(script)
   expect(match, `no tsc --build in the build script: ${script}`).not.toBeNull()
   return resolve(ROOT, match?.[1] ?? 'tsconfig.json')
+}
+
+// The config `bun run type-check` hands to tsc, or tsconfig.json when it names none.
+function typeCheckConfigPath(script = PACKAGE.scripts['type-check']): string {
+  expect(script, `no tsc in the type-check script: ${script}`).toMatch(/\btsc\b/)
+  const project = /\s(?:-p|--project)\s+(\S+)/.exec(script)
+  return resolve(ROOT, project?.[1] ?? 'tsconfig.json')
 }
 
 // TypeScript 7 ships no JavaScript compiler API, so ask the compiler itself
@@ -31,6 +38,13 @@ function compiledFiles(configPath: string): string[] {
   return files.map((file) => resolve(ROOT, file))
 }
 
+// Every TypeScript file under tests/, which `bun run type-check` has to cover.
+function testSources(): string[] {
+  return readdirSync(resolve(ROOT, 'tests'), { recursive: true, encoding: 'utf8' })
+    .filter((file) => file.endsWith('.ts'))
+    .map((file) => resolve(ROOT, 'tests', file))
+}
+
 describe('build config', () => {
   it.each([
     ['tsc --build tsconfig.build.json && node scripts/build-cli.js', 'tsconfig.build.json'],
@@ -40,6 +54,14 @@ describe('build config', () => {
     ['tsc --build && node scripts/build-cli.js', 'tsconfig.json']
   ])('reads the build config from `%s`', (script, config) => {
     expect(buildConfigPath(script)).toBe(resolve(ROOT, config))
+  })
+
+  it.each([
+    ['tsc --noEmit', 'tsconfig.json'],
+    ['tsc --noEmit -p tsconfig.check.json', 'tsconfig.check.json'],
+    ['tsc --project ./tsconfig.check.json --noEmit', 'tsconfig.check.json']
+  ])('reads the type-check config from `%s`', (script, config) => {
+    expect(typeCheckConfigPath(script)).toBe(resolve(ROOT, config))
   })
 
   it('ships build/ to npm', () => {
@@ -54,6 +76,23 @@ describe('build config', () => {
   it('still compiles the package entry point', { timeout: 30_000 }, () => {
     const entry = resolve(ROOT, PACKAGE.main.replace(/^build\//, '').replace(/\.js$/, '.ts'))
     expect(compiledFiles(buildConfigPath())).toContain(entry)
+  })
+
+  it('type-checks every file under tests/', { timeout: 30_000 }, () => {
+    const sources = testSources()
+    expect(sources.length).toBeGreaterThan(0)
+    const checked = new Set(compiledFiles(typeCheckConfigPath()))
+    expect(sources.filter((file) => !checked.has(file))).toEqual([])
+  })
+
+  // Anything else -- a vitest config under tests/, a script written in JavaScript --
+  // would land in build/, which package.json ships to npm.
+  it('compiles only TypeScript from src/ and scripts/ into build/', { timeout: 30_000 }, () => {
+    const roots = ['src', 'scripts'].map((dir) => resolve(ROOT, dir) + sep)
+    const stray = compiledFiles(buildConfigPath()).filter(
+      (file) => !file.endsWith('.ts') || !roots.some((root) => file.startsWith(root))
+    )
+    expect(stray).toEqual([])
   })
 
   it('builds the Docker image with the same build script', () => {
