@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v2.45.1-beta.1 (2026-11-22)
+
+### Bug Fixes
+
+- Keep compiled test files out of the npm package and the Docker image
+  ([#1371](https://github.com/n24q02m/notion/pull/1371),
+  [`1c6a3e3`](https://github.com/n24q02m/notion/commit/1c6a3e3715cc11e55cf7bac5b25dec259c26b655))
+
+- Read every tsc --build spelling in the build config test
+  ([#1371](https://github.com/n24q02m/notion/pull/1371),
+  [`1c6a3e3`](https://github.com/n24q02m/notion/commit/1c6a3e3715cc11e55cf7bac5b25dec259c26b655))
+
+
 ## v2.45.0 (2026-11-22)
 
 
