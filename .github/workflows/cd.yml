@@ -296,6 +296,21 @@ jobs:
 
       - run: bun install --frozen-lockfile
       - run: bun run build
+      # A build that compiles test files into the published directory ships them in
+      # the tarball, and CD stays green. List what `npm publish` would pack and stop
+      # before publishing when any path is a test file. The build ran above, so
+      # lifecycle scripts are skipped: npm prints their output on stdout ahead of the
+      # JSON.
+      - name: Refuse to publish test files
+        run: |
+          npm pack --dry-run --json --ignore-scripts > "$RUNNER_TEMP/npm-pack.json"
+          node -e '
+            const [{ files }] = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8"))
+            const tests = files.map((file) => file.path).filter((path) => path.includes(".test."))
+            for (const path of tests) console.log(`::error::npm package would ship test file ${path}`)
+            if (tests.length > 0) process.exit(1)
+            console.log(`npm package: ${files.length} files, no test files`)
+          ' "$RUNNER_TEMP/npm-pack.json"
       - name: Publish final @n24q02m/better-notion-mcp to npm
         run: npm publish --provenance --access public --no-git-checks --tag latest
 
