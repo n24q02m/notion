@@ -9,6 +9,7 @@
 import { readFile } from 'node:fs/promises'
 import { basename, isAbsolute, join, relative, sep } from 'node:path'
 import type { Client } from '@notionhq/client'
+import { isJsonObject } from '../json-value.js'
 import { type BlocksInput, blocks } from './composite/blocks.js'
 import { type CommentsManageInput, commentsManage } from './composite/comments.js'
 import { type ConfigInput, config } from './composite/config.js'
@@ -25,16 +26,69 @@ import {
   VALID_HELP_TOOL_NAMES,
   VALID_HELP_TOOLS_STRING
 } from './definitions.js'
+import {
+  boundResponseValue,
+  DEFAULT_BOUND_HINT,
+  DEFAULT_RESPONSE_ITEMS,
+  resolveResponseBudget,
+  truncationNote,
+  UNBOUNDED
+} from './helpers/bounds.js'
 import { findClosestMatch, NotionMCPError } from './helpers/errors.js'
 
-/**
- * Tool arguments arrive as decoded JSON (MCP `arguments`, or flags parsed by
- * the CLI). Composite handlers validate their own fields and report failures as
- * `NotionMCPError`, so this is the boundary between untyped JSON and a
- * handler's declared input -- not a second validation layer.
- */
+const BOUNDED_TOOLS = new Set([
+  'pages',
+  'databases',
+  'blocks',
+  'users',
+  'workspace',
+  'comments',
+  'content_convert',
+  'file_uploads'
+])
+
+const LIST_BOUNDED_ACTIONS = new Set(['query', 'search', 'list', 'children', 'from_workspace', 'list_templates'])
+
+/** Overhead allowance above `budget.chars` when `pages.get` already truncated its markdown body. */
+const PAGES_ENVELOPE_ALLOWANCE = 2048
+
 function asToolInput<T>(args: Record<string, unknown>): T {
   return args as unknown as T
+}
+
+function finalizeBoundedResult(
+  name: string,
+  args: Record<string, unknown>,
+  raw: unknown,
+  budget: ReturnType<typeof resolveResponseBudget>
+): unknown {
+  if (budget.chars === UNBOUNDED && budget.items === UNBOUNDED) {
+    return raw
+  }
+
+  // `pages.get` already truncates `content` to `max_chars` with legacy `content_*` fields.
+  // When only JSON envelope metadata pushes serialized length slightly past `budget.chars`,
+  // attach `_truncation` alongside existing fields instead of re-shrinking `content` to 4k.
+  if (name === 'pages' && args.action === 'get' && isJsonObject(raw)) {
+    const omitted = raw.content_chars_omitted
+    if (raw.content_truncated === true && typeof omitted === 'number' && omitted > 0) {
+      const returnedChars = JSON.stringify(raw).length
+      if (returnedChars <= budget.chars + PAGES_ENVELOPE_ALLOWANCE) {
+        const totalChars = returnedChars + omitted
+        return {
+          ...raw,
+          _truncation: {
+            truncated: true as const,
+            total_characters: totalChars,
+            returned_characters: returnedChars,
+            note: truncationNote(totalChars, returnedChars, DEFAULT_BOUND_HINT)
+          }
+        }
+      }
+    }
+  }
+
+  return boundResponseValue(raw, budget, DEFAULT_BOUND_HINT).value
 }
 
 /**
@@ -49,25 +103,43 @@ export async function invokeTool(
   args: Record<string, unknown>,
   notionClientFactory: () => Promise<Client>
 ): Promise<unknown> {
+  const isBounded = BOUNDED_TOOLS.has(name)
+  const action = typeof args.action === 'string' ? args.action : ''
+  const hasExplicitLimit = typeof args.limit === 'number'
+  const budget = isBounded
+    ? resolveResponseBudget(args, {
+        items: !hasExplicitLimit && LIST_BOUNDED_ACTIONS.has(action) ? DEFAULT_RESPONSE_ITEMS : UNBOUNDED
+      })
+    : undefined
+
+  let raw: unknown
   switch (name) {
     case 'pages':
-      return pages(await notionClientFactory(), asToolInput<PagesInput>(args))
+      raw = await pages(await notionClientFactory(), asToolInput<PagesInput>(args))
+      break
     case 'databases':
-      return databases(await notionClientFactory(), asToolInput<DatabasesInput>(args))
+      raw = await databases(await notionClientFactory(), asToolInput<DatabasesInput>(args))
+      break
     case 'blocks':
-      return blocks(await notionClientFactory(), asToolInput<BlocksInput>(args))
+      raw = await blocks(await notionClientFactory(), asToolInput<BlocksInput>(args))
+      break
     case 'users':
-      return users(await notionClientFactory(), asToolInput<UsersInput>(args))
+      raw = await users(await notionClientFactory(), asToolInput<UsersInput>(args))
+      break
     case 'workspace':
-      return workspace(await notionClientFactory(), asToolInput<WorkspaceInput>(args))
+      raw = await workspace(await notionClientFactory(), asToolInput<WorkspaceInput>(args))
+      break
     case 'comments':
-      return commentsManage(await notionClientFactory(), asToolInput<CommentsManageInput>(args))
+      raw = await commentsManage(await notionClientFactory(), asToolInput<CommentsManageInput>(args))
+      break
     case 'content_convert':
-      return contentConvert(asToolInput<ContentConvertInput>(args))
+      raw = await contentConvert(asToolInput<ContentConvertInput>(args))
+      break
     case 'config':
       return config(asToolInput<ConfigInput>(args))
     case 'file_uploads':
-      return fileUploads(await notionClientFactory(), asToolInput<FileUploadsInput>(args))
+      raw = await fileUploads(await notionClientFactory(), asToolInput<FileUploadsInput>(args))
+      break
     case 'help': {
       const { tool_name } = asToolInput<{ tool_name: string }>(args)
       return readToolDocumentation(tool_name)
@@ -82,6 +154,8 @@ export async function invokeTool(
       )
     }
   }
+
+  return budget ? finalizeBoundedResult(name, args, raw, budget) : raw
 }
 
 /**
