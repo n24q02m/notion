@@ -38,7 +38,7 @@ Pages may contain **image blocks** and **file blocks**. These are returned as ma
 ```
 Returns all properties including: title, rich_text, select, multi_select, number, checkbox, url, email, phone_number, date, relation, rollup, people, files, formula, created_time, last_edited_time, created_by, last_edited_by, status, unique_id.
 
-The markdown body is bounded to `max_chars` (1–100000, default 20000). A truncated body ends with `[Truncated: showing <limit> of <total> characters (<omitted> omitted). Pass a larger max_chars (up to 100000) or page blocks with content_limit/content_cursor.]`, and the response reports `content_char_count`, `content_max_chars`, `content_truncated`, and `content_chars_omitted`. Use `content_limit` (1–100 blocks) to bound the block read itself; when more blocks remain, `content_truncated` is `true` and `next_cursor` can be passed as `content_cursor` in the next request. Omitting `content_limit` reads every block, still bounded by `max_chars`.
+The markdown body is bounded to `max_chars` (1–100000, default 20000 or `NOTION_MAX_RESPONSE_CHARS`, or pass `full: true`). A truncated body ends with `[Truncated: showing <limit> of <total> characters (<omitted> omitted). Pass a larger max_chars (up to 100000) or page blocks with content_limit/content_cursor.]`, and the response reports `content_char_count`, `content_max_chars`, `content_truncated`, `content_chars_omitted`, and standardized `_truncation` metadata. Use `content_limit` (1–100 blocks) to bound the block read itself; when more blocks remain, `content_truncated` is `true` and `next_cursor` can be passed as `content_cursor` in the next request. Omitting `content_limit` reads every block, still bounded by `max_chars`.
 
 ### get_property
 

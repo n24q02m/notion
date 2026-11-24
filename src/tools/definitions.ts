@@ -48,6 +48,24 @@ export const PRECOMPUTED_RESOURCES = RESOURCES.map((r) => ({
 export const RESOURCE_MAP = new Map(RESOURCES.map((r) => [r.uri, r]))
 export const AVAILABLE_RESOURCE_URIS = RESOURCES.map((r) => r.uri).join(', ')
 
+const MAX_CHARS_PROP = {
+  type: 'number',
+  minimum: 1,
+  maximum: 100000,
+  description:
+    'Maximum characters in serialized response (1-100000, default 20000 or NOTION_MAX_RESPONSE_CHARS); truncated responses include _truncation'
+} as const
+
+const FULL_PROP = {
+  type: 'boolean',
+  description: 'Return the complete unbounded response (overrides max_chars and default item caps)'
+} as const
+
+const RESPONSE_BOUNDS_PROPS = {
+  max_chars: MAX_CHARS_PROP,
+  full: FULL_PROP
+} as const
+
 /**
  * 10 registered tools (8 composite Notion tools + config + help)
  * covering ~95% of the official Notion API.
@@ -98,6 +116,7 @@ export const TOOLS = [
           description:
             'Max markdown characters returned by get (1-100000, default 20000); truncated content ends with an explicit marker'
         },
+        full: FULL_PROP,
         parent_id: { type: 'string', description: 'Parent page or database ID' },
         properties: {
           type: 'object',
@@ -179,7 +198,8 @@ export const TOOLS = [
         page_id: { type: 'string', description: 'Single page ID (for update_page)' },
         page_ids: { type: 'array', items: { type: 'string' }, description: 'Multiple page IDs (for delete_page)' },
         page_properties: { type: 'object', description: 'Page properties to update (for update_page)' },
-        pages: { type: 'array', items: { type: 'object' }, description: 'Array of pages for bulk create/update' }
+        pages: { type: 'array', items: { type: 'object' }, description: 'Array of pages for bulk create/update' },
+        ...RESPONSE_BOUNDS_PROPS
       },
       required: ['action']
     },
@@ -212,7 +232,8 @@ export const TOOLS = [
           description:
             'Insert position for append: start (prepend), end (default), after_block (requires after_block_id)'
         },
-        after_block_id: { type: 'string', description: 'Block ID to insert after (when position is after_block)' }
+        after_block_id: { type: 'string', description: 'Block ID to insert after (when position is after_block)' },
+        ...RESPONSE_BOUNDS_PROPS
       },
       required: ['action', 'block_id']
     },
@@ -237,7 +258,8 @@ export const TOOLS = [
           enum: ['list', 'get', 'me', 'from_workspace'],
           description: 'Action to perform'
         },
-        user_id: { type: 'string', description: 'User ID (for get action)' }
+        user_id: { type: 'string', description: 'User ID (for get action)' },
+        ...RESPONSE_BOUNDS_PROPS
       },
       required: ['action']
     },
@@ -280,7 +302,8 @@ export const TOOLS = [
             timestamp: { type: 'string', enum: ['last_edited_time', 'created_time'] }
           }
         },
-        limit: { type: 'number', description: 'Max results' }
+        limit: { type: 'number', description: 'Max results' },
+        ...RESPONSE_BOUNDS_PROPS
       },
       required: ['action']
     },
@@ -304,7 +327,8 @@ export const TOOLS = [
         page_id: { type: 'string', description: 'Page ID' },
         comment_id: { type: 'string', description: 'Comment ID (for get action)' },
         discussion_id: { type: 'string', description: 'Discussion ID (for replies)' },
-        content: { type: 'string', description: 'Comment content (for create)' }
+        content: { type: 'string', description: 'Comment content (for create)' },
+        ...RESPONSE_BOUNDS_PROPS
       },
       required: ['action']
     },
@@ -329,7 +353,8 @@ export const TOOLS = [
           enum: ['markdown-to-blocks', 'blocks-to-markdown'],
           description: 'Conversion direction'
         },
-        content: { type: 'string', description: 'Content to convert (string or array/JSON string)' }
+        content: { type: 'string', description: 'Content to convert (string or array/JSON string)' },
+        ...RESPONSE_BOUNDS_PROPS
       },
       required: ['direction', 'content']
     },
@@ -365,7 +390,8 @@ export const TOOLS = [
           description:
             'Base64-encoded file content (for send). Must be valid base64: only A-Z, a-z, 0-9, +, /, = chars. Use Buffer.from(bytes).toString("base64") to encode.'
         },
-        limit: { type: 'number', description: 'Max results for list' }
+        limit: { type: 'number', description: 'Max results for list' },
+        ...RESPONSE_BOUNDS_PROPS
       },
       required: ['action']
     },

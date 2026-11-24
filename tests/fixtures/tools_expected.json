@@ -48,6 +48,10 @@
           "maximum": 100000,
           "description": "Max markdown characters returned by get (1-100000, default 20000); truncated content ends with an explicit marker"
         },
+        "full": {
+          "type": "boolean",
+          "description": "Return the complete unbounded response (overrides max_chars and default item caps)"
+        },
         "parent_id": {
           "type": "string",
           "description": "Parent page or database ID"
@@ -180,6 +184,16 @@
             "type": "object"
           },
           "description": "Array of pages for bulk create/update"
+        },
+        "max_chars": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 100000,
+          "description": "Maximum characters in serialized response (1-100000, default 20000 or NOTION_MAX_RESPONSE_CHARS); truncated responses include _truncation"
+        },
+        "full": {
+          "type": "boolean",
+          "description": "Return the complete unbounded response (overrides max_chars and default item caps)"
         }
       },
       "required": ["action"]
@@ -218,6 +232,16 @@
         "after_block_id": {
           "type": "string",
           "description": "Block ID to insert after (when position is after_block)"
+        },
+        "max_chars": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 100000,
+          "description": "Maximum characters in serialized response (1-100000, default 20000 or NOTION_MAX_RESPONSE_CHARS); truncated responses include _truncation"
+        },
+        "full": {
+          "type": "boolean",
+          "description": "Return the complete unbounded response (overrides max_chars and default item caps)"
         }
       },
       "required": ["action", "block_id"]
@@ -243,6 +267,16 @@
         "user_id": {
           "type": "string",
           "description": "User ID (for get action)"
+        },
+        "max_chars": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 100000,
+          "description": "Maximum characters in serialized response (1-100000, default 20000 or NOTION_MAX_RESPONSE_CHARS); truncated responses include _truncation"
+        },
+        "full": {
+          "type": "boolean",
+          "description": "Return the complete unbounded response (overrides max_chars and default item caps)"
         }
       },
       "required": ["action"]
@@ -295,6 +329,16 @@
         "limit": {
           "type": "number",
           "description": "Max results"
+        },
+        "max_chars": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 100000,
+          "description": "Maximum characters in serialized response (1-100000, default 20000 or NOTION_MAX_RESPONSE_CHARS); truncated responses include _truncation"
+        },
+        "full": {
+          "type": "boolean",
+          "description": "Return the complete unbounded response (overrides max_chars and default item caps)"
         }
       },
       "required": ["action"]
@@ -332,6 +376,16 @@
         "content": {
           "type": "string",
           "description": "Comment content (for create)"
+        },
+        "max_chars": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 100000,
+          "description": "Maximum characters in serialized response (1-100000, default 20000 or NOTION_MAX_RESPONSE_CHARS); truncated responses include _truncation"
+        },
+        "full": {
+          "type": "boolean",
+          "description": "Return the complete unbounded response (overrides max_chars and default item caps)"
         }
       },
       "required": ["action"]
@@ -357,6 +411,16 @@
         "content": {
           "type": "string",
           "description": "Content to convert (string or array/JSON string)"
+        },
+        "max_chars": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 100000,
+          "description": "Maximum characters in serialized response (1-100000, default 20000 or NOTION_MAX_RESPONSE_CHARS); truncated responses include _truncation"
+        },
+        "full": {
+          "type": "boolean",
+          "description": "Return the complete unbounded response (overrides max_chars and default item caps)"
         }
       },
       "required": ["direction", "content"]
@@ -411,6 +475,16 @@
         "limit": {
           "type": "number",
           "description": "Max results for list"
+        },
+        "max_chars": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 100000,
+          "description": "Maximum characters in serialized response (1-100000, default 20000 or NOTION_MAX_RESPONSE_CHARS); truncated responses include _truncation"
+        },
+        "full": {
+          "type": "boolean",
+          "description": "Return the complete unbounded response (overrides max_chars and default item caps)"
         }
       },
       "required": ["action"]

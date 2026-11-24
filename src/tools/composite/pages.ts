@@ -4,7 +4,7 @@
  */
 
 import type { Client, PageObjectResponse } from '@notionhq/client'
-import { boundMarkdown, DEFAULT_MARKDOWN_MAX_CHARS, MAX_MARKDOWN_MAX_CHARS } from '../helpers/bounds.js'
+import { boundMarkdown, getDefaultResponseChars, MAX_MARKDOWN_MAX_CHARS } from '../helpers/bounds.js'
 import { formatCover } from '../helpers/covers.js'
 import { NotionMCPError, retryWithBackoff, withErrorHandling } from '../helpers/errors.js'
 import { formatIcon } from '../helpers/icons.js'
@@ -63,6 +63,7 @@ export interface PagesInput {
   content_limit?: number
   content_cursor?: string
   max_chars?: number
+  full?: boolean
 
   // Archive/Restore params
   archived?: boolean
@@ -97,9 +98,10 @@ async function getPage(notion: Client, input: PagesInput): Promise<GetPageResult
     )
   }
 
-  const maxChars = input.max_chars ?? DEFAULT_MARKDOWN_MAX_CHARS
+  const full = input.full === true
+  const maxChars = input.max_chars ?? getDefaultResponseChars()
 
-  if (!Number.isInteger(maxChars) || maxChars < 1 || maxChars > MAX_MARKDOWN_MAX_CHARS) {
+  if (!full && (!Number.isInteger(maxChars) || maxChars < 1 || maxChars > MAX_MARKDOWN_MAX_CHARS)) {
     throw new NotionMCPError(
       `max_chars must be an integer between 1 and ${MAX_MARKDOWN_MAX_CHARS}`,
       'VALIDATION_ERROR',
@@ -135,7 +137,10 @@ async function getPage(notion: Client, input: PagesInput): Promise<GetPageResult
   // Recursively fetch children for blocks that need them (tables, toggles, columns)
   await populateDeepChildren(notion, blocks as unknown as Parameters<typeof populateDeepChildren>[1])
 
-  const boundedMarkdown = boundMarkdown(blocksToMarkdown(blocks), maxChars)
+  const rawMarkdown = blocksToMarkdown(blocks)
+  const boundedMarkdown = full
+    ? { markdown: rawMarkdown, truncated: false, totalCharacters: rawMarkdown.length }
+    : boundMarkdown(rawMarkdown, maxChars)
 
   const result: GetPageResult = {
     action: 'get',
