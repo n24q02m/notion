@@ -8,17 +8,31 @@ import {
   type CredentialState,
   getState,
   getSubjectToken,
+  listAccounts,
+  removeAccount,
   resetState,
   resolveCredentialState,
-  SETUP_HINT
+  SETUP_HINT,
+  switchActiveAccount
 } from '../../credential-state.js'
 import { NotionMCPError, withErrorHandling } from '../helpers/errors.js'
 
 export interface ConfigInput {
-  action: 'status' | 'setup_status' | 'setup_start' | 'setup_reset' | 'setup_complete' | 'set' | 'cache_clear'
+  action:
+    | 'status'
+    | 'setup_status'
+    | 'setup_start'
+    | 'setup_reset'
+    | 'setup_complete'
+    | 'set'
+    | 'cache_clear'
+    | 'accounts_list'
+    | 'account_use'
+    | 'account_remove'
   force?: boolean
   key?: string
   value?: string
+  account?: string
 }
 
 /**
@@ -116,11 +130,60 @@ export async function config(input: ConfigInput): Promise<any> {
         }
       }
 
+      case 'accounts_list': {
+        return { action: 'accounts_list', ...(await listAccounts()) }
+      }
+
+      case 'account_use': {
+        const alias = input.account?.trim()
+        if (!alias) {
+          throw new NotionMCPError(
+            'account_use requires an account alias.',
+            'VALIDATION_ERROR',
+            'Pass account: "<alias>".'
+          )
+        }
+        try {
+          await switchActiveAccount(alias)
+        } catch (error) {
+          throw new NotionMCPError(error instanceof Error ? error.message : String(error), 'VALIDATION_ERROR')
+        }
+        return {
+          action: 'account_use',
+          ok: true,
+          active: alias,
+          message: `Switched active Notion account to "${alias}".`
+        }
+      }
+
+      case 'account_remove': {
+        const alias = input.account?.trim()
+        if (!alias) {
+          throw new NotionMCPError(
+            'account_remove requires an account alias.',
+            'VALIDATION_ERROR',
+            'Pass account: "<alias>".'
+          )
+        }
+        let removed: boolean
+        try {
+          removed = await removeAccount(alias)
+        } catch (error) {
+          throw new NotionMCPError(error instanceof Error ? error.message : String(error), 'VALIDATION_ERROR')
+        }
+        return {
+          action: 'account_remove',
+          ok: removed,
+          account: alias,
+          ...(await listAccounts())
+        }
+      }
+
       default:
         throw new NotionMCPError(
           `Unsupported action: ${(input as any).action}`,
           'VALIDATION_ERROR',
-          'Valid actions: status, setup_status, setup_start, setup_reset, setup_complete, set, cache_clear'
+          'Valid actions: status, setup_status, setup_start, setup_reset, setup_complete, set, cache_clear, accounts_list, account_use, account_remove'
         )
     }
   })()

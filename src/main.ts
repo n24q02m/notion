@@ -14,12 +14,14 @@ import { createInterface } from 'node:readline/promises'
 import { fileURLToPath } from 'node:url'
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+import { assertValidAccountAlias } from '@n24q02m/hull/storage'
 import { runCli } from './cli.js'
 import {
   assertNamespace,
   DEFAULT_NAMESPACE,
   getState,
   resolveCredentialState,
+  saveAccountToken,
   saveNamespaceToken
 } from './credential-state.js'
 import { prepareDataDir } from './data-dir.js'
@@ -168,6 +170,29 @@ function parseUserFlag(argv: string[]): string {
   return assertNamespace(value)
 }
 
+function parseAccountFlag(argv: string[]): string | undefined {
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]
+    if (arg === '--account') {
+      const value = argv[i + 1]
+      if (!value || value.startsWith('--')) {
+        throw new Error('--account requires an alias value, e.g. --account work')
+      }
+      assertValidAccountAlias(value)
+      return value
+    }
+    if (arg.startsWith('--account=')) {
+      const value = arg.slice('--account='.length)
+      if (!value) {
+        throw new Error('--account requires an alias value, e.g. --account work')
+      }
+      assertValidAccountAlias(value)
+      return value
+    }
+  }
+  return undefined
+}
+
 async function readTokenInteractively(): Promise<string> {
   const fromEnv = process.env.NOTION_TOKEN?.trim()
   if (fromEnv) return fromEnv
@@ -180,7 +205,7 @@ async function readTokenInteractively(): Promise<string> {
 }
 
 /**
- * `notion auth [--user <namespace>]`: store a Notion integration token.
+ * `notion auth [--user <namespace>] [--account <alias>]`: store a Notion integration token.
  *
  * The token is read from NOTION_TOKEN or prompted for (never accepted as an
  * argv value, so it stays out of shell history). It is verified with
@@ -188,8 +213,10 @@ async function readTokenInteractively(): Promise<string> {
  */
 export async function authCommand(argv: string[]): Promise<number> {
   let namespace: string
+  let account: string | undefined
   try {
     namespace = parseUserFlag(argv)
+    account = parseAccountFlag(argv)
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error))
     return 2
@@ -208,8 +235,13 @@ export async function authCommand(argv: string[]): Promise<number> {
     return 1
   }
 
-  await saveNamespaceToken(namespace, token)
-  console.log(`Saved Notion token for namespace "${namespace}".`)
+  if (account) {
+    await saveAccountToken(namespace, account, token)
+    console.log(`Saved Notion token for namespace "${namespace}" (account "${account}").`)
+  } else {
+    await saveNamespaceToken(namespace, token)
+    console.log(`Saved Notion token for namespace "${namespace}".`)
+  }
   return 0
 }
 

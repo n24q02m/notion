@@ -14,6 +14,12 @@ const h = vi.hoisted(() => ({
   storeLoad: vi.fn(),
   storeSave: vi.fn(),
   storeClear: vi.fn(),
+  registryListAccounts: vi.fn(),
+  registryGetActiveAccount: vi.fn(),
+  registryGetAccount: vi.fn(),
+  registryPutAccount: vi.fn(),
+  registrySetActive: vi.fn(),
+  registryRemoveAccount: vi.fn(),
   currentUser: vi.fn()
 }))
 
@@ -25,6 +31,14 @@ vi.mock('@n24q02m/hull/storage', () => ({
     load = h.storeLoad
     save = h.storeSave
     clear = h.storeClear
+  },
+  NamedAccountRegistry: class {
+    listAccounts = h.registryListAccounts
+    getActiveAccount = h.registryGetActiveAccount
+    getAccount = h.registryGetAccount
+    putAccount = h.registryPutAccount
+    setActive = h.registrySetActive
+    removeAccount = h.registryRemoveAccount
   }
 }))
 
@@ -58,7 +72,14 @@ describe('credential-state', () => {
     h.storeLoad.mockResolvedValue(null)
     h.storeSave.mockResolvedValue(undefined)
     h.storeClear.mockResolvedValue(undefined)
+    h.registryListAccounts.mockResolvedValue([])
+    h.registryGetActiveAccount.mockResolvedValue(null)
+    h.registryGetAccount.mockResolvedValue(null)
+    h.registryPutAccount.mockResolvedValue(undefined)
+    h.registrySetActive.mockResolvedValue(undefined)
+    h.registryRemoveAccount.mockResolvedValue(true)
     delete process.env.NOTION_TOKEN
+    delete process.env.NOTION_ACCOUNT
 
     await resolveCredentialState()
     h.readConfig.mockClear()

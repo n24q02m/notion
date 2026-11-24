@@ -7,10 +7,21 @@ vi.mock('../../credential-state.js', () => ({
   getState: vi.fn(() => 'awaiting_setup'),
   getSubjectToken: vi.fn(async () => null),
   resetState: vi.fn(async () => undefined),
-  resolveCredentialState: vi.fn(async () => 'awaiting_setup')
+  resolveCredentialState: vi.fn(async () => 'awaiting_setup'),
+  listAccounts: vi.fn(async () => ({ active: null, accounts: [] })),
+  switchActiveAccount: vi.fn(async () => undefined),
+  removeAccount: vi.fn(async () => true)
 }))
 
-import { getState, getSubjectToken, resetState, resolveCredentialState } from '../../credential-state.js'
+import {
+  getState,
+  getSubjectToken,
+  listAccounts,
+  removeAccount,
+  resetState,
+  resolveCredentialState,
+  switchActiveAccount
+} from '../../credential-state.js'
 import { config } from './config.js'
 
 describe('config', () => {
@@ -167,6 +178,66 @@ describe('config', () => {
       expect(result.action).toBe('cache_clear')
       expect(result.ok).toBe(true)
       expect(result.cleared).toBe(0)
+    })
+  })
+
+  describe('accounts actions', () => {
+    it('lists named accounts via accounts_list', async () => {
+      vi.mocked(listAccounts).mockResolvedValue({ active: 'work', accounts: ['personal', 'work'] })
+
+      const result = await config({ action: 'accounts_list' })
+
+      expect(result).toEqual({
+        action: 'accounts_list',
+        active: 'work',
+        accounts: ['personal', 'work']
+      })
+    })
+
+    it('switches active account via account_use', async () => {
+      const result = await config({ action: 'account_use', account: 'work' })
+
+      expect(switchActiveAccount).toHaveBeenCalledWith('work')
+      expect(result).toEqual({
+        action: 'account_use',
+        ok: true,
+        active: 'work',
+        message: 'Switched active Notion account to "work".'
+      })
+    })
+
+    it('throws when account_use is missing account', async () => {
+      await expect(config({ action: 'account_use' })).rejects.toThrow('account_use requires an account alias.')
+    })
+
+    it('removes named account via account_remove', async () => {
+      vi.mocked(removeAccount).mockResolvedValue(true)
+      vi.mocked(listAccounts).mockResolvedValue({ active: null, accounts: ['personal'] })
+
+      const result = await config({ action: 'account_remove', account: 'work' })
+
+      expect(removeAccount).toHaveBeenCalledWith('work')
+      expect(result).toEqual({
+        action: 'account_remove',
+        ok: true,
+        account: 'work',
+        active: null,
+        accounts: ['personal']
+      })
+    })
+
+    it('returns ok: false when account does not exist', async () => {
+      vi.mocked(removeAccount).mockResolvedValue(false)
+      vi.mocked(listAccounts).mockResolvedValue({ active: null, accounts: [] })
+
+      const result = await config({ action: 'account_remove', account: 'missing' })
+
+      expect(result.ok).toBe(false)
+      expect(result.account).toBe('missing')
+    })
+
+    it('throws when account_remove is missing account', async () => {
+      await expect(config({ action: 'account_remove' })).rejects.toThrow('account_remove requires an account alias.')
     })
   })
 

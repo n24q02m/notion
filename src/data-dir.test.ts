@@ -1,7 +1,7 @@
 import { existsSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
-import { dataDir, PerPluginStore } from '@n24q02m/hull/storage'
+import { dataDir, dataDirName, PerPluginStore } from '@n24q02m/hull/storage'
 import { afterEach, describe, expect, it } from 'vitest'
 import { STORE_PLUGIN } from './credential-state.js'
 import {
@@ -23,7 +23,17 @@ afterEach(() => {
 
 describe('resolveDataDir', () => {
   it('names the directory hull uses for STORE_PLUGIN', () => {
-    expect(DATA_DIR_NAME).toBe(`.${STORE_PLUGIN}`)
+    expect(DATA_DIR_NAME).toBe(dataDirName(STORE_PLUGIN))
+    expect(DATA_DIR_NAME).toBe(join('.n24q02m', STORE_PLUGIN))
+  })
+
+  it('honors N24Q02M_HOME and N24Q02M_USE_XDG when NOTION_DATA_DIR is unset', () => {
+    const customHome = resolve('/', 'custom', 'n24')
+    expect(resolveDataDir({ N24Q02M_HOME: customHome }, HOME)).toBe(join(customHome, STORE_PLUGIN))
+    const xdgHome = resolve('/', 'xdg', 'cfg')
+    expect(resolveDataDir({ N24Q02M_USE_XDG: '1', XDG_CONFIG_HOME: xdgHome }, HOME)).toBe(
+      join(xdgHome, 'n24q02m', STORE_PLUGIN)
+    )
   })
 
   it('resolves the default data dir under the home directory', () => {

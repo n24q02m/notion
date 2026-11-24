@@ -63,7 +63,8 @@ vi.mock('./credential-state.js', () => ({
   assertNamespace: vi.fn((ns: string) => ns),
   getState: vi.fn().mockReturnValue('configured'),
   resolveCredentialState: vi.fn().mockResolvedValue('configured'),
-  saveNamespaceToken: vi.fn().mockResolvedValue(undefined)
+  saveNamespaceToken: vi.fn().mockResolvedValue(undefined),
+  saveAccountToken: vi.fn().mockResolvedValue(undefined)
 }))
 
 // Mock node:fs to allow spying on realpathSync in ESM
@@ -617,6 +618,14 @@ describe('authCommand', () => {
     process.env = originalEnv
     errorSpy.mockRestore()
     logSpy.mockRestore()
+  })
+
+  it('saves a named account token when --account is passed', async () => {
+    process.env.NOTION_TOKEN = '  ntn_work123  '
+    const { saveAccountToken } = await import('./credential-state.js')
+
+    expect(await authCommand(['--account', 'work'])).toBe(0)
+    expect(saveAccountToken).toHaveBeenCalledWith('default', 'work', 'ntn_work123')
   })
 
   it('verifies the token with users.me and saves it under the default namespace', async () => {

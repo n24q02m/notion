@@ -70,7 +70,7 @@ jobs:
             The subject must not start with an uppercase character.
 
   lint-and-test:
-    name: Lint, Test & Build (${{ matrix.os }})
+    name: Lint, Test & Build (${{ matrix.os }}, Node ${{ matrix.node-version }})
     if: >-
       (github.event_name == 'pull_request' && github.event.action != 'edited')
       || github.event_name == 'push'
@@ -79,6 +79,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
+        node-version: [ "26" ]
+        include:
+          - os: ubuntu-latest
+            node-version: "22"
+          - os: ubuntu-latest
+            node-version: "24"
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
 
@@ -100,10 +106,13 @@ jobs:
       - name: Setup bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
 
-      - name: Setup Node.js 24
+      - name: Setup Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: "24"
+          node-version: ${{ matrix.node-version }}
+
+      - name: Verify Node LTS row
+        run: node -e "const v = process.versions.node.split('.')[0]; if (v !== '${{ matrix.node-version }}') throw new Error('Expected Node ' + '${{ matrix.node-version }}' + ', got ' + process.versions.node)"
 
       - name: Setup uv and Python 3.13
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
@@ -127,7 +136,7 @@ jobs:
       # refuses it. Pull requests skip it: a fork or Dependabot run cannot always mint
       # an OIDC token, and the required check must not depend on Codecov being reachable.
       - name: Upload coverage to Codecov
-        if: github.event_name == 'push' && matrix.os == 'ubuntu-latest'
+        if: github.event_name == 'push' && matrix.os == 'ubuntu-latest' && matrix.node-version == '26'
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           files: coverage/lcov.info
@@ -183,3 +192,21 @@ jobs:
         with:
           fail-on-severity: moderate
           comment-summary-in-pr: always
+
+  lint-and-test-summary:
+    name: Lint, Test & Build (ubuntu-latest)
+    needs: [ lint-and-test ]
+    if: always() && needs.lint-and-test.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: block
+      - name: Assert matrix result
+        run: |
+          if [ "${{ needs.lint-and-test.result }}" != "success" ]; then
+            echo "lint-and-test matrix result: ${{ needs.lint-and-test.result }}"
+            exit 1
+          fi

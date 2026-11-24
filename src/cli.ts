@@ -19,6 +19,7 @@
  */
 
 import { buildCli, type CliHandler, type ServeFn } from '@n24q02m/hull'
+import { resolveProfile } from '@n24q02m/hull/storage'
 import { resolveCredentialState, STORE_PLUGIN } from './credential-state.js'
 import { isJsonObject } from './json-value.js'
 import { notionClientForCaller } from './notion-client.js'
@@ -401,6 +402,35 @@ function toolHandlers(): Record<string, CliHandler> {
   return handlers
 }
 
+function extractProfileFlag(argv: string[]): { profile: string | undefined; rest: string[] } {
+  let profile: string | undefined
+  const rest: string[] = []
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]
+    if (arg === '--') {
+      rest.push(...argv.slice(i))
+      break
+    }
+    if (arg === '--profile') {
+      if (i + 1 >= argv.length) {
+        throw new Error('Missing value for --profile')
+      }
+      profile = argv[++i]
+      continue
+    }
+    if (arg.startsWith('--profile=')) {
+      const value = arg.slice('--profile='.length)
+      if (!value) {
+        throw new Error('Missing value for --profile')
+      }
+      profile = value
+      continue
+    }
+    rest.push(arg)
+  }
+  return { profile, rest }
+}
+
 /**
  * Entry point for the `notion` binary.
  *
@@ -408,7 +438,18 @@ function toolHandlers(): Record<string, CliHandler> {
  * the operator commands are listed as separate groups.
  */
 export function runCli(argv: string[], wiring: CliWiring): Promise<number> {
-  if (argv.length > 0 && (argv[0] === '-h' || argv[0] === '--help')) {
+  let parsed: { profile: string | undefined; rest: string[] }
+  try {
+    parsed = extractProfileFlag(argv)
+    if (parsed.profile !== undefined) {
+      process.env.NOTION_PROFILE = resolveProfile(STORE_PLUGIN, parsed.profile)
+    }
+  } catch (error) {
+    console.error(`${SERVER_NAME}: ${error instanceof Error ? error.message : String(error)}`)
+    return Promise.resolve(2)
+  }
+
+  if (parsed.rest.length > 0 && (parsed.rest[0] === '-h' || parsed.rest[0] === '--help')) {
     printCliHelp(Object.keys(wiring.operator ?? {}))
     return Promise.resolve(0)
   }
@@ -418,5 +459,5 @@ export function runCli(argv: string[], wiring: CliWiring): Promise<number> {
     pluginName: STORE_PLUGIN,
     extra: { ...toolHandlers(), ...wiring.operator }
   })
-  return cli(argv)
+  return cli(parsed.rest)
 }
