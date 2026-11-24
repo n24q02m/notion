@@ -11,8 +11,8 @@ export function createNotionClient(token: string): Client {
 }
 
 /** Builds a Notion client for the calling user's namespace, or fails with the setup hint. */
-export async function notionClientForCaller(): Promise<Client> {
-  const token = await getSubjectToken()
+export async function notionClientForCaller(account?: string): Promise<Client> {
+  const token = await getSubjectToken(account)
   if (!token) {
     throw new NotionMCPError(`Notion integration token not configured. ${SETUP_HINT}`, 'NOT_CONFIGURED')
   }

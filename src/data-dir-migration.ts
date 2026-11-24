@@ -1,14 +1,13 @@
 /**
  * One-time forward migration of the credential store across the plugin-slug
- * rename (`better-notion` -> `notion`).
+ * rename (`better-notion` -> `notion`) and the v1 (`~/.notion/`) -> v2
+ * (`~/.n24q02m/notion/`) layout change.
  *
- * Every release so far passed `STORE_PLUGIN = 'better-notion'` to hull, so the
- * encrypted blob lives in `~/.better-notion/`. The slug is now the short product
- * name, which means hull reads and writes `~/.notion/`; its own read-only
- * fallbacks still cover `~/.notion-mcp/` and the older
- * `~/.better-notion-mcp/`, but the immediately-previous layout
- * (`~/.better-notion/`) would stop being read and an existing install would look
- * unconfigured.
+ * Every release so far passed `STORE_PLUGIN = 'better-notion'` to hull or wrote
+ * under `~/.notion/`. The slug is now `notion` under `~/.n24q02m/notion/`;
+ * hull's own read-only fallbacks still cover `~/.notion/`, `~/.notion-mcp/`,
+ * `~/.better-notion/`, and `~/.better-notion-mcp/`, but copying forward once
+ * keeps the current `~/.n24q02m/notion/` store authoritative.
  *
  * This module copies that layout forward once per process, before the first
  * credential read:
@@ -37,7 +36,13 @@
 import { type Dirent, existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { isDeepStrictEqual } from 'node:util'
-import { credPath, dataDirCandidates, PerPluginStore } from '@n24q02m/hull/storage'
+import {
+  credPath,
+  type DataDirLocation,
+  dataDirCandidates,
+  legacyDataDirs,
+  PerPluginStore
+} from '@n24q02m/hull/storage'
 import { LEGACY_STORE_PLUGIN, STORE_PLUGIN } from './credential-state.js'
 
 /** One namespace copied out of the pre-rename store. */
@@ -118,17 +123,37 @@ function legacySubs(root: string): string[] {
     .map((entry) => entry.name)
 }
 
-/** First legacy directory holding a blob for `sub`, in the order hull reads them. */
-function legacySource(sub: string | null): string | null {
-  for (const { dir: root } of dataDirCandidates(LEGACY_STORE_PLUGIN)) {
-    const blob = sub === null ? join(root, 'config.json') : join(root, 'subs', sub, 'config.json')
-    if (existsSync(blob)) return root
+/** Legacy directories to migrate from, ordered newest-first (`~/.notion/` before `~/.better-notion/`). */
+function migrationCandidates(): Array<{ plugin: string; dir: string }> {
+  const seen = new Set<string>()
+  const candidates: Array<{ plugin: string; dir: string }> = []
+  const add = (plugin: string, loc: DataDirLocation): void => {
+    if (!seen.has(loc.dir)) {
+      seen.add(loc.dir)
+      candidates.push({ plugin, dir: loc.dir })
+    }
+  }
+  for (const loc of legacyDataDirs(STORE_PLUGIN)) add(STORE_PLUGIN, loc)
+  for (const loc of dataDirCandidates(LEGACY_STORE_PLUGIN)) add(LEGACY_STORE_PLUGIN, loc)
+  return candidates
+}
+
+/** First legacy directory holding a blob for `sub`, in newest-first order. */
+function legacySource(sub: string | null): { dir: string; plugin: string } | null {
+  for (const candidate of migrationCandidates()) {
+    const blob = sub === null ? join(candidate.dir, 'config.json') : join(candidate.dir, 'subs', sub, 'config.json')
+    if (existsSync(blob)) return candidate
   }
   return null
 }
 
 /** Copy one namespace forward, unless the current store already owns it. */
-async function migrateBlob(sub: string | null, source: string, report: MigrationReport): Promise<void> {
+async function migrateBlob(
+  sub: string | null,
+  source: string,
+  sourcePlugin: string,
+  report: MigrationReport
+): Promise<void> {
   const target = credPath(STORE_PLUGIN, sub)
   if (existsSync(target)) {
     report.kept.push(target)
@@ -141,7 +166,7 @@ async function migrateBlob(sub: string | null, source: string, report: Migration
 
   let payload: Record<string, unknown> | null
   try {
-    payload = await new PerPluginStore(LEGACY_STORE_PLUGIN, sub).load()
+    payload = await new PerPluginStore(sourcePlugin, sub).load()
   } catch (error) {
     throw new StoreMigrationError(
       source,
@@ -180,8 +205,8 @@ async function migrateBlob(sub: string | null, source: string, report: Migration
 async function runMigration(): Promise<MigrationReport> {
   const report: MigrationReport = { migrated: [], kept: [], deferred: [] }
 
-  const present = dataDirCandidates(LEGACY_STORE_PLUGIN)
-    .map((location) => location.dir)
+  const present = migrationCandidates()
+    .map((candidate) => candidate.dir)
     .filter((root) => legacyDirExists(root))
   if (present.length === 0) return report
 
@@ -191,11 +216,11 @@ async function runMigration(): Promise<MigrationReport> {
   }
 
   const single = legacySource(null)
-  if (single !== null) await migrateBlob(null, single, report)
+  if (single !== null) await migrateBlob(null, single.dir, single.plugin, report)
 
   for (const sub of [...subs].sort()) {
     const source = legacySource(sub)
-    if (source !== null) await migrateBlob(sub, source, report)
+    if (source !== null) await migrateBlob(sub, source.dir, source.plugin, report)
   }
 
   return report

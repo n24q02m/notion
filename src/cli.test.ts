@@ -461,6 +461,30 @@ describe('runCli dispatch', () => {
     console.log.mockRestore()
     console.error.mockRestore()
   })
+
+  it('strips --profile and sets NOTION_PROFILE before dispatching', async () => {
+    const console = spyConsole()
+    const previous = process.env.NOTION_PROFILE
+    delete process.env.NOTION_PROFILE
+    vi.mocked(workspace).mockImplementation(async () => {
+      expect(process.env.NOTION_PROFILE).toBe('work')
+      return STUB_RESULT as unknown as WorkspaceResult
+    })
+
+    try {
+      const code = await runCli(['--profile', 'work', 'workspace', 'search', '--query', 'roadmap', '--json'], wiring)
+      expect(code).toBe(0)
+      expect(workspace).toHaveBeenCalledTimes(1)
+    } finally {
+      if (previous === undefined) {
+        delete process.env.NOTION_PROFILE
+      } else {
+        process.env.NOTION_PROFILE = previous
+      }
+      console.log.mockRestore()
+      console.error.mockRestore()
+    }
+  })
 })
 
 type RequestHandler = (request: { params: { name: string; arguments?: Record<string, unknown> } }) => Promise<unknown>

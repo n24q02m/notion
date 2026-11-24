@@ -409,7 +409,18 @@ export const TOOLS = [
       properties: {
         action: {
           type: 'string',
-          enum: ['status', 'setup_status', 'setup_start', 'setup_reset', 'setup_complete', 'set', 'cache_clear'],
+          enum: [
+            'status',
+            'setup_status',
+            'setup_start',
+            'setup_reset',
+            'setup_complete',
+            'set',
+            'cache_clear',
+            'accounts_list',
+            'account_use',
+            'account_remove'
+          ],
           description: 'Action to perform'
         },
         force: {
@@ -423,6 +434,10 @@ export const TOOLS = [
         value: {
           type: 'string',
           description: 'Setting value (for set action)'
+        },
+        account: {
+          type: 'string',
+          description: 'Named account alias (for account_use and account_remove)'
         }
       },
       required: ['action']

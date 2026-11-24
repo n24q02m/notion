@@ -14,7 +14,14 @@
  * src/data-dir-migration.ts copies it forward on startup.
  */
 
-import { deleteConfig, PerPluginStore, readConfig, writeConfig } from '@n24q02m/hull/storage'
+import {
+  assertValidAccountAlias,
+  deleteConfig,
+  NamedAccountRegistry,
+  PerPluginStore,
+  readConfig,
+  writeConfig
+} from '@n24q02m/hull/storage'
 import { currentUser } from '@n24q02m/hull/token-auth'
 
 // Storage key for hull's config helpers. Deliberately NOT renamed: hull derives
@@ -53,7 +60,22 @@ export function assertNamespace(namespace: string): string {
   return namespace
 }
 
-async function loadNamespaceToken(namespace: string): Promise<string | null> {
+function registryFor(namespace: string): NamedAccountRegistry {
+  const sub = namespace === DEFAULT_NAMESPACE ? null : assertNamespace(namespace)
+  return new NamedAccountRegistry(STORE_PLUGIN, sub)
+}
+
+async function loadNamespaceToken(namespace: string, account?: string): Promise<string | null> {
+  const requestedAccount = account ?? (process.env.NOTION_ACCOUNT?.trim() || undefined)
+  if (requestedAccount !== undefined) {
+    assertValidAccountAlias(requestedAccount)
+    const rec = await registryFor(namespace).getAccount(requestedAccount)
+    const token = rec?.[CREDENTIAL_KEY]
+    return typeof token === 'string' && token ? token : null
+  }
+  const activeRec = await registryFor(namespace).getAccount()
+  const activeToken = activeRec?.[CREDENTIAL_KEY]
+  if (typeof activeToken === 'string' && activeToken) return activeToken
   if (namespace === DEFAULT_NAMESPACE) {
     const cfg = await readConfig(SERVER_NAME, STORE_PLUGIN)
     return cfg?.[CREDENTIAL_KEY] || null
@@ -74,7 +96,51 @@ export async function saveNamespaceToken(namespace: string, token: string): Prom
   })
 }
 
+/** List named accounts registered for `namespace` (or current caller). */
+export async function listAccounts(
+  namespace: string = currentUser().namespace
+): Promise<{ active: string | null; accounts: string[] }> {
+  const registry = registryFor(namespace)
+  const [active, accounts] = await Promise.all([registry.getActiveAccount(), registry.listAccounts()])
+  return { active, accounts }
+}
+
+/** Persist a named-account token for `namespace` and mark it active. */
+export async function saveAccountToken(namespace: string, alias: string, token: string): Promise<void> {
+  assertValidAccountAlias(alias)
+  await registryFor(namespace).putAccount(alias, { [CREDENTIAL_KEY]: token }, { setActive: true })
+  if (namespace === DEFAULT_NAMESPACE) {
+    _defaultToken = null
+    _state = 'configured'
+  }
+}
+
+/** Switch the active named account for `namespace` (or current caller). */
+export async function switchActiveAccount(alias: string, namespace: string = currentUser().namespace): Promise<void> {
+  assertValidAccountAlias(alias)
+  await registryFor(namespace).setActive(alias)
+  if (namespace === DEFAULT_NAMESPACE) {
+    _defaultToken = null
+    _state = 'configured'
+  }
+}
+
+/** Remove a named account for `namespace` (or current caller). */
+export async function removeAccount(alias: string, namespace: string = currentUser().namespace): Promise<boolean> {
+  assertValidAccountAlias(alias)
+  const removed = await registryFor(namespace).removeAccount(alias)
+  if (removed && namespace === DEFAULT_NAMESPACE) {
+    _defaultToken = null
+    await resolveCredentialState()
+  }
+  return removed
+}
+
 async function clearNamespaceToken(namespace: string): Promise<void> {
+  const registry = registryFor(namespace)
+  for (const alias of await registry.listAccounts()) {
+    await registry.removeAccount(alias)
+  }
   if (namespace === DEFAULT_NAMESPACE) {
     await deleteConfig(SERVER_NAME, STORE_PLUGIN)
     return
@@ -87,8 +153,15 @@ async function clearNamespaceToken(namespace: string): Promise<void> {
  * request-scoped identity (`currentUser()`); stdio and single-user HTTP
  * resolve to `default`.
  */
-export async function getSubjectToken(): Promise<string | null> {
+export async function getSubjectToken(account?: string): Promise<string | null> {
+  const requestedAccount = account ?? (process.env.NOTION_ACCOUNT?.trim() || undefined)
   const namespace = currentUser().namespace
+  if (requestedAccount !== undefined) {
+    return loadNamespaceToken(namespace, requestedAccount)
+  }
+  const activeRec = await registryFor(namespace).getAccount()
+  const activeToken = activeRec?.[CREDENTIAL_KEY]
+  if (typeof activeToken === 'string' && activeToken) return activeToken
   if (namespace === DEFAULT_NAMESPACE && _defaultToken) return _defaultToken
   return loadNamespaceToken(namespace)
 }
