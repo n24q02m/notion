@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v2.46.0-beta.2 (2026-11-24)
+
+### Features
+
+- Add standardized response truncation and _truncation metadata
+  ([#1378](https://github.com/n24q02m/notion/pull/1378),
+  [`a8fdab9`](https://github.com/n24q02m/notion/commit/a8fdab9e00839f23e09baaff1e19bbe51968c578))
+
+
 ## v2.46.0-beta.1 (2026-11-24)
 
 ### Bug Fixes
