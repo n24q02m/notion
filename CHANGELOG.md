@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v2.46.0-beta.1 (2026-11-24)
+
+### Bug Fixes
+
+- Use namespace import for @notionhq/client on node 22 esm
+  ([#1377](https://github.com/n24q02m/notion/pull/1377),
+  [`e35cc9f`](https://github.com/n24q02m/notion/commit/e35cc9f3fe875f55513d5758d74103508ff14656))
+
+- **deps**: Lock file maintenance ([#1376](https://github.com/n24q02m/notion/pull/1376),
+  [`dde109e`](https://github.com/n24q02m/notion/commit/dde109eeafaf22ea594cd63f0e6421c194cf34da))
+
+- **deps**: Update @biomejs/biome to ^2.6.8 ([#1374](https://github.com/n24q02m/notion/pull/1374),
+  [`74fcaf9`](https://github.com/n24q02m/notion/commit/74fcaf96aadf63eacffad3851fc2495925b9d6d3))
+
+### Features
+
+- Migrate state root to .n24q02m, add multi-account registry, and test node lts matrix
+  ([#1377](https://github.com/n24q02m/notion/pull/1377),
+  [`e35cc9f`](https://github.com/n24q02m/notion/commit/e35cc9f3fe875f55513d5758d74103508ff14656))
+
+
 ## v2.45.1 (2026-11-23)
 
 
