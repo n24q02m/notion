@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v2.46.0 (2026-11-25)
+
+### Bug Fixes
+
+- **deps**: Lock file maintenance ([#1381](https://github.com/n24q02m/notion/pull/1381),
+  [`2b9ecec`](https://github.com/n24q02m/notion/commit/2b9ececaf78c82167f9d8fe9679842a099a6f9c8))
+
+- **deps**: Update patch dependencies ([#1379](https://github.com/n24q02m/notion/pull/1379),
+  [`b8c44f7`](https://github.com/n24q02m/notion/commit/b8c44f750aa3b56c91af07bc75484c918ee1447a))
+
+
 ## v2.46.0-beta.2 (2026-11-24)
 
 ### Features
