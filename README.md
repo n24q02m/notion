@@ -31,7 +31,6 @@ mcp-name: io.github.n24q02m/notion
 | [email](https://github.com/n24q02m/email)                                     | IMAP/SMTP email for AI agents -- read, send, organize folders, and manage att... | MCP         |
 | [fastretrieval](https://github.com/n24q02m/fastretrieval)                     | Fast multi-model retrieval runtime: ONNX and GGUF embeddings, reranking, and ... | Tooling     |
 | [hull](https://github.com/n24q02m/hull)                                       | hull is the shared monorepo core for the wet, crg and mnemo self-hosted stack    | MCP         |
-| [jules-task-archiver](https://github.com/n24q02m/jules-task-archiver)         | Chrome Extension for bulk operations on Jules tasks via batchexecute API -- a... | Tooling     |
 | [mnemo](https://github.com/n24q02m/mnemo)                                     | Persistent AI memory with hybrid search. Open, free, unlimited.                  | MCP         |
 | [notion](https://github.com/n24q02m/notion)                                   | Markdown-first Notion for AI agents -- pages, databases, blocks, and comments... | MCP         |
 | [skret](https://github.com/n24q02m/skret)                                     | Secrets without the server.                                                      | CLI         |
@@ -112,7 +111,7 @@ docker run --rm -i -e MCP_TRANSPORT=stdio -e NOTION_TOKEN=ntn_your_token_here n2
 | OpenCode                                        | `mcpServers` block in `opencode.json`                                                                                                                                                      |
 | Cursor / Windsurf / Gemini CLI / any MCP client | `mcpServers` JSON in the client's config — same shape as the example above                                                                                                                 |
 
-Full per-client walkthroughs: [docs.n24q02m.com/servers/notion/setup/](https://docs.n24q02m.com/servers/notion/setup/).
+Full per-client walkthroughs: [docs.n24q02m.com/plugins/servers/notion/setup/](https://docs.n24q02m.com/plugins/servers/notion/setup/).
 See the [Documentation](#documentation) section for per-client setup (Claude Code, Codex, Gemini CLI, Cursor, Windsurf) and HTTP mode.
 
 ## CLI
@@ -213,7 +212,7 @@ The repo ships a [`smithery.yaml`](smithery.yaml) config for [Smithery](https://
 >
 > Past months saw significant churn around credential handling and the daemon-bridge auto-spawn pattern. This caused multi-process races, browser tab spam, and inconsistent setup UX across plugins. **The architecture is now stable**: 2 clean modes (stdio + HTTP), no daemon-bridge layer, no auto-spawn from stdio.
 >
-> Apologies for the instability period. If you encountered issues with prior versions, please update to the latest release and follow the current [Setup guide](https://docs.n24q02m.com/servers/notion/setup/) -- most prior workarounds are no longer needed.
+> Apologies for the instability period. If you encountered issues with prior versions, please update to the latest release and follow the current [Setup guide](https://docs.n24q02m.com/plugins/servers/notion/setup/) -- most prior workarounds are no longer needed.
 >
 > **Related plugins from the same author**:
 > - [wet](https://github.com/n24q02m/wet) -- Web search + content extraction
@@ -228,9 +227,9 @@ The repo ships a [`smithery.yaml`](smithery.yaml) config for [Smithery](https://
 
 ## Documentation
 
-Full docs at **[docs.n24q02m.com/servers/notion/](https://docs.n24q02m.com/servers/notion/)**:
+Full docs at **[docs.n24q02m.com/plugins/servers/notion/](https://docs.n24q02m.com/plugins/servers/notion/)**:
 
-- [Setup](https://docs.n24q02m.com/servers/notion/setup/) -- install methods for Claude Code, Codex, Gemini CLI, Cursor, Windsurf, mcp.json
+- [Setup](https://docs.n24q02m.com/plugins/servers/notion/setup/) -- install methods for Claude Code, Codex, Gemini CLI, Cursor, Windsurf, mcp.json
 
 **Install with AI agent** -- paste this to your AI coding agent:
 
