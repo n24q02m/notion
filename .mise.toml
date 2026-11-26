@@ -4,10 +4,10 @@
 # Setup: mise run setup
 
 [tools]
-node = "24"
+node = "26"
 bun = "1.4.4"
 uv = "latest"
-python = "3.13"
+python = "3.14"
 
 [settings]
 trusted_config_paths = ["."]
