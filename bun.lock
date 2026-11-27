@@ -7,7 +7,7 @@
       "dependencies": {
         "@modelcontextprotocol/node": "^2.1.2",
         "@modelcontextprotocol/server": "^2.4.0",
-        "@n24q02m/hull": "^0.12.0-beta.1",
+        "@n24q02m/hull": "^0.12.0",
         "@notionhq/client": "^5.31.1",
         "zod": "^4.6.7",
       },
@@ -133,7 +133,7 @@
 
     "@modelcontextprotocol/server": ["@modelcontextprotocol/server@2.4.0", "", { "dependencies": { "@modelcontextprotocol/core": "2.4.0", "zod": "^4.2.0" } }, "sha512-rgR9yxSaAJ+bcsi/XroT/S2AfPiIWloXAnrdfYSCms9ivVju0ishu/wW0J21Ho6+ZOR1r7RyeRbjiRuF87ix5Q=="],
 
-    "@n24q02m/hull": ["@n24q02m/hull@0.12.0-beta.1", "", { "dependencies": { "@modelcontextprotocol/node": "^2.1.2", "@modelcontextprotocol/server": "^2.4.0", "better-sqlite3": "^13.0.3", "env-paths": "^4.0.0", "smol-toml": "^1.9.0", "zod": "^4.2.0" } }, "sha512-ExhkUAV8alxTC4IO8f0JDMCnFjXWgHOkk8nMVadYNizi8Cu5gjqFyCtm3Up9Gknh5zuDwZQ/yaKaXbaU4BKW3A=="],
+    "@n24q02m/hull": ["@n24q02m/hull@0.12.0", "", { "dependencies": { "@modelcontextprotocol/node": "^2.1.2", "@modelcontextprotocol/server": "^2.4.0", "better-sqlite3": "^13.0.3", "env-paths": "^4.0.0", "smol-toml": "^1.9.0", "zod": "^4.2.0" } }, "sha512-u+8LVQOM3ag6/jORweKdsp9mSw0XrFUi599mcuA9oAVIAkhgh+9hXjnX+IlrClrzqjlVv4iS4aSsbkjqbTPkBg=="],
 
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@1.2.6", "", { "dependencies": { "@tybys/wasm-util": "^0.10.3" }, "peerDependencies": { "@emnapi/core": "^1.7.1 || 2.0.0-beta.2", "@emnapi/runtime": "^1.7.1 || 2.0.0-beta.2" } }, "sha512-mRyDmEw9/fCDXCGfL1sbgIw/GUK0PVxRW4YwgPN61F3LQ+fSyoBFarJVzgGyhF6kRzEQZ0FejDqm4WLXSeqQmw=="],
 
