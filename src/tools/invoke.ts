@@ -8,6 +8,7 @@
 
 import { readFile } from 'node:fs/promises'
 import { basename, isAbsolute, join, relative, sep } from 'node:path'
+import type { ServerContext } from '@modelcontextprotocol/server'
 import type { Client } from '@notionhq/client'
 import { isJsonObject } from '../json-value.js'
 import { type BlocksInput, blocks } from './composite/blocks.js'
@@ -34,6 +35,7 @@ import {
   truncationNote,
   UNBOUNDED
 } from './helpers/bounds.js'
+import { checkSensitiveOperation } from './helpers/elicitation.js'
 import { findClosestMatch, NotionMCPError } from './helpers/errors.js'
 
 const BOUNDED_TOOLS = new Set([
@@ -101,7 +103,8 @@ function finalizeBoundedResult(
 export async function invokeTool(
   name: string,
   args: Record<string, unknown>,
-  notionClientFactory: () => Promise<Client>
+  notionClientFactory: () => Promise<Client>,
+  ctx?: ServerContext
 ): Promise<unknown> {
   const isBounded = BOUNDED_TOOLS.has(name)
   const action = typeof args.action === 'string' ? args.action : ''
@@ -111,6 +114,19 @@ export async function invokeTool(
         items: !hasExplicitLimit && LIST_BOUNDED_ACTIONS.has(action) ? DEFAULT_RESPONSE_ITEMS : UNBOUNDED
       })
     : undefined
+
+  const gate = await checkSensitiveOperation(name, args, ctx)
+  if (gate.status === 'input_required') {
+    return gate.result
+  }
+  if (gate.status === 'cancelled') {
+    return {
+      action,
+      cancelled: true,
+      status: gate.reason,
+      message: `Operation ${name}${action ? `.${action}` : ''} was ${gate.reason} by user confirmation.`
+    }
+  }
 
   let raw: unknown
   switch (name) {

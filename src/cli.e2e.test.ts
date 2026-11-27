@@ -14,6 +14,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
+import { Client } from '@modelcontextprotocol/client'
+import { SKILLS_EXTENSION_ID, SkillsClient } from '@modelcontextprotocol/client/ext/skills'
+import { StdioClientTransport } from '@modelcontextprotocol/client/stdio'
+import { FILES_EXTENSION_ID } from '@n24q02m/hull/extensions'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { TOOL_COMMANDS } from './cli.js'
 
@@ -140,4 +144,117 @@ describe('the shipped CLI bundle', () => {
     expect(stdout).toContain('usage: notion pages <action> [flags]')
     expect(stdout).toContain('actions: create, get, get_property, update, move, archive, restore, duplicate')
   })
+})
+
+function mcpEnv(): Record<string, string> {
+  const env: Record<string, string> = {}
+  for (const [k, v] of Object.entries(process.env)) {
+    if (v !== undefined) env[k] = v
+  }
+  env.NODE_ENV = 'production'
+  env.NOTION_DATA_DIR = dataDir
+  env.NOTION_TOKEN = 'ntn_e2e_spawn_token'
+  return env
+}
+
+describe('MCP stdio over the shipped CLI bundle', () => {
+  it('connects in 2026-07-28 auto mode and verifies skills, docs, files payload, and elicitation', async () => {
+    const transport = new StdioClientTransport({
+      command: process.execPath,
+      args: [CLI],
+      env: mcpEnv(),
+      stderr: 'pipe'
+    })
+
+    const client = new Client(
+      { name: 'spawn-e2e-2026', version: '1.0.0' },
+      {
+        versionNegotiation: { mode: 'auto' },
+        capabilities: {
+          elicitation: { form: {} },
+          extensions: {
+            [SKILLS_EXTENSION_ID]: {},
+            [FILES_EXTENSION_ID]: {}
+          }
+        }
+      }
+    )
+
+    let confirmReset = false
+    client.setRequestHandler('elicitation/create', async () =>
+      confirmReset ? { action: 'accept', content: { confirm: true } } : { action: 'decline' }
+    )
+
+    try {
+      await client.connect(transport)
+
+      const tools = await client.listTools()
+      expect(tools.tools.some((t) => t.name === 'pages')).toBe(true)
+
+      const skillsClient = new SkillsClient(client)
+      const listing = await skillsClient.list()
+      expect(listing.skills.map((s) => s.frontmatter.name).sort()).toEqual(['bulk-update', 'organize-database'])
+
+      const bulkSkill = listing.skills.find((s) => s.frontmatter.name === 'bulk-update')!
+      const loaded = await skillsClient.read(bulkSkill)
+      expect(loaded.verified).toBe(true)
+      expect(loaded.text).toContain('bulk-update')
+
+      const doc = await client.readResource({ uri: 'notion://docs/pages' })
+      expect(doc.contents[0]).toMatchObject({ uri: 'notion://docs/pages', mimeType: 'text/markdown' })
+
+      const converted = await client.callTool({
+        name: 'content_convert',
+        arguments: {
+          direction: 'blocks-to-markdown',
+          content: [{ type: 'paragraph', paragraph: { rich_text: [{ type: 'text', text: { content: 'Spawn E2E' } }] } }]
+        }
+      })
+      const meta = converted._meta as Record<string, unknown> | undefined
+      expect(meta?.[FILES_EXTENSION_ID]).toHaveLength(1)
+
+      confirmReset = false
+      const declined = await client.callTool({
+        name: 'config',
+        arguments: { action: 'setup_reset', force: true }
+      })
+      expect(declined.structuredContent).toMatchObject({ cancelled: true, status: 'declined' })
+
+      confirmReset = true
+      const accepted = await client.callTool({
+        name: 'config',
+        arguments: { action: 'setup_reset', force: true }
+      })
+      expect(accepted.structuredContent).toMatchObject({ action: 'setup_reset', state: 'awaiting_setup' })
+    } finally {
+      await client.close()
+    }
+  }, 30_000)
+
+  it('connects in legacy 2025 mode and falls back cleanly for files and elicitation', async () => {
+    const transport = new StdioClientTransport({
+      command: process.execPath,
+      args: [CLI],
+      env: mcpEnv(),
+      stderr: 'pipe'
+    })
+
+    const legacyClient = new Client(
+      { name: 'spawn-e2e-legacy', version: '1.0.0' },
+      { versionNegotiation: { mode: 'legacy' } }
+    )
+
+    try {
+      await legacyClient.connect(transport)
+      const status = await legacyClient.callTool({
+        name: 'config',
+        arguments: { action: 'setup_reset', force: true }
+      })
+      const meta = status._meta as Record<string, unknown> | undefined
+      expect(meta?.[FILES_EXTENSION_ID]).toBeUndefined()
+      expect(status.structuredContent).toMatchObject({ action: 'setup_reset', state: 'awaiting_setup' })
+    } finally {
+      await legacyClient.close()
+    }
+  }, 30_000)
 })

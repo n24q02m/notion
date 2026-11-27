@@ -5,9 +5,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { authCommand, bootstrap, getTransportMode, isMain, mode, startServer } from './main.js'
 
 const startHttpMock = vi.fn()
-const stdioConnectMock = vi.fn().mockResolvedValue(undefined)
+const stdioCloseMock = vi.fn().mockResolvedValue(undefined)
 const stdioServerCtor = vi.fn()
-const stdioTransportCtor = vi.fn()
+const attachSkillsProviderMock = vi.fn().mockResolvedValue({ attach: vi.fn() })
+const serveStdioMock = vi.fn((factory: () => unknown) => {
+  factory()
+  return { close: stdioCloseMock }
+})
 const registerToolsMock = vi.fn()
 const questionMock = vi.fn()
 const readlineCloseMock = vi.fn()
@@ -20,24 +24,28 @@ vi.mock('./transports/http.js', () => ({
   startHttp: startHttpMock
 }))
 
-vi.mock('@modelcontextprotocol/sdk/server/index.js', () => {
-  class MockServer {
+vi.mock('@modelcontextprotocol/server', () => {
+  class MockMcpServer {
+    server = { setRequestHandler: vi.fn(), getClientCapabilities: vi.fn() }
+    registerResource = vi.fn()
     constructor(...args: unknown[]) {
       stdioServerCtor(...args)
     }
-    connect = stdioConnectMock
   }
-  return { Server: MockServer }
+  return {
+    McpServer: MockMcpServer,
+    isInputRequiredResult: vi.fn(() => false),
+    CLIENT_CAPABILITIES_META_KEY: 'modelcontextprotocol/client-capabilities'
+  }
 })
 
-vi.mock('@modelcontextprotocol/sdk/server/stdio.js', () => {
-  class MockStdioServerTransport {
-    constructor(...args: unknown[]) {
-      stdioTransportCtor(...args)
-    }
-  }
-  return { StdioServerTransport: MockStdioServerTransport }
-})
+vi.mock('@modelcontextprotocol/server/stdio', () => ({
+  serveStdio: (...args: unknown[]) => (serveStdioMock as (...a: unknown[]) => unknown)(...args)
+}))
+
+vi.mock('@n24q02m/hull/skills', () => ({
+  attachSkillsProvider: (...args: unknown[]) => (attachSkillsProviderMock as (...a: unknown[]) => unknown)(...args)
+}))
 
 vi.mock('./notion-client.js', () => ({
   createNotionClient: vi.fn(),
@@ -277,12 +285,12 @@ describe('main.ts', () => {
     it('verifies direct stdio transport when mode is stdio', async () => {
       process.env.NOTION_TOKEN = 'ntn_test_token'
       await startServer('stdio')
+      expect(attachSkillsProviderMock).toHaveBeenCalledOnce()
       expect(stdioServerCtor).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'notion' }),
         expect.objectContaining({ capabilities: expect.any(Object) })
       )
-      expect(stdioTransportCtor).toHaveBeenCalledOnce()
-      expect(stdioConnectMock).toHaveBeenCalledOnce()
+      expect(serveStdioMock).toHaveBeenCalledOnce()
       expect(registerToolsMock).toHaveBeenCalledOnce()
       expect(startHttpMock).not.toHaveBeenCalled()
     })
@@ -291,7 +299,7 @@ describe('main.ts', () => {
       process.env.NOTION_TOKEN = 'ntn_test_token'
       await startServer('unknown')
       expect(stdioServerCtor).toHaveBeenCalled()
-      expect(stdioConnectMock).toHaveBeenCalled()
+      expect(serveStdioMock).toHaveBeenCalled()
     })
 
     it('exits 1 with stderr message when stdio mode is selected without NOTION_TOKEN', async () => {
@@ -324,7 +332,7 @@ describe('main.ts', () => {
     it('verifies execution with default mode', async () => {
       process.env.NOTION_TOKEN = 'ntn_test_token'
       await bootstrap()
-      expect(stdioConnectMock).toHaveBeenCalled()
+      expect(serveStdioMock).toHaveBeenCalled()
     })
 
     it('verifies execution with provided mode', async () => {
@@ -335,7 +343,7 @@ describe('main.ts', () => {
     it('verifies startup errors in bootstrap', async () => {
       process.env.NOTION_TOKEN = 'ntn_test_token'
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-      stdioConnectMock.mockRejectedValueOnce(new Error('Test failure'))
+      attachSkillsProviderMock.mockRejectedValueOnce(new Error('Test failure'))
 
       await bootstrap('stdio')
 
@@ -348,7 +356,7 @@ describe('main.ts', () => {
     it('verifies startup errors with non-Error object in bootstrap', async () => {
       process.env.NOTION_TOKEN = 'ntn_test_token'
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-      stdioConnectMock.mockRejectedValueOnce('String error')
+      attachSkillsProviderMock.mockRejectedValueOnce('String error')
 
       await bootstrap('stdio')
 
@@ -364,11 +372,11 @@ describe('main.ts', () => {
 
       // First call should work
       await bootstrap('stdio')
-      expect(stdioConnectMock).toHaveBeenCalledTimes(1)
+      expect(serveStdioMock).toHaveBeenCalledTimes(1)
 
       // Second call should be aborted
       await bootstrap('stdio')
-      expect(stdioConnectMock).toHaveBeenCalledTimes(1)
+      expect(serveStdioMock).toHaveBeenCalledTimes(1)
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Startup aborted'))
 
       consoleSpy.mockRestore()
@@ -380,10 +388,10 @@ describe('main.ts', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
       await startServer('stdio')
-      expect(stdioConnectMock).toHaveBeenCalledTimes(1)
+      expect(serveStdioMock).toHaveBeenCalledTimes(1)
 
       await startServer('stdio')
-      expect(stdioConnectMock).toHaveBeenCalledTimes(1)
+      expect(serveStdioMock).toHaveBeenCalledTimes(1)
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Startup aborted'))
 
       consoleSpy.mockRestore()
@@ -426,7 +434,7 @@ describe('main.ts', () => {
         `${pathToFileURL(fs.realpathSync(join(dirname(fileURLToPath(import.meta.url)), 'main.ts'))).href}?test=${Date.now()}`
       )
 
-      expect(stdioConnectMock).toHaveBeenCalled()
+      expect(serveStdioMock).toHaveBeenCalled()
       delete process.env.BETTER_NOTION_MCP_BOOTSTRAPPED
     })
 
@@ -446,7 +454,7 @@ describe('main.ts', () => {
 
       // bootstrap sets this env var
       expect(process.env.BETTER_NOTION_MCP_BOOTSTRAPPED).toBe('true')
-      expect(stdioConnectMock).toHaveBeenCalled()
+      expect(serveStdioMock).toHaveBeenCalled()
 
       delete process.env.BETTER_NOTION_MCP_BOOTSTRAPPED
     })
@@ -477,7 +485,7 @@ describe('main.ts', () => {
 
       expect(logSpy).toHaveBeenCalledWith('notion 9.9.9')
       expect(exitSpy).toHaveBeenCalledWith(0)
-      expect(stdioConnectMock).not.toHaveBeenCalled()
+      expect(serveStdioMock).not.toHaveBeenCalled()
       logSpy.mockRestore()
     })
 
@@ -490,7 +498,7 @@ describe('main.ts', () => {
       await vi.waitFor(() => expect(exitSpy).toHaveBeenCalled())
 
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('notion:'))
-      expect(stdioConnectMock).not.toHaveBeenCalled()
+      expect(serveStdioMock).not.toHaveBeenCalled()
       logSpy.mockRestore()
     })
 
@@ -507,7 +515,7 @@ describe('main.ts', () => {
       expect(text).toContain('operator commands:')
       expect(text).toContain('auth, config, doctor, logout, status, token')
       expect(text).not.toMatch(/\brelay\b/)
-      expect(stdioConnectMock).not.toHaveBeenCalled()
+      expect(serveStdioMock).not.toHaveBeenCalled()
       logSpy.mockRestore()
     })
 
@@ -525,12 +533,12 @@ describe('main.ts', () => {
       const expected = text.slice(text.indexOf('expected one of: '))
       expect(expected).toContain('auth')
       expect(expected).not.toMatch(/\brelay\b/)
-      expect(stdioConnectMock).not.toHaveBeenCalled()
+      expect(serveStdioMock).not.toHaveBeenCalled()
       errorSpy.mockRestore()
     })
 
     it('does not exit right after the stdio transport connects (stays alive until shutdown)', async () => {
-      // Regression guard: Server.connect() resolves once the transport
+      // Regression guard: serveStdio() returns once the transport
       // starts listening, not once the session ends. If `serve()` returned
       // right there, buildCli's `.then((code) => process.exit(code))` would
       // kill the process immediately after startup instead of keeping the
@@ -540,7 +548,7 @@ describe('main.ts', () => {
 
       vi.resetModules()
       await import(`${pathToFileURL(mainPath).href}?test=${Date.now()}`)
-      await vi.waitFor(() => expect(stdioConnectMock).toHaveBeenCalled())
+      await vi.waitFor(() => expect(serveStdioMock).toHaveBeenCalled())
 
       await new Promise((resolve) => setTimeout(resolve, 20))
       expect(exitSpy).not.toHaveBeenCalled()

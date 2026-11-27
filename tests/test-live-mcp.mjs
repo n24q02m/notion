@@ -13,8 +13,8 @@
  * With NOTION_TOKEN: also tests actual Notion API operations
  */
 
-import { Client } from '@modelcontextprotocol/sdk/client/index.js'
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
+import { Client } from '@modelcontextprotocol/client'
+import { StdioClientTransport } from '@modelcontextprotocol/client/stdio'
 
 const TIMEOUT = { timeout: 30000 }
 

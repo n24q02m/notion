@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs'
-import type { Server } from '@modelcontextprotocol/sdk/server/index.js'
+import type { McpServer } from '@modelcontextprotocol/server'
 import type { Client } from '@notionhq/client'
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
@@ -492,10 +492,15 @@ type RequestHandler = (request: { params: { name: string; arguments?: Record<str
 /** The MCP `CallTool` handler `registerTools` installs, over a minimal server double. */
 function callToolHandler(): RequestHandler {
   const handlers: RequestHandler[] = []
-  const server = { setRequestHandler: (_schema: unknown, handler: RequestHandler) => handlers.push(handler) }
-  registerTools(server as unknown as Server, async () => ({}) as unknown as Client)
-  // Registration order is ListTools, ListResources, ReadResource, CallTool.
-  return handlers[3]
+  const server = {
+    registerResource: () => undefined,
+    server: {
+      setRequestHandler: (_schema: unknown, handler: RequestHandler) => handlers.push(handler)
+    }
+  }
+  registerTools(server as unknown as McpServer, async () => ({}) as unknown as Client)
+  // Registration order on mcp.server is tools/list, tools/call (resources use mcp.registerResource).
+  return handlers[1]
 }
 
 describe('handler reuse with the MCP server', () => {

@@ -53,13 +53,15 @@
   "files": [
     "build/",
     "bin/",
+    "skills/",
     "npm-shrinkwrap.json",
     "README.md",
     "LICENSE"
   ],
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.32.2",
-    "@n24q02m/hull": "^0.11.0",
+    "@modelcontextprotocol/node": "^2.1.2",
+    "@modelcontextprotocol/server": "^2.4.0",
+    "@n24q02m/hull": "^0.12.0-beta.1",
     "@notionhq/client": "^5.31.1",
     "zod": "^4.6.7"
   },
@@ -68,6 +70,7 @@
   ],
   "devDependencies": {
     "@biomejs/biome": "^2.6.8",
+    "@modelcontextprotocol/client": "^2.4.0",
     "@types/node": "^26.6.6",
     "@vitest/coverage-v8": "^5.1.1",
     "esbuild": "^0.28.2",

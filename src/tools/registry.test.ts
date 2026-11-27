@@ -60,7 +60,7 @@ import { users } from './composite/users.js'
 import { workspace } from './composite/workspace.js'
 import { NotionMCPError } from './helpers/errors.js'
 import { EXTERNAL_CONTENT_TOOLS } from './helpers/security.js'
-import { registerTools } from './registry.js'
+import { readDocumentationResource, registerTools } from './registry.js'
 
 const EXPECTED_TOOL_NAMES = [
   'pages',
@@ -87,21 +87,45 @@ const EXPECTED_RESOURCE_URIS = [
 ]
 
 /**
- * Create a mock MCP Server that captures registered handlers by registration order
- *
- * Registration order in registry.ts:
- *   0 - ListToolsRequestSchema
- *   1 - ListResourcesRequestSchema
- *   2 - ReadResourceRequestSchema
- *   3 - CallToolRequestSchema
+ * Create a mock McpServer that captures tool handlers and registered resources.
  */
 function createMockServer() {
-  const handlers: ((...args: any[]) => any)[] = []
+  const requestHandlers = new Map<string, (...args: any[]) => any>()
+  const registeredResources: Array<{
+    name: string
+    uri: string
+    metadata: Record<string, unknown>
+    readCb: () => Promise<any>
+  }> = []
+  const setRequestHandler = vi.fn((method: string, handler: (...args: any[]) => any) => {
+    requestHandlers.set(method, handler)
+  })
+  const getClientCapabilities = vi.fn(() => undefined)
+  const registerResource = vi.fn(
+    (name: string, uri: string, metadata: Record<string, unknown>, readCb: () => Promise<any>) => {
+      registeredResources.push({ name, uri, metadata, readCb })
+    }
+  )
+
   return {
-    setRequestHandler: vi.fn((_schema: any, handler: (...args: any[]) => any) => {
-      handlers.push(handler)
-    }),
-    getHandler: (index: number) => handlers[index]
+    server: {
+      setRequestHandler,
+      getClientCapabilities
+    },
+    registerResource,
+    registeredResources,
+    getHandler: (index: number) => {
+      if (index === 0) return requestHandlers.get('tools/list')!
+      if (index === 1) {
+        return async () => ({
+          resources: registeredResources.map((r) => ({ uri: r.uri, name: r.name, ...r.metadata }))
+        })
+      }
+      if (index === 2) {
+        return async (request: { params: { uri: string } }) => readDocumentationResource(request.params.uri)
+      }
+      return requestHandlers.get('tools/call')!
+    }
   }
 }
 
@@ -117,8 +141,15 @@ describe('registerTools', () => {
   })
 
   describe('registration', () => {
-    it('should register exactly 4 request handlers', () => {
-      expect(server.setRequestHandler).toHaveBeenCalledTimes(4)
+    it('should register tools/list, tools/call, and all 8 documentation resources', () => {
+      expect(server.server.setRequestHandler).toHaveBeenCalledTimes(2)
+      expect(server.registerResource).toHaveBeenCalledTimes(8)
+    })
+
+    it('reads documentation when a registered resource callback is invoked', async () => {
+      const result = await server.registeredResources[0].readCb()
+      expect(result.contents[0].uri).toBe('notion://docs/pages')
+      expect(result.contents[0].text).toBe('# Mock documentation content')
     })
 
     it('should not call client factory at registration time', () => {

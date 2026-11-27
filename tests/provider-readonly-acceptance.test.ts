@@ -14,7 +14,7 @@ const sdkMocks = vi.hoisted(() => ({
   transportArgs: vi.fn()
 }))
 
-vi.mock('@modelcontextprotocol/sdk/client/index.js', () => ({
+vi.mock('@modelcontextprotocol/client', () => ({
   Client: class {
     async connect(...args: unknown[]) {
       return sdkMocks.connect(...args)
@@ -23,10 +23,7 @@ vi.mock('@modelcontextprotocol/sdk/client/index.js', () => ({
     async callTool(...args: unknown[]) {
       return sdkMocks.callTool(...args)
     }
-  }
-}))
-
-vi.mock('@modelcontextprotocol/sdk/client/streamableHttp.js', () => ({
+  },
   StreamableHTTPClientTransport: class {
     constructor(...args: unknown[]) {
       sdkMocks.transportArgs(...args)
