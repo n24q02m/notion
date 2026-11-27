@@ -12,10 +12,10 @@ import { readFileSync, realpathSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { createInterface } from 'node:readline/promises'
 import { fileURLToPath } from 'node:url'
-import { Server } from '@modelcontextprotocol/sdk/server/index.js'
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+import { type StdioServerHandle, serveStdio } from '@modelcontextprotocol/server/stdio'
 import { assertValidAccountAlias } from '@n24q02m/hull/storage'
 import { runCli } from './cli.js'
+import { createMCPServer, loadServerSkillsCatalog } from './create-server.js'
 import {
   assertNamespace,
   DEFAULT_NAMESPACE,
@@ -26,7 +26,6 @@ import {
 } from './credential-state.js'
 import { prepareDataDir } from './data-dir.js'
 import { createNotionClient, notionClientForCaller } from './notion-client.js'
-import { registerTools } from './tools/registry.js'
 
 const SERVER_NAME = 'notion'
 
@@ -111,17 +110,16 @@ Documentation: https://docs.n24q02m.com/servers/notion/
     return
   }
 
-  const server = new Server(
-    { name: SERVER_NAME, version: getPackageVersion() },
-    { capabilities: { tools: {}, resources: {} } }
-  )
-
-  registerTools(server, notionClientForCaller)
-
-  const transport = new StdioServerTransport()
-  await server.connect(transport)
+  const skillsCatalog = await loadServerSkillsCatalog()
+  activeStdioHandle = serveStdio(() => createMCPServer(notionClientForCaller, { skillsCatalog }), {
+    onerror: (error) => {
+      console.error(`[${SERVER_NAME}] stdio error:`, error.message)
+    }
+  })
   console.error(`[${SERVER_NAME}] Server started in stdio mode (v${getPackageVersion()})`)
 }
+
+let activeStdioHandle: StdioServerHandle | null = null
 
 // Global state for the selected mode
 export const mode = getTransportMode()
@@ -142,17 +140,19 @@ export async function bootstrap(selectedMode: string = mode) {
  * `serve` entry point for the CLI (`src/cli.ts`).
  *
  * `bootstrap()` resolves as soon as the transport is ready. For stdio,
- * `server.connect` resolves when stdin attaches, not when the session ends,
- * so this keeps the promise pending until SIGINT/SIGTERM. Otherwise the CLI's
- * `.then((code) => process.exit(code))` would kill the process right after
- * startup. HTTP blocks inside `startHttp()` until its own shutdown.
+ * `serveStdio` attaches stdin listeners asynchronously, so this keeps the
+ * promise pending until SIGINT/SIGTERM. Otherwise the CLI's `.then(...)`
+ * would kill the process right after startup. HTTP blocks inside
+ * `startHttp()` until its own shutdown.
  */
 async function serve(): Promise<void> {
   await bootstrap()
   if (mode === 'http') return
   await new Promise<void>((resolve) => {
-    const shutdown = () => {
+    const shutdown = async () => {
       console.error(`[${SERVER_NAME}] shutting down`)
+      await activeStdioHandle?.close()
+      activeStdioHandle = null
       resolve()
     }
     process.once('SIGINT', shutdown)

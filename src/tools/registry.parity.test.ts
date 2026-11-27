@@ -26,16 +26,20 @@ const EXPECTED: Expected[] = JSON.parse(
 
 function captureListTools() {
   const handlers: ((...args: any[]) => any)[] = []
-  const server = {
-    setRequestHandler: vi.fn((_schema: unknown, handler: (...args: any[]) => any) => {
-      handlers.push(handler)
-    })
+  const mcp = {
+    server: {
+      setRequestHandler: vi.fn((_schema: unknown, handler: (...args: any[]) => any) => {
+        handlers.push(handler)
+      }),
+      getClientCapabilities: vi.fn()
+    },
+    registerResource: vi.fn()
   }
   registerTools(
-    server as any,
+    mcp as any,
     vi.fn(() => ({}) as any)
   )
-  // Registration order: 0 = ListTools
+  // Registration order: 0 = tools/list
   return handlers[0]
 }
 

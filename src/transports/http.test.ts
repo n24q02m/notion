@@ -4,11 +4,17 @@ import { buildAuthConfig, startHttp } from './http.js'
 const hullMocks = vi.hoisted(() => ({
   runHttpServer: vi.fn(),
   close: vi.fn(),
-  createMCPServer: vi.fn()
+  createMCPServer: vi.fn(),
+  loadServerSkillsCatalog: vi.fn()
 }))
 
+const FAKE_CATALOG = { attach: vi.fn() }
+
 vi.mock('@n24q02m/hull/transport', () => ({ runHttpServer: hullMocks.runHttpServer }))
-vi.mock('../create-server.js', () => ({ createMCPServer: hullMocks.createMCPServer }))
+vi.mock('../create-server.js', () => ({
+  createMCPServer: hullMocks.createMCPServer,
+  loadServerSkillsCatalog: hullMocks.loadServerSkillsCatalog
+}))
 vi.mock('../notion-client.js', () => ({ notionClientForCaller: vi.fn() }))
 
 const HASH_STUB = 'scrypt$stub-hash-for-tests'
@@ -66,6 +72,7 @@ describe('startHttp', () => {
     delete process.env.PORT
     delete process.env.HOST
     delete process.env.MCP_AUTH_MODE
+    delete process.env.MCP_CORS_ALLOW_ORIGINS
     handlers = {}
     onceSpy = vi.spyOn(process, 'once').mockImplementation(((event: string, listener: () => Promise<void>) => {
       handlers[event] = listener
@@ -73,6 +80,7 @@ describe('startHttp', () => {
     }) as never)
     errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     hullMocks.close.mockResolvedValue(undefined)
+    hullMocks.loadServerSkillsCatalog.mockResolvedValue(FAKE_CATALOG)
     hullMocks.runHttpServer.mockImplementation(async (_factory: unknown, opts: { host: string; port: number }) => ({
       host: opts.host,
       port: opts.port || 41234,
@@ -125,7 +133,7 @@ describe('startHttp', () => {
     await done
   })
 
-  it('builds each session server from the per-caller Notion client', async () => {
+  it('builds each session server from the per-caller Notion client with skills catalog', async () => {
     const done = startHttp()
     await vi.waitFor(() => expect(handlers.SIGINT).toBeDefined())
     const { notionClientForCaller } = await import('../notion-client.js')
@@ -133,7 +141,26 @@ describe('startHttp', () => {
 
     const factory = hullMocks.runHttpServer.mock.calls[0][0] as () => unknown
     expect(factory()).toEqual({ server: 'stub' })
-    expect(hullMocks.createMCPServer).toHaveBeenCalledWith(notionClientForCaller)
+    expect(hullMocks.loadServerSkillsCatalog).toHaveBeenCalledOnce()
+    expect(hullMocks.createMCPServer).toHaveBeenCalledWith(notionClientForCaller, { skillsCatalog: FAKE_CATALOG })
+
+    await handlers.SIGINT()
+    await done
+  })
+
+  it('passes MCP_CORS_ALLOW_ORIGINS through to runHttpServer', async () => {
+    process.env.MCP_CORS_ALLOW_ORIGINS = 'https://claude.ai, https://localhost:3000 '
+
+    const done = startHttp()
+    await vi.waitFor(() => expect(handlers.SIGINT).toBeDefined())
+
+    expect(hullMocks.runHttpServer).toHaveBeenCalledWith(expect.any(Function), {
+      serverName: 'notion',
+      port: 0,
+      host: '127.0.0.1',
+      auth: { mode: 'multi', usersFile: undefined },
+      corsAllowOrigins: ['https://claude.ai', 'https://localhost:3000']
+    })
 
     await handlers.SIGINT()
     await done

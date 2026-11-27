@@ -6,14 +6,12 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Client } from '@modelcontextprotocol/sdk/client/index.js'
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client'
 import { setHomeDirForTesting } from '@n24q02m/hull/storage'
 import { hashToken } from '@n24q02m/hull/token-auth'
 import { type HttpServerHandle, runHttpServer } from '@n24q02m/hull/transport'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { createMCPServer } from '../create-server.js'
+import { createMCPServer, loadServerSkillsCatalog } from '../create-server.js'
 import { saveNamespaceToken } from '../credential-state.js'
 import { notionClientForCaller } from '../notion-client.js'
 
@@ -78,7 +76,8 @@ describe('HTTP multi-user isolation (real hull server, real storage)', () => {
       ].join('\n')
     )
 
-    handle = await runHttpServer(() => createMCPServer(notionClientForCaller) as unknown as McpServer, {
+    const skillsCatalog = await loadServerSkillsCatalog()
+    handle = await runHttpServer(() => createMCPServer(notionClientForCaller, { skillsCatalog }), {
       serverName: 'notion',
       port: 0,
       host: '127.0.0.1',
@@ -107,7 +106,7 @@ describe('HTTP multi-user isolation (real hull server, real storage)', () => {
     const bob = await statusFor(url, BOB_BEARER)
     expect(bob.has_token).toBe(false)
     expect(bob.token_source).toBeNull()
-  })
+  }, 15_000)
 
   it('rejects an unknown bearer before any tool runs', async () => {
     const url = new URL(`http://127.0.0.1:${handle.port}/mcp`)

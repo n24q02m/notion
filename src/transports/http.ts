@@ -14,13 +14,20 @@
  * The Notion token is then read from that namespace only. `no-auth` refuses
  * non-loopback hosts (enforced by hull).
  */
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { HttpAuthConfig } from '@n24q02m/hull/token-auth'
 import { runHttpServer } from '@n24q02m/hull/transport'
-import { createMCPServer } from '../create-server.js'
+import { createMCPServer, loadServerSkillsCatalog } from '../create-server.js'
 import { notionClientForCaller } from '../notion-client.js'
 
 const SERVER_NAME = 'notion'
+
+function parseCorsAllowOrigins(raw: string | undefined): string[] {
+  if (!raw) return []
+  return raw
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0)
+}
 
 /** Maps the MCP_AUTH_* environment to a hull `HttpAuthConfig`. */
 export function buildAuthConfig(env: NodeJS.ProcessEnv): HttpAuthConfig {
@@ -47,12 +54,15 @@ export async function startHttp(): Promise<void> {
   const port = process.env.PORT ? Number.parseInt(process.env.PORT, 10) : 0
   const host = process.env.HOST || '127.0.0.1'
   const auth = buildAuthConfig(process.env)
+  const corsAllowOrigins = parseCorsAllowOrigins(process.env.MCP_CORS_ALLOW_ORIGINS)
+  const skillsCatalog = await loadServerSkillsCatalog()
 
-  const handle = await runHttpServer(() => createMCPServer(notionClientForCaller) as unknown as McpServer, {
+  const handle = await runHttpServer(() => createMCPServer(notionClientForCaller, { skillsCatalog }), {
     serverName: SERVER_NAME,
     port,
     host,
-    auth
+    auth,
+    ...(corsAllowOrigins.length > 0 ? { corsAllowOrigins } : {})
   })
   console.error(`[notion] http mode on ${handle.host}:${handle.port} (auth=${auth.mode})`)
 

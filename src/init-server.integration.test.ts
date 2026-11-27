@@ -4,25 +4,31 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 // while mocking the external transports and SDK classes.
 
 const startHttpMock = vi.fn()
-const stdioConnectMock = vi.fn().mockResolvedValue(undefined)
+const serveStdioMock = vi.fn(() => ({ close: vi.fn().mockResolvedValue(undefined) }))
+const attachSkillsProviderMock = vi.fn().mockResolvedValue({ attach: vi.fn() })
 
 vi.mock('./transports/http.js', () => ({
   startHttp: startHttpMock
 }))
 
-vi.mock('@modelcontextprotocol/sdk/server/index.js', () => {
+vi.mock('@modelcontextprotocol/server', () => {
   return {
-    Server: class {
-      connect = stdioConnectMock
-    }
+    McpServer: class {
+      server = { setRequestHandler: vi.fn(), getClientCapabilities: vi.fn() }
+      registerResource = vi.fn()
+    },
+    isInputRequiredResult: vi.fn(() => false),
+    CLIENT_CAPABILITIES_META_KEY: 'modelcontextprotocol/client-capabilities'
   }
 })
 
-vi.mock('@modelcontextprotocol/sdk/server/stdio.js', () => {
-  return {
-    StdioServerTransport: class {}
-  }
-})
+vi.mock('@modelcontextprotocol/server/stdio', () => ({
+  serveStdio: serveStdioMock
+}))
+
+vi.mock('@n24q02m/hull/skills', () => ({
+  attachSkillsProvider: attachSkillsProviderMock
+}))
 
 vi.mock('./tools/registry.js', () => ({
   registerTools: vi.fn()
@@ -66,10 +72,11 @@ describe('initServer integration', () => {
     expect(startHttpMock).toHaveBeenCalled()
   })
 
-  it('flows from initServer to stdio connect in main.ts by default', async () => {
+  it('flows from initServer to serveStdio in main.ts by default', async () => {
     const { initServer } = await import('./init-server.js')
     await initServer()
 
-    expect(stdioConnectMock).toHaveBeenCalled()
+    expect(attachSkillsProviderMock).toHaveBeenCalled()
+    expect(serveStdioMock).toHaveBeenCalled()
   })
 })

@@ -39,6 +39,7 @@ LABEL io.modelcontextprotocol.server.name="io.github.n24q02m/notion"
 # Copy built package from builder stage
 COPY --from=builder /app/build /usr/local/lib/node_modules/@n24q02m/notion/build
 COPY --from=builder /app/bin /usr/local/lib/node_modules/@n24q02m/notion/bin
+COPY --from=builder /app/skills /usr/local/lib/node_modules/@n24q02m/notion/skills
 COPY --from=builder /app/package.json /usr/local/lib/node_modules/@n24q02m/notion/
 COPY --from=builder /app/README.md /usr/local/lib/node_modules/@n24q02m/notion/
 COPY --from=builder /app/LICENSE /usr/local/lib/node_modules/@n24q02m/notion/
