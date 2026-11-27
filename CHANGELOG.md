@@ -2,6 +2,29 @@
 
 <!-- version list -->
 
+## v2.47.0-beta.1 (2026-11-27)
+
+### Bug Fixes
+
+- Sync Wave 0 README promo, docs links, and mise config
+  ([#1384](https://github.com/n24q02m/notion/pull/1384),
+  [`317bcaf`](https://github.com/n24q02m/notion/commit/317bcaffbaeaad88c6a924f3dc32d201ecc88dd1))
+
+- **deps**: Lock file maintenance ([#1383](https://github.com/n24q02m/notion/pull/1383),
+  [`ce7f825`](https://github.com/n24q02m/notion/commit/ce7f8255e4fc1cfe8ad6f7088c91864aec6bf345))
+
+- **deps**: Update minor dependencies ([#1375](https://github.com/n24q02m/notion/pull/1375),
+  [`68ccdea`](https://github.com/n24q02m/notion/commit/68ccdea7941e6160e79b14f67f287ab92bd3896b))
+
+- **deps**: Update patch dependencies ([#1382](https://github.com/n24q02m/notion/pull/1382),
+  [`115060c`](https://github.com/n24q02m/notion/commit/115060cd77197a292ad5dc341f362b6805d43f22))
+
+### Features
+
+- Upgrade to mcp 2026-07-28 and hull v0.12 ([#1385](https://github.com/n24q02m/notion/pull/1385),
+  [`b1e447d`](https://github.com/n24q02m/notion/commit/b1e447d42140d36527b6fb5b7449655f3e7f94a8))
+
+
 ## v2.46.0 (2026-11-25)
 
 ### Bug Fixes
