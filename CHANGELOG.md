@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v2.47.0 (2026-11-27)
+
+### Bug Fixes
+
+- Unpin hull beta floor for stable release ([#1386](https://github.com/n24q02m/notion/pull/1386),
+  [`ebd4d30`](https://github.com/n24q02m/notion/commit/ebd4d30777165f37f6a40cc9991a14044cc25182))
+
+
 ## v2.47.0-beta.1 (2026-11-27)
 
 ### Bug Fixes
