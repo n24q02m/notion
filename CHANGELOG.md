@@ -2,6 +2,18 @@
 
 <!-- version list -->
 
+## v2.47.1-beta.1 (2026-11-28)
+
+### Bug Fixes
+
+- Wrap the ci install with socket firewall, add an osv scan and block publish-npm egress
+  ([#1390](https://github.com/n24q02m/notion/pull/1390),
+  [`8255010`](https://github.com/n24q02m/notion/commit/825501034b9d91331e0e52a87b8b7d1354ef9564))
+
+- **deps**: Update patch dependencies ([#1388](https://github.com/n24q02m/notion/pull/1388),
+  [`1d69291`](https://github.com/n24q02m/notion/commit/1d6929130620495e7fbeb36902bbb334a75b5106))
+
+
 ## v2.47.0 (2026-11-27)
 
 ### Bug Fixes
