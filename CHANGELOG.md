@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v2.47.1-beta.2 (2026-11-28)
+
+### Bug Fixes
+
+- Fold the publish-npm egress allowlist so harden-runner reads every endpoint
+  ([#1391](https://github.com/n24q02m/notion/pull/1391),
+  [`13fd2ae`](https://github.com/n24q02m/notion/commit/13fd2aeb2b77bcd50009ff22977dcd94399bd06f))
+
+
 ## v2.47.1-beta.1 (2026-11-28)
 
 ### Bug Fixes
