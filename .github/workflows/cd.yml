@@ -201,12 +201,15 @@ jobs:
       # Block egress on the OIDC publish job. The allowlist is the repo-bootstrap
       # TypeScript template's publish-npm list; the 2026-11-27 audit run 45935580395
       # reached only GitHub, registry.npmjs.org, fulcio and rekor from this job.
+      # The list must be a folded block (`>`): the harden-runner agent splits the
+      # input on spaces only, so a literal block (`|`) reads as a single endpoint and
+      # every other host is blocked (CD run 46146408296, bun install refused).
       - name: Harden Runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: block
           disable-telemetry: true
-          allowed-endpoints: |
+          allowed-endpoints: >
             github.com:443
             api.github.com:443
             objects.githubusercontent.com:443
