@@ -198,10 +198,29 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      # Block egress on the OIDC publish job. The allowlist is the repo-bootstrap
+      # TypeScript template's publish-npm list; the 2026-11-27 audit run 45935580395
+      # reached only GitHub, registry.npmjs.org, fulcio and rekor from this job.
       - name: Harden Runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
-          egress-policy: audit
+          egress-policy: block
+          disable-telemetry: true
+          allowed-endpoints: |
+            github.com:443
+            api.github.com:443
+            objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            codeload.github.com:443
+            raw.githubusercontent.com:443
+            token.actions.githubusercontent.com:443
+            bun.sh:443
+            nodejs.org:443
+            registry.npmjs.org:443
+            fulcio.sigstore.dev:443
+            rekor.sigstore.dev:443
+            timestamp.sigstore.dev:443
+            tuf-repo-cdn.sigstore.dev:443
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
